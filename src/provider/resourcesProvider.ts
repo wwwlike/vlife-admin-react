@@ -1,13 +1,13 @@
 import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
-import { runEffects } from "@formily/core/esm/shared/effective";
 import { ResourcesPageReq, SysResources } from "@src/types/resources";
-import { IdBean, PageVo, Result } from "@src/types/vlife";
+import { DbEntity, PageVo, Result } from "@src/types/vlife";
 import apiClient from "@src/utils/apiClient";
 import { useRequest } from "ahooks";
 import { Options } from "ahooks/lib/useRequest/src/types";
 import { table } from "console";
 import { useEffect, useMemo, useState } from "react";
 import useUrlState from "@ahooksjs/use-url-state";
+
 // const a: TablePagination = {};
 /**
  * 查询数据封装成semi tabl需要的数据结构
@@ -30,6 +30,37 @@ export const useTable = (
     };
   }, [result]);
 };
+
+/**
+ *
+ * @param id 指定角色的全部可选资源(包含未选择的资源)
+ * @returns
+ */
+export const roleAllResources = (id?: string): Promise<any> => {
+  return apiClient.get(`/sysResources/roleAllResources/${id}`);
+};
+
+/**
+ * 查询指定类型已经存在的资源
+ */
+export const getResourcesByType = (type: "menu" | "api"): Promise<any> => {
+  return apiClient.get(`/sysResources/list`, {
+    params: {
+      type: type === "menu" ? "1" : "2",
+    },
+  });
+};
+
+/**
+ * 获得全部资源
+ */
+export const resourcesAll = (): Promise<Result<SysResources[]>> => {
+  return apiClient.get(`/sysResources/list/all`);
+};
+
+export const useResourcesAll = (
+  options: Options<Result<SysResources[]>, any> = { manual: true }
+) => useRequest(resourcesAll, options);
 
 /**
  * 资源查询
@@ -95,7 +126,7 @@ export const useResourcesRemove = (
     manual: true,
   }
 ) =>
-  useRequest((id: string): Promise<Result<number>> => {
+  useRequest((id: Date): Promise<Result<number>> => {
     return apiClient.delete(`/sysResources/remove/${id}`);
   }, options);
 

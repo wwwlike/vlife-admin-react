@@ -29,12 +29,52 @@ export interface FormPageProps extends Omit<FormProps,'dicts'|'modelInfo'>{
   type:'queryForm'|'dataForm',// 查询表单/数据表单
 
 }
-const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],...props}:FormPageProps)=>{
+ 
+const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataChange,fieldsCover,...props}:FormPageProps)=>{
   const {getDict} =useAuth(); //context里的字典信息
-  const [fkMap,setFkMap]=useState<any>({});
-  const {run,data:modelInfo}=useModelInfo({entityName});
+  const [fkMap,setFkMap]=useState<any>({}); // 外键数据集合
+  const {run,data:modelInfo}=useModelInfo({entityName}); //表单模型信息
   const fkInfoFun=getFkInfo;
+  const [history,setHistory]=useState<any>(props.formData); //表单变化上一次的数据
+  const [fdata,setFData]=useState<any>(props.formData); //表单最新数据
+  const [staticFields,setStaticFields]=useState<any>(fieldsCover); //字段信息后台传过来，这里去取渲染需要的data
+  const [ddd,setDdd]=useState<any>();
+  /**
+   * loadData 特定字段需要加载数据，去请求
+   * 数据变化，如果有异步请求数据需求则去处理
+   * id：第一次请求获取，
+   * 其他字段，变化后获取
+   */
+  useEffect(()=>{
+    if(fieldsCover){
+     fieldsCover.forEach(f=>{
+        if(f.props
+          && f.props.loadData!==undefined){
+              if(f.props.params===[]||f.props.params===undefined||!props.formData){
+                f.props.loadData().then(dd=>{
+                  f.props!.datas=dd.data
+                  setStaticFields([...fieldsCover]);
+                })
+              }else if(props.formData&&f.props.params.length===1&&f.props.params[0]==='id'){
+                  const idVal=props.formData['id']||undefined;
+                  f.props.loadData(idVal).then(dd=>{
+                    f.props!.datas=dd.data
+                    setStaticFields([...fieldsCover]);
+                  })
+              }
+        }
+        return f;
+      })
+    }
+  },[props.formData]);//初始化数据第一次去取
 
+  // 数据变化，查询需要监听的字段，判断上次与本次之间是否有变化，有变化则触发数据请求（待补充完善）
+  useEffect(()=>{
+    if(fieldsCover){
+      
+    }
+    setHistory({...fdata}) //更新上一次数据
+  },[fdata]);
 
   /**
    * 模型里的字典数组
@@ -119,25 +159,45 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],...prop
   else if(type==='dataForm'){
     return (
       <> 
-      <VlifeForm 
+             {/* {JSON.stringify(staticFields)} */}
+     <VlifeForm 
           entityName={entityName}
           modelInfo={modelInfo.data}
           dicts={getDict(...modelDicts)}
           fkMap={fkMap}
           maxColumns={maxColumns}
+          fieldsCover={staticFields}
+          onDataChange={
+            data=>{
+              setFData(data)
+              if(onDataChange){
+                onDataChange(data)
+              }
+            }
+          }
           {...props}
-        ></VlifeForm>
+        ></VlifeForm> 
         </>
     )
   }else{
     return (
       <>
-      <QueryForm 
+         {/* {JSON.stringify(fieldsCover)} */}
+               <QueryForm 
           entityName={entityName}
           modelInfo={modelInfo.data}
           dicts={getDict(...modelDicts)}
           fkMap={{...fkMap}}
           maxColumns={maxColumns}
+          fieldsCover={staticFields}
+          onDataChange={
+            data=>{
+              setFData(data)
+              if(onDataChange){
+                onDataChange(data)
+              }
+            }
+          }
           {...props}
         ></QueryForm> 
         </>

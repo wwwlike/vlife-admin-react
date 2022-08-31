@@ -14,8 +14,6 @@ const TemplatePage = lazy(() => import('../pages/template'))
 const DashboardWorkbeach = lazy(() => import('../pages/dashboard/workbeach'))
 const Quickstart = lazy(() => import('../pages/guide/quickstartMp4'))
 
-
-
 const UserPage = lazy(() => import('../pages/sys/user'))
 const DictPage = lazy(() => import('../pages/sys/dict'))
 const ResourcesPage = lazy(() => import('../pages/auth/resources'))
@@ -24,6 +22,7 @@ const GroupPage = lazy(() => import('@src/pages/auth/group'))
 const Abnormal403 = lazy(() => import('@src/pages/abnormal/403'))
 const Abnormal404 = lazy(() => import('@src/pages/abnormal/404'))
 const Abnormal500 = lazy(() => import('@src/pages/abnormal/500'))
+const TsCode = lazy(() => import('@src/pages/tsCode'))
 const routeList: RouteObject[] = [
 	{
 		path: '/',
@@ -88,6 +87,15 @@ const routeList: RouteObject[] = [
 			{
 				path: 'abnormal/500',
 				element: <WrapperRouteComponent element={<Abnormal500 />} titleId="500" auth />
+			},
+			{
+				path: 'ts/code',
+				element: (
+					<WrapperRouteComponent
+						element={<TsCode/>}
+						titleId="文件下载"
+					/>
+				)
 			}
 		]
 	},
@@ -103,7 +111,10 @@ const routeList: RouteObject[] = [
 				titleId="404"
 			/>
 		)
-	}
+	},
+	
+
+
 ]
 
 const RenderRouter: FC = () => {

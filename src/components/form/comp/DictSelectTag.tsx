@@ -10,7 +10,7 @@ interface FormliyDictSelectTagProps{
  */
 const FormliyDictSelectTag=observer((prop:FormliyDictSelectTagProps)=>{
   const field = useField<ArrayField>();
-  const fieldName:string=field.path.entire.toString();
+  const fieldName:string=field.props.name as string;//field.path.entire.toString();
   const form = useForm();
   const selectMore=useMemo(()=>{
     return !(field.componentProps['type']==='string'&&field.componentProps['fieldType']==='basic')

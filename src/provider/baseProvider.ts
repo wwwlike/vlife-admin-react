@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRequest } from "ahooks";
 import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import qs from "qs";
-import SizeContext from "antd/lib/config-provider/SizeContext";
 
 /**
  * 列表分页参数组装

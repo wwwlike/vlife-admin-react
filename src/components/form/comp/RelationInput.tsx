@@ -1,14 +1,10 @@
 import {  Input, TagInput } from '@douyinfe/semi-ui';
-import { IconSearch } from '@douyinfe/semi-icons';
 import React, {useEffect, useMemo, useRef, useState } from 'react';
 import { useNiceModal } from '@src/store';
 import { observer, useField, useForm } from '@formily/react';
 import apiClient from '@src/utils/apiClient';
-import { Result } from '@src/types/vlife';
 import { useSelector } from 'react-redux';
-import { stringLength } from '@formily/shared';
 import { ArrayField } from '@formily/core';
-import { useUpdateEffect } from 'ahooks';
 /**
  * 外键关系展示[INPUT+TAG]组件
  * 1. 核心状态：
@@ -38,7 +34,7 @@ const RelationInput=observer((props:RelationInputProps)=>{
   // 请求主键的名称考虑用reqctQuery缓存起来
   const [entityName,setEntityName]=useState('');
   //字段名
-  const [fieldName,setFieldName]=useState(field.path.entire.toString());
+  const [fieldName,setFieldName]=useState(field.props.name as string);
   //判断是否选多个
   const selectMore=useMemo(()=>{
     return !(field.componentProps['type']==='string'&&field.componentProps['fieldType']==='basic')

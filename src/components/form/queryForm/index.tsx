@@ -7,15 +7,15 @@
  */
  import React, { useCallback, useEffect, useMemo, useState } from 'react';
  import { createForm, onFormInit,onFormMount,onFormValuesChange } from '@formily/core';
- import { createSchemaField,  FormProvider, observer, Schema, useFieldSchema, useForm } from '@formily/react';
+ import { createSchemaField,  FormConsumer,  FormProvider, Observer, observer, Schema, useFieldSchema, useForm } from '@formily/react';
  import { FormItem, Input ,FormGrid,GridColumn,ArrayItems,ArrayTable,FormTab,DatePicker} from '@formily/semi';
  import { fieldInfo, ModelInfo, TranDict } from '@src/types/vlife';
  import RelationInput from '@src/components/form/comp/RelationInput'
  import SearchInput from '@src/components/form/comp/SearchInput'
  import DictSelectTag from '@src/components/form/comp/DictSelectTag'
-import Search from './search';
-import { Select } from '@formily/antd';
-import { FormProps } from '..';
+ import { FormProps } from '..';
+ import TreeQuery from '../comp/TreeQuery';
+
 
 
  /**
@@ -23,10 +23,11 @@ import { FormProps } from '..';
   */
   const SchemaField = createSchemaField({
    components: {
-     Input,FormItem,FormGrid,GridColumn,Select,ArrayItems,ArrayTable,FormTab,DatePicker,
+     Input,FormItem,FormGrid,GridColumn,ArrayItems,ArrayTable,FormTab,DatePicker,
      RelationInput,//封装关系选择formily组件，
      SearchInput,
-     DictSelectTag
+     DictSelectTag,
+     TreeQuery,
    },
  })
 //   //表信息
@@ -45,7 +46,11 @@ import { FormProps } from '..';
    
 //  }
 
- export default ({entityName,maxColumns=[2,2,2],dicts,formData,onDataChange,fkMap,modelInfo}:FormProps) => {
+ export default ({entityName,
+  maxColumns=[2,2,2],
+  dicts,formData,onDataChange,fkMap,
+  modelInfo,fieldsCover
+}:FormProps) => {
    
   // const [schema,setSchema]=useState<any>({});
   /**
@@ -67,9 +72,9 @@ import { FormProps } from '..';
            })
          },
        })},
-     [modelInfo]
+     [modelInfo,fieldsCover]
    )
-
+//formData,compData
 
    /**
     * 字典数据提取(字典显示有抖动这里需要测试)
@@ -93,15 +98,50 @@ import { FormProps } from '..';
    },[dicts])
  
 
+   /**
+    * 单个表单属性组合/覆盖
+    */
+   const fieldInfos=useMemo(():(fieldInfo)[]=>{
+    if(!fieldsCover){
+      return modelInfo?.fields||[];
+    }else{
+      // console.log('fieldsCover',fieldsCover);
+      return modelInfo?.fields.map(field=>{
+        const filterResult:Partial<fieldInfo>[] =fieldsCover.filter(cover=>{
+          // console.log(cover.dataIndex,field.dataIndex)
+          return cover.dataIndex===field.dataIndex})
+     
+        if(filterResult&&filterResult[0]){
+          return {...field,...filterResult[0]}
+        }
+        return field;
+      })||[]
+    }
+  },[fieldsCover,modelInfo?.fields])
  
 
    const schema= useMemo(()=>{
     const pp:any={};
-    modelInfo?.fields.forEach((f)=>{
+    fieldInfos.forEach((f)=>{
     const prop:any=pp[f.dataIndex]={};
     prop.title=f.title;
     prop['x-decorator']= 'FormItem';
-      if(f.dictCode||f.type==='boolean'){
+
+    // if(compData&&compData[f.dataIndex]!==undefined){
+    //   console.log("compData[f.dataIndex]",compData[f.dataIndex])
+    //   prop['x-component-props']={...prop['x-component-props'],
+    //   [f.dataIndex]:compData[f.dataIndex]};
+    // }
+
+      //传入的附加属性放入到组件props里的当前组件dataIndex字段之上
+      if(f.props){
+        prop['x-component-props']={...prop['x-component-props'],
+        [f.dataIndex]:f.props};
+      }
+
+      if(f.component){
+        prop['x-component']=f.component;
+      }else if(f.dictCode||f.type==='boolean'){
         prop['x-component']='DictSelectTag'
         if(f.dictCode)
           prop.enum=fieldEnum(f.dictCode);
@@ -140,14 +180,14 @@ import { FormProps } from '..';
           }
         },
       }
-    },[modelInfo,fkMap])
+    },[modelInfo,fkMap,formData]) //异步加载的数据，需要监听
    
   
    return (
-     <div>
+     <div>       
        <FormProvider form={form}>
          <SchemaField schema={schema}></SchemaField>
-       </FormProvider>
+       </FormProvider> 
      </div>
      )
  }

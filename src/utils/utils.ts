@@ -5,6 +5,14 @@ export const isFalsy = (value: unknown) => (value === 0 ? false : !value);
 
 export const isVoid = (value: unknown) =>
   value === undefined || value === null || value === "";
+
+/**
+ * 去除结尾的o
+ */
+export const removeEnds0 = (value: string) => {
+  return value.replace(/(0+)$/g, "");
+};
+
 /**
  * 把空的值的key删除掉,时解构进来的就回结构出去(...)
  * @param object

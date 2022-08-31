@@ -1,6 +1,6 @@
-import { IdBean, Pager, PageReq } from "./vlife";
+import { DbEntity, IdBean, Pager, PageReq } from "./vlife";
 
-interface SysResources extends IdBean {
+interface SysResources extends DbEntity {
   /**
    * 接口地址
    */
@@ -20,7 +20,7 @@ interface SysResources extends IdBean {
   /**
    * 资源类型  1菜单 2接口
    */
-  type: String;
+  type: "1" | "2"; // 1菜单 ，2 接口;
   /**
    * 请求方式
    */
@@ -33,6 +33,10 @@ interface SysResources extends IdBean {
    * 上级资源code(一级菜单没有上级资源)
    */
   pcode: string;
+  /**
+   * 归属菜单
+   */
+  menuCode: string;
 }
 
 interface ResourcesPageReq extends Pager {

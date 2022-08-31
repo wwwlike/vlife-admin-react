@@ -5,6 +5,7 @@ import { TranDict } from '@src/types/vlife';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { brotliCompress } from 'zlib';
+import Icon from '../icon';
 
 /**
  * > 目前使用semi的组件进行vlife的table的二次封装、
@@ -148,7 +149,7 @@ export default ({
                         if(item?.attr){
                           prop =item?.attr(record)
                         }
-                        const button =<Button key={"_"+item.key+"_"+record.id} disabled={prop.disable}
+                        const button =<Button icon={<Icon name={item.key||''} />} key={"_"+item.key+"_"+record.id} disabled={prop.disable}
                         theme='borderless' type='primary' onClick={()=>{
                         item.fun&&item.fun(record)}}>
                               {item.title}
@@ -226,7 +227,7 @@ export default ({
             if(item?.attr){
               prop =item?.attr(...selectedRow)
             }
-            const button=<Button loading={item.loading} key={item.entityName+'_'+item.key} onClick={()=>{if(item.fun){item.fun(...selectedRow)};setSelectedRow([])}} 
+            const button=<Button icon={<Icon name={item.icon||''} />} loading={item.loading} key={item.entityName+'_'+item.key} onClick={()=>{if(item.fun){item.fun(...selectedRow)};setSelectedRow([])}} 
             disabled={prop?.disable}
           >{(!prop.disable&&prop.title)?prop.title:item.title}</Button>
 

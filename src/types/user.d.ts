@@ -32,6 +32,7 @@ interface UserVo {
 interface UserPageReq extends Pager {
   search: string;
   sysGroupId: string;
+  area: string;
 }
 
 interface User extends IdBean {

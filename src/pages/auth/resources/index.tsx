@@ -2,6 +2,7 @@ import { Card } from '@douyinfe/semi-ui';
 import { reactions } from '@src/components/form';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
+import { resourcesAll } from '@src/provider/resourcesProvider';
 import React, { useMemo, useState} from 'react';
 
 
@@ -14,7 +15,6 @@ import React, { useMemo, useState} from 'react';
 export default ()=>{
   //2页面模块需要共享的查询条件状态
   const [formData,setFormData]=useState<any>();
-
   const reactions=useMemo(():Map<string,reactions>=>{
     const map=new Map<string,reactions>();
     map.set('code',{
@@ -26,8 +26,7 @@ export default ()=>{
         }
       }
     })
-
-    map.set('pcode',{
+    map.set('menuCode',{
       dependencies:['.url'],
       when:'{{$deps[0]}}',
       fulfill:{
@@ -39,7 +38,6 @@ export default ()=>{
     return map;
   },[])
   
-
   return (
     <div className='h-full overscroll-auto'>
     <div  className='h-full w-72 float-left ' >
@@ -53,7 +51,7 @@ export default ()=>{
             modelName='sysResourcesPageReq'
              />
             {/* <Search paramName='search' params={pageReq} setParams={setPageReq} pageInit="pager.page"/> */}
-            <div> {formData?.search} </div> 
+            <div> {JSON.stringify(formData)} </div> 
           </Card>
       </div>
       <div className='h-full md:min-w-3/4'>
@@ -63,8 +61,21 @@ export default ()=>{
              <TablePage
                 req={formData}
                 entityName='sysResources' 
-                editModel={{name:'sysResources'
-                ,reactions,requiredCols:['code','name','type']}}
+                editModel={
+                  {
+                  name:'sysResources',
+                  fieldsCover:[
+                    {
+                      dataIndex:'pcode',
+                      component:'TabSelect',//固定一个范围去取
+                      props:{
+                        loadData:resourcesAll
+                      }
+                    },
+                  ],
+                  reactions //级联关系数据,应该整合到fieldsCover里
+                  ,requiredCols:['code','name','type']//必填字段,应该整合到fieldsCover里
+                }}
                 hideColumns={['createDate','modifyDate','sysRoleId','status','createId','modifyId']}
                 select_more={true}
                 />

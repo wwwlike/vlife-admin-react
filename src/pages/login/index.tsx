@@ -38,7 +38,7 @@ const Index: React.FC = () => {
       <main className="bg-white max-w-lg mx-auto p-8 md:p-12 my-10 rounded-lg shadow-2xl">
         <section>
             <h3 className="font-bold text-2xl">欢迎你体验VLIFE平台快速开发能力</h3>
-            <p className="text-gray-600 pt-2">请输入账号信息.</p>
+            <p className="text-gray-600 pt-2">账号密码：admin/123456</p>
         </section>
 
       

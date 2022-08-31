@@ -5,9 +5,12 @@ import Table, { BtnMemoProp, ListProps, VfButton } from '@src/components/table';
 import { useAuth } from '@src/context/auth-context';
 import { reactions } from '@src/components/form';
 import { useLocation } from 'react-router-dom';
+import { fieldInfo } from '@src/types/vlife';
 
 type editModelProps={
   name:string,
+  fieldsCover?:(Partial<fieldInfo>&{dataIndex:string})[],
+  // 下面的字段应该要整合到fieldsCover里成为各个字段的属性
   reactions?:Map<string,reactions>,
   hideCols?:string[], //隐藏字段
   readonlyCols?:string[], //只读字段
@@ -30,7 +33,9 @@ type editModelProps={
     req?:any //搜索form待入的条件
     btnEnable?:{read?:boolean,edit?:boolean,add?:boolean,rm?:boolean,batchRm?:boolean,view?:boolean} //默认开放的按钮
     customBtns?:VfButton[], //页面传入的个性化按钮
-    onGetData?:(datas:any[])=>void//数据加载完成事件
+    onGetData?:(datas:any[])=>void//数据加载完成事件,把数据传出去
+    // onEditCallBack?:(id:string)=>Promise<any>,//编辑之前取得其他非表单外键之外需要传入的数据
+    // onAddCallBack?:()=>Promise<any>,//新增之前取得传入表单的数据
   }
  
 /**
@@ -44,46 +49,6 @@ type editModelProps={
  * 5. view的模型可以直接查询到进行展示。
  * 6. edit取数据如果editvo模型也是view模型那么可以用，如果不是则需要去取数据。
  */
-
-  // title: string;//按钮名称
-  // icon:string; //按钮图标
-  // key: string; //按钮Key
-  // index: number; //排序索引
-  // show:boolean;//是否显示
-  // enabled:boolean;//可用状态
-  // prompt?:string;//不可用的提示
-  // tableBtn:boolean;//是否是表的btn
-  // funDataType:'obj'|'objs'|'id'|'ids'|'none'//回调方法传参类型，应该与fun保持一致，这里方便取数据
-  // fun: (record: any) => void 
-  //     |((record: any[]) => void) 
-  //     |((ids: (string | number)[]) => void)
-  //     |(() => void)
-  //     |((id:(string | number)) => void);
-
- /**
-  * @param resourceCodes 当前用户有的权限集合
-  * 按钮是否在数组里：根据权限判断，根据页面是否添加判断 :show
-  * 按钮的状态：计算属性，根据列表数据值判断； enable
-  * 按钮的事件：点击后触发
-  */
-//   const useTableBtns=(entityName:string,resourceCodes?:string[])=>{
-//   const [btns,setBtns]=useState<VfButton[]>([]);
-//   const addBtn=useCallback(
-//     (...btn:VfButton[])=>{
-//       // alert(btns.length)
-//       btn.forEach(b=>{//权限判断是否传入到index页面
-//         if(resourceCodes?.includes(b.entityName?b.entityName:entityName+":"+b.key)){
-//           btns.push(b);
-//         }else{
-//           //无权限
-//           btns.push(b)
-//         }
-//       })
-//       setBtns([...btns])
-//     },[btns]);
-
-//   return {btns,setBtns,addBtn};
-// }
 
 export const TablePage=({
   entityName,
@@ -114,9 +79,6 @@ export const TablePage=({
       ('createId' in record==false && 'modifyId' !in record ==false)//没有这2个字段
       ).length===records.length;
   },[user?.id])
-
-
-  
 
   const editCheck=useCallback((...data:any):BtnMemoProp=> {
     if(!checkUser(data)){
@@ -160,8 +122,11 @@ export const TablePage=({
       onGetData(data.data?.result||[]);
     }
   }});
+  //数据保存的方法
   const {runAsync:save} =useSave({entityName,modelName:typeof editModel=='string'?editModel:editModel.name})
+  //获得数据明细的方法，??xxDetail如何传参
   const {runAsync:getDetail}=useDetail({entityName})
+  //数据删除方法
   const {runAsync:rm} =useRemove({entityName})
   // 外键信息提取
   const fkInfo=getFkInfo;
@@ -248,6 +213,14 @@ export const TablePage=({
     return [];
   },[modelInfo])
 
+  /**
+   * 
+   * @param read 
+   * @param model 
+   * @param record 
+   * @param save 
+   * @param compData indexForm里的组件需要的数据
+   */
   const modalShow=(read:boolean,model:string,record:any,save?:any)=>{
     formModal.show({ //这里因为是any,所以show无提示，不优雅,
       entityName, //voName
@@ -255,26 +228,29 @@ export const TablePage=({
       initData:record,
       saveFun:save,
       type:'dataForm',
-      hideCols:typeof editModel!=='string'?editModel.hideCols:undefined, 
-      readonlyCols:typeof editModel!=='string'?editModel.readonlyCols:undefined, 
-      reactions:typeof editModel!=='string'?editModel.reactions:undefined, 
-      requiredCols:typeof editModel!=='string'?editModel.requiredCols:undefined, 
+      ... typeof editModel!=='string'? editModel:undefined,
       read
     }).then((saveData) => {
       pageRefresh();
     });
   }
 
+  const eidtiModalShow=(record?:any)=>{
+    const editName=typeof editModel=='string'?editModel:editModel.name;
+    if(editName!==listModel&&record&&record.id){
+      getDetail(record.id,editName).then(data=>{// 列表和编辑dto不同，需要加载数据
+        modalShow(false,editName,data.data,save);
+      })
+    }else{
+      modalShow(false,editName,record?record:initData,save);
+    }
+  }
+
   //触发调用的方法
   const entitySave=(record?:any)=>{
-    if((typeof editModel=='string'?editModel:editModel.name)!==listModel&&record&&record.id){
-        getDetail(record.id,editModel).then(data=>{// 列表和编辑dto不同，需要加载数据
-          modalShow(false,typeof editModel=='string'?editModel:editModel.name,data.data,save);
-        })
-      }else{
-        modalShow(false,typeof editModel=='string'?editModel:editModel.name,record?record:initData,save);
-      }
+    eidtiModalShow(record);
    };
+
    const view=(record?:any)=>{
     if(viewModel!==listModel){
       getDetail(record.id,viewModel).then(data=>{

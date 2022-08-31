@@ -10,6 +10,8 @@ export interface IdBean {
 export interface DbEntity extends IdBean {
   createDate: Date;
   modifyDate: Date;
+  createId: string;
+  modifyId: string;
   status: string;
 }
 
@@ -88,10 +90,23 @@ export interface fieldInfo {
   type: "string" | "number" | "boolean" | "date"; //字段类型 string
   fieldType: "basic" | "list";
   title: string; //中文名
-  dictCode?: string; //字典
+  dictCode?: string; //字典code
   pathName: string; // 全量路径字段
   entityFieldName: string; //数据库模型字段
   entityType: string;
+  // 附加属性
+  component: string; //使用组件
+  labelProps: any; //包装名称层属性
+  span: number; //组件栅格数量
+  props: {
+    //自定义组件需要的属性
+    params?: string[]; //loadData需要监听的属性，名称要修改
+    loadData?: (obj?: any) => Promise<Result<any[]>>; //异步取数据的方法
+    // any各组件独有的属性
+    datas?: any[]; //元素单个加载时候给的数据
+    syscParams?: string[]; //异步的参数名称集合
+    syncDatas?: (obj: any) => Promise<Result<any>>; //组件提取时给的数据
+  }; //
 }
 
 //表信息

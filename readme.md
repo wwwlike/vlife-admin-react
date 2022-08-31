@@ -2,13 +2,28 @@
 
 > vlife-admin-react 是*vlife*低代码的平台方案的前端基于 react 的落地方案。通过于后端接口融合，可实现后端人员定义好数据模型，前端页面则可以按照模型配置信息自动渲染出 CRUD 页面。可以有效降低前端开发繁多的开发工作。
 
+## 演示地址
+
+[http://oa.wwwlike.cn](http://oa.wwwlike.cn)
+
+## vlife-admin 后台源码开源地址
+
+[https://githubs.com/wwwlike/vlife-admin](https://githubs.com/wwwlike/vlife-admin)
+
 ## 技术栈
 
 - react18,typescript4,hooks,formily,ahooks.
 
-## 面向人群
+## 功能
 
-- 后端开发：后端可不依赖前端完成整体项目开发工作，且高效质量会更高。
-- 前端开发：前端从繁多的业务开发解放出来，能够有更多精力去完成公司产品层面的的组件积累，及架构设计工作。
-
-## 使用步骤
+. 🚙 基于 `semi` 的 UI 框架基础组件之上封装的模块级、页面级组件
+. 引入 formily,配合 v-life 服务端给到的模型元数据信息可实现动态表单
+. RBAC 权限管理，支持到按钮粒度，并支持对行数据无权限的操作提示
+. 用户管理
+. 机构管理
+. 字典管理
+. 角色管理
+. 权限组管理
+. 权限资源管理
+. 地区管理
+. 部门管理

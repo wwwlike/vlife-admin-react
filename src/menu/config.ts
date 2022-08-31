@@ -32,10 +32,16 @@ const MENU_CONFIG: MenuItem[] = [
       },
       {
         itemKey: "1-3",
-        text: "快速入门",
+        text: "生成代码",
         icon: IconHome,
-        path: "/guide/quickStart",
+        path: "/ts/code",
       },
+      // {
+      //   itemKey: "1-3",
+      //   text: "快速入门",
+      //   icon: IconHome,
+      //   path: "/guide/quickStart",
+      // },
     ],
   },
   {

@@ -43,10 +43,13 @@ export default () => {
             【使用指南】 <a target={'_blank'} href='http://vlife.wwwlike.cn'>http://vlife.wwwlike.cn</a>
           </p>
           <p className='text-xl' style={{ lineHeight: 1.8 }}>
-            【github】<a target={'_blank'} href='https://github.com/wwwlike/vlife'>https://github.com/wwwlike/vlife</a> 
+            【VLIFE平台】<a target={'_blank'} href='https://github.com/wwwlike/vlife'>https://github.com/wwwlike/vlife</a> 
           </p>
           <p className='text-xl' style={{ lineHeight: 1.8 }}>
-            【gitee】<a target={'_blank'} href='https://gitee.com/wwwlike/vlife'>https://github.com/wwwlike/vlife</a>
+            【VLIFE-ADMIN后端】<a target={'_blank'} href='https://gitee.com/wwwlike/vlife-admin'>https://github.com/wwwlike/vlife-admin</a>
+          </p>
+          <p className='text-xl' style={{ lineHeight: 1.8 }}>
+            【VLIFE-ADMIN前端】<a target={'_blank'} href='https://gitee.com/wwwlike/vlife-admin-react'>https://github.com/wwwlike/vlife-admin-react</a>
           </p>
           <p className='text-xl' style={{ lineHeight: 1.8 }}>
             【视频介绍】<a target={'_blank'} href='https://www.bilibili.com/video/BV1sT411c71v/?vd_source=4c025d49e1ac4adb74b6dd2a39ce185e&t=119.6'>五分钟了解vlife快速开发</a> 
