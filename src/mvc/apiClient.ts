@@ -56,9 +56,14 @@ instance.interceptors.response.use(
     // return Promise.reject(res.data);
   },
   (err) => {
+    if (err.code === "ERR_NETWORK") {
+      alert("服务端异常");
+    } else {
+    }
+    // console.log("err", err);
     if (err.response.status === 403) {
+      alert("无权限访问");
       window.localStorage.removeItem(localStorageKey);
-      // alert("无权限");
       // 统一处理未授权请求，跳转到登录界面
       // document.location = "/login";
     }

@@ -11,10 +11,10 @@ interface Iprops {
 
 const Result: FC<Iprops> = ({ title, description, type }) => {
 	const navigate = useNavigate()
-	useEffect(()=>{
-		if(type==='403'){
-			navigate(`/login${'?from=' + encodeURIComponent(location.pathname)}`, { replace: true })		}
-	},[])
+	// useEffect(()=>{
+	// 	if(type==='403'){
+	// 		navigate(`/login${'?from=' + encodeURIComponent(location.pathname)}`, { replace: true })		}
+	// },[])
 	return (
 
 		<Empty

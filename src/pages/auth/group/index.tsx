@@ -1,8 +1,7 @@
 import { Card } from '@douyinfe/semi-ui';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
-import { UserPageReq } from '@src/types/user';
-import React, { useEffect, useState} from 'react';
+import React, { useState} from 'react';
 
 
 /**

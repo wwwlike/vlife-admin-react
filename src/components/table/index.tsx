@@ -1,7 +1,7 @@
 import { Button, Popover, Table, Tag, TagInput, Tooltip } from '@douyinfe/semi-ui';
 import { ColumnProps, RowSelection, TableProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useAuth } from '@src/context/auth-context';
-import { TranDict } from '@src/types/vlife';
+import { TranDict } from '@src/mvc/base';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { brotliCompress } from 'zlib';

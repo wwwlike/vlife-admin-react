@@ -13,7 +13,7 @@ import { AppProviders } from '@src/context';
 const TemplatePage = lazy(() => import('../pages/template'))
 const DashboardWorkbeach = lazy(() => import('../pages/dashboard/workbeach'))
 const Quickstart = lazy(() => import('../pages/guide/quickstartMp4'))
-
+const AreaPage = lazy(() => import('../pages/sys/area'))
 const UserPage = lazy(() => import('../pages/sys/user'))
 const DictPage = lazy(() => import('../pages/sys/dict'))
 const ResourcesPage = lazy(() => import('../pages/auth/resources'))
@@ -66,7 +66,7 @@ const routeList: RouteObject[] = [
 			},
 			{
 				path: 'sys/sysArea',
-				element: <WrapperRouteComponent element={<TemplatePage />} titleId="地区管理" auth />
+				element: <WrapperRouteComponent element={<AreaPage />} titleId="地区管理" auth />
 			},
 			{
 				path: 'dashboard/workbeach',

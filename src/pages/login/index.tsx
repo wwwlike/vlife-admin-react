@@ -3,7 +3,8 @@ import { useAuth } from "@src/context/auth-context";
 import './login.css'
 import {useForm} from '@src/hooks/useForm'
 import { useNavigate } from 'react-router-dom';
-import { AuthForm } from '@src/types/user';
+import { AuthForm } from '@src/provider/userProvider';
+
 
 
 const Index: React.FC = () => {

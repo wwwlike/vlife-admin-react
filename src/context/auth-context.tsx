@@ -1,22 +1,21 @@
 /**
  * 把用户信息放置到 context里去
  */
-import {useCurrUser,useLogin}  from '@src/provider/userProvider';
-import {Dict,useAllDict}  from '@src/provider/dictProvider';
-import { AuthForm, userDetailVo } from '@src/types/user';
-import { TranDict } from '@src/types/vlife';
+import {AuthForm, useCurrUser,useLogin}  from '@src/provider/userProvider';
+import {useAllDict}  from '@src/provider/dictProvider';
+import { TranDict } from '@src/mvc/base';
 import { useMount } from 'ahooks';
 import React, { ReactNode, useCallback, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { VfButton } from '@src/components/table';
-import { useMemo } from 'react';
-import { rmSync } from 'fs';
+import { SysDict } from '@src/mvc/SysDict';
+import { UserDetailVo } from '@src/mvc/SysUser';
 
 
 const localStorageKey = "__auth_provider_token__";
 //全局状态类型定义，初始化为undefiend ,注意这里返回的是Pomise函数
 const AuthContext = React.createContext<{
-      user: userDetailVo | undefined;
+      user: UserDetailVo | undefined;
       login: (form: AuthForm) => void;
       loginOut:()=>void;
       getDict:(...dictCodes:string[])=>any[];//获得字典信息
@@ -33,8 +32,8 @@ AuthContext.displayName = "AuthContext";
  * 把 authContext需要的数据注入了进来
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user,setUser]=useState<userDetailVo>();
-  const [dicts,setDicts]=useState<Dict[]>([]);
+  const [user,setUser]=useState<UserDetailVo>();
+  const [dicts,setDicts]=useState<SysDict[]>([]);
   const [error,setError]=useState<string|null>();
   const navigate = useNavigate()
 	const location = useLocation()
@@ -65,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       let tranDicts: TranDict[] = [];
       if(dicts){
         codes.forEach((code) => {
-          const codeDicts: Pick<Dict,'title'|'val'>[]=[];
+          const codeDicts: Pick<SysDict,'title'|'val'>[]=[];
            codeDicts.push({val:undefined,title:'全部'})
            codeDicts.push(...dicts.filter((sysDict) => {
             return sysDict.code === code&& sysDict.val;
@@ -119,11 +118,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(undefined);
     navigate("/login")
   },[])
-
-  // //页面刷新只执行一起，拉取用户信息
-  // useMount(run);
-  // const {data,run} =()=> useLogin();
-  // useMount(()=>setUser(null))
 
 
   return (

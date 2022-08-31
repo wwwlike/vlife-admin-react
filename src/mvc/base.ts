@@ -1,43 +1,33 @@
-/**
- *实体模型
- */
+// 数据传输dto
 export interface IdBean {
   id: string;
 }
-/**
- * 数据库实体模型
- */
-export interface DbEntity extends IdBean {
-  createDate: Date;
-  modifyDate: Date;
-  createId: string;
-  modifyId: string;
+//数据逻辑状态
+export interface IStatus {
   status: string;
 }
-
+//数据库实体
+export interface DbEntity extends IdBean, IStatus {
+  createId: string; //创建人
+  modifyId: string; //修订人
+  createDate: Date; //创建日期
+  modifyDate: Date; // 修订日期
+}
+// 后端返回数据封装
+export interface Result<D> {
+  code: string;
+  msg: string;
+  data: D | undefined;
+}
 /**
- * 查询条件基类
- * 所有field的input查询方式的均可以用search进行联合模糊搜索
+ * 分页查询条件
  */
-export interface BaseRequest {
-  search: string; //
+export interface PageQuery {
+  pager: {
+    page: number;
+    size: number;
+  };
 }
-
-/**
- * 分页入参模型 (待删除)
- */
-export interface Pager extends BaseRequest {
-  "pager.page": number;
-  "pager.size": number;
-}
-
-export interface PageReq {
-  pager: { page: number; size: number };
-  //   "pager.page": string;
-  //   "pager.size": string;
-  // }
-}
-
 /**
  *查询分页结果
  */
@@ -50,16 +40,20 @@ export interface PageVo<T extends IdBean> {
   lasts: boolean;
   result: T[];
 }
+export interface VoBean extends IdBean {}
+export interface SaveBean extends IdBean {}
 
 /**
- * 分页结果
+ * 查询条件基类
+ * 所有field的input查询方式的均可以用search进行联合模糊搜索
  */
-export interface Result<D> {
-  data: D | undefined;
-  msg: string;
-  code: string;
+export interface BaseRequest {
+  search: string; //
 }
 
+/**
+ * 字段转换对象
+ */
 export interface TranDict {
   column: string;
   sysDict: { val?: string | undefined; title: string }[];

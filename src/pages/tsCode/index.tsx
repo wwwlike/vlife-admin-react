@@ -3,17 +3,11 @@ import { Button, Card, Col, Divider, Empty, Input, Row, Select, Space, Steps, Ta
 import { useRequest } from 'ahooks';
 import { Notification } from '@douyinfe/semi-ui';
 import { useSelector } from 'react-redux';
-import {JolPlayer} from "jol-player";
 import img from './step1.gif'
-
-
-
-
-
 import {
   IconUpload,IconDownload
 } from "@douyinfe/semi-icons";
-import { Result } from '@src/types/vlife';
+
 
 import { IllustrationNotFound, IllustrationNotFoundDark } from '@douyinfe/semi-illustrations'
 
@@ -61,10 +55,7 @@ export default () => {
           <Row>
               <Col span={16}>
                 <Card className='text-xl'  title={"step1 服务端生成title.json文件"} >
-               
-
-
-                {/* <Empty image={<img src={img} style={{ width: 700, height: 550 }} />}></Empty> */}
+                <Empty image={<img src={img} style={{ width: 700, height: 550 }} />}></Empty>
                 </Card>
               </Col>
               <Col span={8}>
@@ -81,7 +72,6 @@ export default () => {
            }}>
                 重新上传
             </Button>
-
             </Space>
           </div>
           :  <Upload 
@@ -93,19 +83,12 @@ export default () => {
               }else{
                 setState(data.response.data)
               }
-            return data}}
-           >
-              <Button icon={<IconUpload />} theme="light"
-              >
-                  点击上传
-              </Button>{error}
+            return data}}>
+              <Button icon={<IconUpload />} theme="light">点击上传</Button>{error}
           </Upload> }
-                
-            
                 </Card>
                 </Col>
           </Row>
-                </div></div>
-          
+          </div></div>
   )
 };

@@ -8,9 +8,9 @@
  */
  import NiceModal, { createNiceModal, useNiceModal } from '@src/store';
  import React, { useCallback, useMemo, useState } from 'react';
- import {BaseRequest, IdBean } from '@src/types/vlife';
  import FormPage, { FormPageProps } from './formPage';
 import { Form, IFormFeedback } from '@formily/core';
+import { IdBean } from '@src/mvc/base';
  
   /**
     * 1. 动态取数据，页面提供配置，然后存到前端 reactQuery方式缓存

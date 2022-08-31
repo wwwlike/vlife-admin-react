@@ -2,7 +2,7 @@ import { Card } from '@douyinfe/semi-ui';
 import { reactions } from '@src/components/form';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
-import { resourcesAll } from '@src/provider/resourcesProvider';
+import { listAll } from '@src/mvc/SysResources';
 import React, { useMemo, useState} from 'react';
 
 
@@ -51,7 +51,7 @@ export default ()=>{
             modelName='sysResourcesPageReq'
              />
             {/* <Search paramName='search' params={pageReq} setParams={setPageReq} pageInit="pager.page"/> */}
-            <div> {JSON.stringify(formData)} </div> 
+            {/* <div> {JSON.stringify(formData)} </div>  */}
           </Card>
       </div>
       <div className='h-full md:min-w-3/4'>
@@ -69,7 +69,7 @@ export default ()=>{
                       dataIndex:'pcode',
                       component:'TabSelect',//固定一个范围去取
                       props:{
-                        loadData:resourcesAll
+                        loadData:listAll
                       }
                     },
                   ],

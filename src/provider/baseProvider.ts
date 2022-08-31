@@ -1,10 +1,10 @@
-import { fieldInfo, IdBean, ModelInfo, PageVo, Result } from "@src/types/vlife";
-import apiClient from "@src/utils/apiClient";
 import { Options } from "ahooks/lib/useRequest/src/types";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRequest } from "ahooks";
 import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import qs from "qs";
+import apiClient from "@src/mvc/apiClient";
+import { fieldInfo, IdBean, ModelInfo, PageVo, Result } from "@src/mvc/base";
 
 /**
  * 列表分页参数组装
@@ -49,7 +49,6 @@ export const usePage = ({
 }: optionProps) => {
   return useRequest(
     (params: Pager): Promise<Result<PageVo<any>>> => {
-      // alert(qs.stringify(params, { allowDots: true }));
       return apiClient.get(
         `/${entityName}/page${
           listModel && listModel !== entityName ? "/" + listModel : ""
@@ -62,82 +61,6 @@ export const usePage = ({
     { manual, ...options }
   );
 };
-
-/**
- *
- * @param options 通用的列表搜索
- * @returns
- */
-// export const usePage = ({
-//   manual = true,
-//   entityName,
-//   listModel,
-//   ...options
-// }: optionProps) => {
-//   if (!options["pager.size"]) {
-//     options["pager.size"] = 10;
-//   }
-//   //普通state
-//   const [pageReq, setPageReq] = useState<any>({});
-//   // { "pager.page": 1, "pager.size": 5 }
-//   // const [pageReq, setPageReq] = useUrlState<any>();
-//   //能同步到url的state
-//   const req = useRequest((params: any) => {
-//     return apiClient.get(
-//       `/${entityName}/page${
-//         listModel && listModel !== entityName ? "/" + listModel : ""
-//       }?${qs.stringify(params, { arrayFormat: "comma" })}`
-//     );
-//   }, options);
-
-//   // ["pager.page"], pageReq["search"]
-
-//   //分页调用的方法
-//   const setPage = (page: number) => {
-//     setPageReq({ ...pageReq, "pager.page": page });
-//   };
-//   const tableInfo = useTablePage(req.data?.data, setPage);
-
-//   /**
-//    * 页码变换就触发搜索，search触发page=1
-//    */
-//   useEffect(() => {
-//     req.run(pageReq);
-//   }, [pageReq]);
-
-//   return { ...req, tableInfo, pageReq, setPageReq };
-// };
-
-// export const usePage = (
-//   options: optionProps = {
-//     manual: true,
-//     "pager.size": 10,
-//     apiPath: "",
-//   }
-// ) => {
-//   //普通state
-//   const [pageReq, setPageReq] = useState<any>({});
-//   //能同步到url的state
-//   const { apiPath } = options;
-//   const req = useRequest((params: any) => {
-//     return apiClient.get(apiPath, {
-//       params: params,
-//     });
-//   }, options);
-//   /**
-//    * 页码变换就触发搜索，search触发page=1
-//    */
-//   useEffect(() => {
-//     req.run(pageReq);
-//   }, [pageReq["pager.page"], pageReq["search"]]);
-
-//   //回调
-//   const setPage = (page: number) => {
-//     setPageReq({ ...pageReq, "pager.page": page });
-//   };
-//   const tableInfo = useTable(req.data?.data, setPage);
-//   return { ...req, tableInfo, pageReq, setPageReq };
-// };
 
 type modelInfoProps = Options<Result<ModelInfo>, any> & {
   entityName: string;
@@ -186,7 +109,6 @@ export const useSave = ({
 }: Options<Result<any>, any> & { entityName: string; modelName?: string }) =>
   useRequest(
     (params: Partial<any>): Promise<Result<any>> => {
-      // alert(`/${entityName}/save${modelName ? "/" + modelName : ""}`);
       return apiClient.post(
         `/${entityName}/save${
           modelName && modelName !== entityName ? "/" + modelName : ""
@@ -254,7 +176,7 @@ export const useDetails = ({
   );
 
 /**
- * 外键信息拆线呢
+ * 外键信息
  * @param entityName 模块
  * @param ids 主键id
  * @returns
@@ -263,7 +185,6 @@ export const getFkInfo = (
   entityName: string,
   ids: (string | number)[]
 ): Promise<Result<any[]>> => {
-  // alert(`${arrayToStr(ids, ",")}`);
   return apiClient.get(
     `/${entityName}/views/${entityName}?ids=${ids.join(",")}`,
     {

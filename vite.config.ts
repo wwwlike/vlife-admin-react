@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@src": resolve(__dirname, "./src"),
-      "~antd": resolve(__dirname, "./node_modules/antd"),
+      //"~antd": resolve(__dirname, "./node_modules/antd"),
     },
   },
   plugins: [

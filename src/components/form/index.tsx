@@ -2,14 +2,12 @@
  * 使用formliy + semi联合打造的动态表单
  * 考虑使用reactQuery,从后台取得表单信息，然后缓存起来。
  */
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { createForm, Form, IFormFeedback, onFieldValueChange, onFormInit,onFormMount,onFormValuesChange } from '@formily/core';
-import { createSchemaField, Field, FormProvider, mapProps, observer, Schema, useFieldSchema, useForm } from '@formily/react';
+import React, { useCallback, useMemo } from 'react';
+import { createForm, Form, IFormFeedback, onFormInit,onFormMount,onFormValuesChange } from '@formily/core';
+import { createSchemaField, FormProvider, mapProps, observer, Schema, useFieldSchema, useForm } from '@formily/react';
 import { FormItem, Input ,FormGrid,GridColumn,Select,ArrayItems,ArrayTable, Checkbox,DatePicker, FormButtonGroup, Submit, Reset} from '@formily/semi';
-import { BaseRequest, fieldInfo, IdBean, ModelInfo, TranDict } from '@src/types/vlife';
+import {  fieldInfo, ModelInfo, TranDict } from '@src/mvc/base';
 import RelationInput from '@src/components/form/comp/RelationInput'
-import { useSetState } from 'ahooks';
-import CustomSelect from '../select/CustomSelect';
 import RoleResourcesSelect from '@src/pages/auth/role/RoleResourcesSelect/formily';
 import TabSelect from './comp/TabSelect';
 
@@ -22,7 +20,6 @@ import TabSelect from './comp/TabSelect';
     Input,FormItem,FormGrid,GridColumn,Select,ArrayItems,ArrayTable,Checkbox,DatePicker,
     RelationInput,//封装关系选择formily组件。特定组件支持特定业务
     RoleResourcesSelect,// 特定的业务型组件 占2列；自定义组件，根据传参来处理
-    CustomSelect,//自定义选择组件
     TabSelect
   },
 })

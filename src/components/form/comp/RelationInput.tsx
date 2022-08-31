@@ -2,7 +2,6 @@ import {  Input, TagInput } from '@douyinfe/semi-ui';
 import React, {useEffect, useMemo, useRef, useState } from 'react';
 import { useNiceModal } from '@src/store';
 import { observer, useField, useForm } from '@formily/react';
-import apiClient from '@src/utils/apiClient';
 import { useSelector } from 'react-redux';
 import { ArrayField } from '@formily/core';
 /**

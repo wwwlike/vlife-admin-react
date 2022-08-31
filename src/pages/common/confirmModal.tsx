@@ -2,10 +2,8 @@
  * 确认型弹出框
  */
  import NiceModal, { createNiceModal, useNiceModal } from '@src/store';
- import React, { useCallback, useMemo, useState } from 'react';
- import {BaseRequest, IdBean } from '@src/types/vlife';
- import FormPage, { FormPageProps } from './formPage';
-import { Select } from '@douyinfe/semi-ui';
+ import React, { useCallback} from 'react';
+ import  { FormPageProps } from './formPage';
  
   /**
     * 1. 动态取数据，页面提供配置，然后存到前端 reactQuery方式缓存
@@ -15,8 +13,6 @@ import { Select } from '@douyinfe/semi-ui';
     title?:string,//默认删除的内容
     
  }
-
-
  
  /**
   * 传save则用传入的save进行保存，否则就用通用保存方法进行

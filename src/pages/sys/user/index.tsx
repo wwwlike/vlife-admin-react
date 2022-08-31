@@ -1,15 +1,12 @@
-import { Button, Card } from '@douyinfe/semi-ui';
+import { Card } from '@douyinfe/semi-ui';
 import { BtnMemoProp, VfButton } from '@src/components/table';
 import { useAuth } from '@src/context/auth-context';
+import { listAll } from '@src/mvc/SysArea';
+import { SysUserPageReq } from '@src/mvc/SysUser';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
-import { useListAll,listAll } from '@src/provider/area';
-import { useCurrUser } from '@src/provider/userProvider';
-
-import { UserPageReq } from '@src/types/user';
 import { removeEnds0 } from '@src/utils/utils';
-
-import React, { useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 /**
  * 在封装一层
@@ -20,7 +17,7 @@ import React, { useCallback, useEffect, useMemo, useState} from 'react';
 export default ()=>{
   const {user}= useAuth();
   //2页面模块需要共享的查询条件状态
-  const [formData,setFormData]=useState<Partial<UserPageReq>>({});
+  const [formData,setFormData]=useState<Partial<SysUserPageReq>>({});
   const stateCheck=(...objs:any):BtnMemoProp=> {
     const length0=objs.filter((obj: { state: string; })=>obj.state==='0').length;
     const length1=objs.filter((obj: { state: string; })=>obj.state==='1').length;
@@ -79,7 +76,6 @@ export default ()=>{
                 select_more={true}
                 customBtns={customBtns}
                 />
-          {/* {JSON.stringify(data?.data)} */}
           </Card>
       </div> 
     </div>

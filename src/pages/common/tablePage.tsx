@@ -1,11 +1,11 @@
 import {useNiceModal } from '@src/store';
 import React, {useCallback, useEffect, useMemo, useState } from 'react';
-import { getFkInfo, useDetail, useDetails, useModelInfo, usePage, useRemove, useSave } from '@src/provider/baseProvider';
+import { getFkInfo, useDetail,useModelInfo, usePage, useRemove, useSave } from '@src/provider/baseProvider';
 import Table, { BtnMemoProp, ListProps, VfButton } from '@src/components/table';
 import { useAuth } from '@src/context/auth-context';
 import { reactions } from '@src/components/form';
 import { useLocation } from 'react-router-dom';
-import { fieldInfo } from '@src/types/vlife';
+import { fieldInfo } from '@src/mvc/base';
 
 type editModelProps={
   name:string,

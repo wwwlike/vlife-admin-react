@@ -1,15 +1,13 @@
 /**
  * 根据vlife的req模型结合formily实现配置搜索组件功能
- */
-/**
  * 使用formliy + semi联合打造的动态表单
  * 考虑使用reactQuery,从后台取得表单信息，然后缓存起来。
  */
- import React, { useCallback, useEffect, useMemo, useState } from 'react';
- import { createForm, onFormInit,onFormMount,onFormValuesChange } from '@formily/core';
- import { createSchemaField,  FormConsumer,  FormProvider, Observer, observer, Schema, useFieldSchema, useForm } from '@formily/react';
+ import React, { useCallback,  useMemo} from 'react';
+ import { createForm, onFormInit,onFormValuesChange } from '@formily/core';
+ import { createSchemaField,FormProvider} from '@formily/react';
  import { FormItem, Input ,FormGrid,GridColumn,ArrayItems,ArrayTable,FormTab,DatePicker} from '@formily/semi';
- import { fieldInfo, ModelInfo, TranDict } from '@src/types/vlife';
+ import { fieldInfo} from '@src/mvc/base';
  import RelationInput from '@src/components/form/comp/RelationInput'
  import SearchInput from '@src/components/form/comp/SearchInput'
  import DictSelectTag from '@src/components/form/comp/DictSelectTag'
@@ -30,21 +28,6 @@
      TreeQuery,
    },
  })
-//   //表信息
-//  export interface FormProps {
-//    entityName:string,
-//    formData?:any, // form初始数据
-//    setFormData:(data:any)=>void //修改数据传出去
-//    setError?: () => void; //校验错误信息
-//    hideColumns?: string[]; //需要隐藏的不显示的列
-//    read?: boolean; //只读模式
-//    dicts?: TranDict[]; //字典信息
-//    layout?:string,// [] 横/纵布局
-//    modelInfo:ModelInfo|undefined;
-//    maxColumns?: number[];//列信息
-//    fkMap?:any;
-   
-//  }
 
  export default ({entityName,
   maxColumns=[2,2,2],
@@ -52,7 +35,6 @@
   modelInfo,fieldsCover
 }:FormProps) => {
    
-  // const [schema,setSchema]=useState<any>({});
   /**
     * 动态表单数据初始化
     */
@@ -74,7 +56,6 @@
        })},
      [modelInfo,fieldsCover]
    )
-//formData,compData
 
    /**
     * 字典数据提取(字典显示有抖动这里需要测试)
@@ -180,9 +161,8 @@
           }
         },
       }
-    },[modelInfo,fkMap,formData]) //异步加载的数据，需要监听
+    },[modelInfo,fkMap,formData]) 
    
-  
    return (
      <div>       
        <FormProvider form={form}>

@@ -1,10 +1,8 @@
-import { IconAlertCircle } from '@douyinfe/semi-icons';
 import VlifeForm, { FormProps } from '@src/components/form';
 import QueryForm from '@src/components/form/queryForm';
 import { useAuth } from '@src/context/auth-context';
-import { getFkInfo, useDetails, useModelInfo } from '@src/provider/baseProvider';
-import { fieldInfo, ModelInfo, TranDict } from '@src/types/vlife';
-import React, { useCallback, useEffect,useMemo,useRef,useState } from 'react';
+import { getFkInfo,  useModelInfo } from '@src/provider/baseProvider';
+import React, {useEffect,useMemo,useState } from 'react';
 
 
 
@@ -50,7 +48,8 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
      fieldsCover.forEach(f=>{
         if(f.props
           && f.props.loadData!==undefined){
-              if(f.props.params===[]||f.props.params===undefined||!props.formData){
+            //无入参追踪或者是新增数据
+              if(f.props.params===undefined||f.props.params.length===0||props.formData===undefined){
                 f.props.loadData().then(dd=>{
                   f.props!.datas=dd.data
                   setStaticFields([...fieldsCover]);

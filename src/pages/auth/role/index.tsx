@@ -2,7 +2,7 @@ import { Card } from '@douyinfe/semi-ui';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
 import React, { useState} from 'react';
-import { roleAllResources } from '@src/provider/resourcesProvider';
+import { roleAllResources } from '@src/mvc/SysResources';
 import { rejects } from 'assert';
 import TabSelect from '@src/components/select/TabSelect';
 import TreeQuery from '@src/components/tree/TreeQuery';
@@ -16,13 +16,6 @@ export default ()=>{
   //2页面模块需要共享的查询条件状态
   const [pageReq,setPageReq]=useState({});
   const entityName="sysRole";
-  //考虑封装 字段，加参数，封装返回需要的Promise数据
-  // const getResourcesData=(id?:string):Promise<any>=>{
-  //   return roleAllResources(id).then(data=>{
-  //       return {'sysResources_id':data.data};
-  //     }
-  //   )
-  // }
   return (
     <div className='h-full overscroll-auto'>
     <div  className='h-full w-72 float-left ' >
