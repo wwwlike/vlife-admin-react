@@ -4,11 +4,11 @@
 
 ## 特点
 
-- **[react 技术栈新]:** 市面上多为 vue-admin 的骨架系统，好用的 react-admin 很少，可作为项目骨架，也可作为学习 react 的参照项目，帮你快速了解 react 的方方面面.
-- **[UI 框架不千篇一律]:** 前端 UI 组件库使用字节跳动开源的[semi](http://semi.design),拥有多种作[主题](https://semi.design/dsm/landing)(飞书、抖音、火山、剪映)和暗色模式，让你的应用显著区别 elementUi,antd 的风格系统。
+- **[react 技术栈]:** 市面上多为 vue-admin 的骨架系统，好用的 react-admin 很少，可作为项目骨架，也可作为学习 react 的参照项目，帮你快速了解 react 的方方面面.
+- **[UI 组件丰富]:** 前端 UI 组件库使用字节跳动开源的[semi](http://semi.design),拥有多种作[主题](https://semi.design/dsm/landing)(飞书、抖音、火山、剪映)和暗色模式，让你的应用显著区别 elementUi,antd 的风格系统。
 - **[代码可生成]:** 已开放了将服务端数据模型及接口对应生成前端数据接口及 API 的访问代码(包含注释)，前端只用写页面功能即可. 基本可以告别看接口文档了
 - **[业务组件库]:** 使用 ts4+hooks 进行组件式开发,已经封装了 10+的模块页面级的业务组件库,让你开发功能速度显著提升
-- **[开箱即用]:** 信息系统骨架权限\用户管理已经全部集成进来
+- **[开箱即用]:** 信息系统骨架权限\用户管理功能已经全部集成进来,完成相关业务模块开发即可
 
 ## 演示地址
 
@@ -129,4 +129,4 @@ export const remove = (id: string): Promise<Result<number>> => {
   ![](http://vlife.wwwlike.cn/static/img/qq_qun_786134846.png)
 
 - 微信：vlifeBoot
-  ![](http://oa.wwwlike.cn/wx.jpg)
+  <img src="http://oa.wwwlike.cn/wx.jpg" width=200 height=200 />
