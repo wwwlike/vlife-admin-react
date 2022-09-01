@@ -1,6 +1,6 @@
 # vlife-admin-react 介绍
 
-> vlife-admin-react 是*V-LIFE*快速开发平台前端 react 实现的权限管理系统，可作为于大多数信息系统的骨架使用。
+> vlife-admin-react 是*V-LIFE*快速开发平台前端 react 实现的权限管理系统，可作为大多数信息系统的基础开发骨架使用。
 
 ## 特点
 
@@ -32,6 +32,12 @@
 - semi： 字节跳动前端开源组件，可更换主题(飞书、抖音等)
 
 ## 功能模块
+
+![](http://oa.wwwlike.cn/0.png)
+![](http://oa.wwwlike.cn/1.png)
+![](http://oa.wwwlike.cn/2.png)
+![](http://oa.wwwlike.cn/3.png)
+![](http://oa.wwwlike.cn/4.png)
 
 ### 系统管理(sys)
 
@@ -117,4 +123,10 @@ export const remove = (id: string): Promise<Result<number>> => {
 };
 ```
 
-## 页面效果
+## 联系帮助
+
+- QQ 讨论群：786134846
+  ![](http://vlife.wwwlike.cn/static/img/qq_qun_786134846.png)
+
+- 微信：vlifeBoot
+  ![](http://admin.wwwlike.cn/wx.jpg)
