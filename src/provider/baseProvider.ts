@@ -5,6 +5,7 @@ import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import qs from "qs";
 import apiClient from "@src/mvc/apiClient";
 import { fieldInfo, IdBean, ModelInfo, PageVo, Result } from "@src/mvc/base";
+import { Notification } from "@douyinfe/semi-ui";
 
 /**
  * 列表分页参数组装
@@ -116,7 +117,15 @@ export const useSave = ({
         params
       );
     },
-    { manual, ...props }
+    {
+      manual,
+      onSuccess(data) {
+        Notification.success({
+          content: `操作成功`,
+        });
+      },
+      ...props,
+    }
   );
 
 /**

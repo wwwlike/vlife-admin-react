@@ -9,8 +9,8 @@
  import NiceModal, { createNiceModal, useNiceModal } from '@src/store';
  import React, { useCallback, useMemo, useState } from 'react';
  import FormPage, { FormPageProps } from './formPage';
-import { Form, IFormFeedback } from '@formily/core';
-import { IdBean } from '@src/mvc/base';
+ import { Form, IFormFeedback } from '@formily/core';
+ import { IdBean } from '@src/mvc/base';
  
   /**
     * 1. 动态取数据，页面提供配置，然后存到前端 reactQuery方式缓存
@@ -32,15 +32,16 @@ import { IdBean } from '@src/mvc/base';
    const [form,setForm]=useState<Form>();//
    const [errors,setErrors]=useState<IFormFeedback[]>([]);
    const title=useMemo(()=>{
-      if(props.type==='dataForm'){
-        if((formData&&formData.id) ||(initData&&initData.id)){
-          return "编辑";
-        }else{
-          return "新增";
-        }
+    if(props.read){
+      return "详情";
+    }else{
+      if((formData&&formData.id) ||(initData&&initData.id)){
+        return "编辑";
       }else{
-        return '查看';
+        return "新增";
       }
+    }
+    
    },[initData,formData,props.type])
    const handleSubmit = useCallback(() => { //提交按钮触发的事件
     if(saveFun&&form ){    //通用保存

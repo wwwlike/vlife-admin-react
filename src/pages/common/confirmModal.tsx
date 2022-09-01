@@ -25,7 +25,8 @@
    if(saveFun){    //通用保存
       saveFun().then(data=>{
         modal.resolve(data);
-        modal.hide();
+      }).finally(()=>{
+         modal.hide();
       });
    }
    }, [saveFun]);

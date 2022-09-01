@@ -7,10 +7,12 @@ export default connect(
   mapProps(
     {
       required: true,
+      readPretty:true,
       validateStatus: true,
     },
     (props, field:any) => {
-         console.log("field['componentProps'][field.props.name]",field['componentProps'][field.props.name])
+      // alert(props)
+        //  console.log("field['componentProps'][field.props.name]",field['componentProps'][field.props.name])
     return {
           ...props,
           onChange:(data)=>{
@@ -20,5 +22,6 @@ export default connect(
         }
       }
     ),
-  // mapReadPretty(PreviewText.Input)
+    // mapReadPretty(({ value,...props }) =><</>
+  // mapReadPretty(Input)
 )

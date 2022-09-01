@@ -115,7 +115,7 @@ const MENU_CONFIG: MenuItem[] = [
   },
   {
     itemKey: "8",
-    text: "OA系统",
+    text: "演示模块",
     icon: IconEdit,
     items: [
       {

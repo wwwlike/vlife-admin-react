@@ -1,34 +1,60 @@
+import { Notification } from "@douyinfe/semi-ui";
 import axios, { AxiosRequestConfig } from "axios";
+import { useNavigate } from "react-router-dom";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 const localStorageKey = "__auth_provider_token__";
+//待启用
+const errorMessage = [
+  { code: 400, msg: "请求错误" },
+  { code: 401, msg: "未授权，请登录" },
+  { code: 403, msg: "拒绝访问" },
+  { code: 404, msg: "请求地址出错" },
+  { code: 408, msg: "请求超时" },
+  { code: 500, msg: "服务器内部错误" },
+  { code: 501, msg: "服务未实现" },
+  { code: 502, msg: "网关错误" },
+  { code: 503, msg: "服务不可用" },
+  { code: 504, msg: "网关超时" },
+  { code: 505, msg: "HTTP版本不受支持" },
+];
+
 // const { user } = useAuth();
 // 创建 axios 的实例
 
 const instance = axios.create({
-  // 实际项目中根据当前环境设置 baseURL
   baseURL: apiUrl,
   timeout: 30000,
-  // 为所有请求设置通用的 header
-  // headers: {
-  //   Authorization: window.localStorage.getItem(localStorageKey) || true,
-  // },
 });
-//       "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NTc4NzA0NjAsInN1YiI6IjEiLCJ1c2VyIjp7ImlkIjoiMSIsInVzZXJuYW1lIjoiYWRtaW4iLCJwYXNzd29yZCI6IntGNFQ5dDJCRTNIQ3ZEOWtoTEN4TC9ueWliL0FkTTFXcVIvdE14NWVKSjJrPX1mMGFmYTc4M2JhNzYwNzA2MzYwNmZkYjQzYzJlNTVmYiIsImF1dGhvcml0aWUiOiJncm91cDEiLCJncm91cElkIjoiZ3JvdXAxIiwib3JnY29kZSI6bnVsbCwib3JndHlwZSI6bnVsbCwidXNlcnR5cGUiOiIxIiwib3JnSWQiOm51bGwsImFyZWFjb2RlIjpudWxsLCJlbmFibGVkIjp0cnVlLCJjcmVkZW50aWFsc05vbkV4cGlyZWQiOnRydWUsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJncm91cDEifV0sImFjY291bnROb25FeHBpcmVkIjp0cnVlLCJhY2NvdW50Tm9uTG9ja2VkIjp0cnVlfX0.XiGMedi7pR4_b-HefixCFL6ytF3bMQ7sf5jloJK4zmI",
-
-// const res = axios({
-//   method: 'GET',
-//   url: 'http://www.liulongbin.top:3006/api/getbooks'
-// })
 
 const whiteList = ["/login"];
 
+const CancelToken = axios.CancelToken;
+let source = CancelToken.source();
+
+const diseaseApi = [
+  "remove",
+  "sysRole/save",
+  "sysResources/save",
+  "sysGroup/save",
+  "sysUser/save",
+];
+// const navigate = useNavigate();
+
 instance.interceptors.request.use(
   (config: AxiosRequestConfig) => {
-    if (config.method === "get" || config.method === "GET") {
-      // console.log("get", qs.stringify(config.params, { arrayFormat: "comma" }));
-      // config.params = qs.stringify(config.params, { arrayFormat: "comma" });
+    config.cancelToken = source.token; // 写入取消请求的标识
+    if (diseaseApi.filter((str) => config.url?.indexOf(str) != -1).length > 0) {
+      source.cancel("演示环境不能进行该操作"); //取消请求
+      source = CancelToken.source(); //终止cancel;否则全部请求都会取消
+      // return Promise.reject({ code: 555, msg: "不能处理" });
     }
     const token = window.localStorage.getItem(localStorageKey);
+
+    if (token === null && config.url?.indexOf("/login") === -1) {
+      source.cancel("请先登录"); //取消请求
+      source = CancelToken.source(); //终止cancel;否则全部请求都会取消
+    }
+
     if (
       config.url &&
       !whiteList.includes(config.url) &&
@@ -47,9 +73,15 @@ instance.interceptors.request.use(
 // 听过 axios 定义拦截器预处理所有请求
 instance.interceptors.response.use(
   (res) => {
-    if (res.status !== 200 || res.data.code != "200") {
-      // console.error(res.data.code, res.data.msg);
-      // window.localStorage.removeItem(localStorageKey);
+    if (res.status !== 200) {
+      Notification.error({
+        content: `服务端运行异常，异常代码${res.status}`,
+      });
+    } else if (res.data.code != 200) {
+      //业务逻辑异常
+      Notification.error({
+        content: `${res.data.msg}`,
+      });
     }
     //
     return res.data;
@@ -57,12 +89,20 @@ instance.interceptors.response.use(
   },
   (err) => {
     if (err.code === "ERR_NETWORK") {
-      alert("服务端异常");
-    } else {
-    }
-    // console.log("err", err);
-    if (err.response.status === 403) {
-      alert("无权限访问");
+      //服务端连接异常
+      Notification.error({
+        content: `服务端异常`,
+      });
+    } else if (err.code === "ERR_CANCELED") {
+      //请求取消
+      Notification.error({
+        content: `${err.message}`,
+      });
+    } else if (err.response.status === 403) {
+      Notification.error({
+        content: `没有权限`,
+      });
+      // alert("无权限访问");
       window.localStorage.removeItem(localStorageKey);
       // 统一处理未授权请求，跳转到登录界面
       // document.location = "/login";

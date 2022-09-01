@@ -10,6 +10,7 @@ export interface tabSelectProps{
   labelField?:string, //datas 本label字段名称
   valField?:string,//datas 本label字段名称
   selectMore?:boolean,//能否多选
+  readPretty:true,//是否只读模式
   // value:{value:string,label:string}
   value:string,
   onChange:(data:string)=>void,
@@ -98,22 +99,26 @@ export default ({pcodeField='menuCode',
         }
     </div>
 );
-return (
-  <div>
-    <Select
-        // defaultOpen 进入打开
-        autoAdjustOverflow={false}
-        value={obj}
-        onChangeWithObject
-        onChange={obj => {
-          setObj(obj as {label:string,value:string})
-          onChange((obj as {label:string,value:string}).value)
-        }}
-        // style={{ width: 200 }}
-        outerTopSlot={outerTopSlotNode} //插槽内容
-        optionList={getSub(key)} //第一页的内容
-    />
-    </div>
-);
+
+  // <div>
+  //   {JSON.stringify(props.readPretty)}
+
+   return  props.readPretty?(
+    <>
+    {obj?.label}
+    </>):(<Select
+      // defaultOpen 进入打开
+      autoAdjustOverflow={false}
+      value={obj}
+      onChangeWithObject
+      onChange={obj => {
+        setObj(obj as {label:string,value:string})
+        onChange((obj as {label:string,value:string}).value)
+      }}
+      // style={{ width: 200 }}
+      outerTopSlot={outerTopSlotNode} //插槽内容
+      optionList={getSub(key)} //第一页的内容
+  />)
+      
 
 }

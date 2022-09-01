@@ -5,17 +5,12 @@ import { getFkInfo,  useModelInfo } from '@src/provider/baseProvider';
 import React, {useEffect,useMemo,useState } from 'react';
 
 
-
 /**
  * 入参：
  * formData=> 表单初始化数据
- * 
  * 内部逻辑
  * 请求表单模型->提取字典模型
  * formData+表单模型->请求外键信息
- *   
- * 
- *  
  * 1. 表单数据提取
  * 2. 字典数据提取
  * 3. 外键数据提取
@@ -98,21 +93,27 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
     if(!props.formData){ //没有数据则不用提炼
       return [];
     }
+    //找出外键的字段
     const fkFields= modelInfo?.data?.fields.filter(f=>{
       return  (f.dataIndex!=='id'&&
       f.entityType!==modelInfo.data?.entityType&&
-      (f.pathName.endsWith('Id')||f.pathName.endsWith('_id')))
+      (f.pathName.endsWith('Id')||f.pathName.endsWith('_id')))  ||
+      ((f.dataIndex==='createId'|| f.dataIndex==='modifyId')) //特列
      })||[]
-     // filedINfo 转换成 dataIndex，enetityName数据机构数据
+     // filedINfo 转换成 {dataIndex，enetityName}结构的数据
      return fkFields.map(f=>{
-      var delimited = f.pathName.split('_');
-          var query_field_entityName=delimited[delimited.length-1];
-          if(query_field_entityName==='id'){
-            query_field_entityName=delimited[delimited.length-2];
-          }else if(query_field_entityName.endsWith('Id')){
-            query_field_entityName =query_field_entityName.substring(0,query_field_entityName.length-2);
-          }
+        if(f.dataIndex==='createId'|| f.dataIndex==='modifyId'){//外键特例
+          return {dataIndex:f.pathName,entityName:'sysUser'};
+        }
+        var delimited = f.pathName.split('_');
+        var query_field_entityName=delimited[delimited.length-1];
+        if(query_field_entityName==='id'){
+          query_field_entityName=delimited[delimited.length-2];
+        }else if(query_field_entityName.endsWith('Id')){
+          query_field_entityName =query_field_entityName.substring(0,query_field_entityName.length-2);
+        }
         return {dataIndex:f.dataIndex,entityName:query_field_entityName
+        // }
       }
      })
   },[modelInfo,props.formData])
@@ -158,8 +159,8 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
   else if(type==='dataForm'){
     return (
       <> 
-             {/* {JSON.stringify(staticFields)} */}
-     <VlifeForm 
+   {/* {JSON.stringify(fkInfos)} */}
+        <VlifeForm 
           entityName={entityName}
           modelInfo={modelInfo.data}
           dicts={getDict(...modelDicts)}
@@ -181,7 +182,7 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
   }else{
     return (
       <>
-         {/* {JSON.stringify(fieldsCover)} */}
+         {/* {JSON.stringify(fkMap)} */}
                <QueryForm 
           entityName={entityName}
           modelInfo={modelInfo.data}

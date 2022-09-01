@@ -70,22 +70,6 @@ const RelationInput=observer((props:RelationInputProps)=>{
    }
   },[field])
 
-  // useUpdateEffect(()=>{
-  //   if(project.length>0){
-  //     if(selectMore){
-  //       form.setValuesIn(fieldName,project.map(p=>p.id))
-  //     }else{
-  //       form.setValuesIn(fieldName,project.map(p=>p.id)[0])
-  //     }
-  //   }else{
-  //     if(selectMore){
-  //       form.setValuesIn(fieldName,[])
-  //     }else{
-  //       form.setValuesIn(fieldName,undefined)
-  //     }
-  //   }
-  // },[project])
-
   //全局store
   const gloable=useSelector(state=>state);
   //写成useCallback不在modal时会不弹出来
@@ -125,34 +109,33 @@ const RelationInput=observer((props:RelationInputProps)=>{
         // },300)
     });
     };
-  return <>
-  <TagInput  
-    showClear 
-    placeholder={field.title} 
-    value={project.map(m=>m.name)} 
-    defaultValue={project.map(m=>m?.id)} 
-    onFocus={onFocus} 
-    // onRemove={(v,i) => {console.log(`onRemove，移除：${v}, 序号：${i}`);}} 
-    onRemove={(v,i) => {
+  return form.readPretty?<>  {project.map(m=>m.name)}</>:<TagInput  
+  showClear 
+  placeholder={field.title} 
+  value={project.map(m=>m.name)} 
+  defaultValue={project.map(m=>m?.id)} 
+  onFocus={onFocus} 
+  // onRemove={(v,i) => {console.log(`onRemove，移除：${v}, 序号：${i}`);}} 
+  onRemove={(v,i) => {
 
-    const obj=[...project.filter((d,index)=>{
-        return i!==index
-    })]
-      setProject([...obj])
-      if(obj.length>0){
-        if(selectMore){
-          form.setValuesIn(fieldName,obj.map(p=>p.id))
-        }else{
-          form.setValuesIn(fieldName,obj.map(p=>p.id)[0])
-        }
+  const obj=[...project.filter((d,index)=>{
+      return i!==index
+  })]
+    setProject([...obj])
+    if(obj.length>0){
+      if(selectMore){
+        form.setValuesIn(fieldName,obj.map(p=>p.id))
       }else{
-        if(selectMore){
-          form.setValuesIn(fieldName,[])
-        }else{
-          form.setValuesIn(fieldName,undefined)
-        }
+        form.setValuesIn(fieldName,obj.map(p=>p.id)[0])
       }
-    }}
-    /></>
+    }else{
+      if(selectMore){
+        form.setValuesIn(fieldName,[])
+      }else{
+        form.setValuesIn(fieldName,undefined)
+      }
+    }
+  }}
+  />
 }) 
 export default RelationInput;

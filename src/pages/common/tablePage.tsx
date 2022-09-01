@@ -74,9 +74,11 @@ export const TablePage=({
    */
   const checkUser=useCallback((records:any[]):boolean=>{
     return  records.filter(record=>
-      (record.createId===user?.id||record.modifyId===user?.id)
+      (record.createId===user?.id||record.modifyId===user?.id) //2个字段等于当前用户id
       ||
       ('createId' in record==false && 'modifyId' !in record ==false)//没有这2个字段
+      ||
+      (record.createId===null&&record.modifyId===null)
       ).length===records.length;
   },[user?.id])
 
@@ -110,9 +112,6 @@ export const TablePage=({
     } 
     return {disable:false}
   },[]);
-
-
-
 
   // 列头信息
   const {run:titleRun,data:modelInfo}=useModelInfo({entityName});
@@ -251,6 +250,7 @@ export const TablePage=({
     eidtiModalShow(record);
    };
 
+   //列表视图和查看视图一致则不用请求
    const view=(record?:any)=>{
     if(viewModel!==listModel){
       getDetail(record.id,viewModel).then(data=>{
@@ -269,6 +269,8 @@ export const TablePage=({
     const rmDefBtn={title:'删除',entityName:entityName,tableBtn:false,key:'remove',fun:entityRm,attr:batchRmCheck}
     const batchRmDefBtn={title:'删除',entityName:entityName,tableBtn:true,key:'remove',fun:entityRm,attr:batchRmCheck}
     const editDefBtn={title:'修改',entityName:entityName,tableBtn:false,key:'save',fun:entitySave,attr:editCheck}
+    const detailDefBtn={title:'查看',entityName:entityName,tableBtn:false,key:'detail',fun:view}
+
     const  fromTmp=local.pathname.includes('/template/');
     // 是模板页面则不进行权限判断
     if(btnEnable.read==false){
@@ -281,6 +283,8 @@ export const TablePage=({
       if(btnEnable.edit&&(fromTmp||checkBtnPermission(editDefBtn))){
         memoBtns.push(editDefBtn)
       }
+      //能看列表就能看详情
+       memoBtns.push(detailDefBtn)
     }
     customBtns?.forEach(cus=>{
       if(checkBtnPermission(cus)){

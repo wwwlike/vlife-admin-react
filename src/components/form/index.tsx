@@ -4,8 +4,8 @@
  */
 import React, { useCallback, useMemo } from 'react';
 import { createForm, Form, IFormFeedback, onFormInit,onFormMount,onFormValuesChange } from '@formily/core';
-import { createSchemaField, FormProvider, mapProps, observer, Schema, useFieldSchema, useForm } from '@formily/react';
-import { FormItem, Input ,FormGrid,GridColumn,Select,ArrayItems,ArrayTable, Checkbox,DatePicker, FormButtonGroup, Submit, Reset} from '@formily/semi';
+import { createSchemaField, FormProvider} from '@formily/react';
+import { FormItem, Input ,FormGrid,GridColumn,Select,ArrayItems,ArrayTable, Checkbox,DatePicker} from '@formily/semi';
 import {  fieldInfo, ModelInfo, TranDict } from '@src/mvc/base';
 import RelationInput from '@src/components/form/comp/RelationInput'
 import RoleResourcesSelect from '@src/pages/auth/role/RoleResourcesSelect/formily';
@@ -189,8 +189,10 @@ export default ({maxColumns=[2,2,2],dicts,formData,
       }else if(f.dictCode){
         prop['x-component']='Select';
         prop.enum=fieldEnum(f.dictCode);
-      }else if (f.dataIndex!=='id'&&f.entityType!==modelInfo?.entityType&&
-      (f.pathName.endsWith('Id')||f.pathName.endsWith('_id'))){
+      }else if ((
+        f.dataIndex!=='id'&&f.entityType!==modelInfo?.entityType&&
+      (f.pathName.endsWith('Id')||f.pathName.endsWith('_id')))||
+      (f.dataIndex==='modifyId'||f.dataIndex==='createId')){
         prop['x-component']='RelationInput';
         prop['x-component-props']={...prop['x-component-props'],'fkMap':fkMap,...f};
       }else if (f.type==='boolean'){
@@ -224,7 +226,7 @@ export default ({maxColumns=[2,2,2],dicts,formData,
 
   return (
     <div>
-      {/* {JSON.stringify(fieldsCover)} */}
+      {/* {JSON.stringify(formData)} */}
       <FormProvider form={form}>
         <SchemaField schema={schema}></SchemaField>
       </FormProvider>

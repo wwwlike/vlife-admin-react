@@ -72,7 +72,7 @@ export default ()=>{
                 hideColumns={['createDate','password','modifyDate','status','id','createId','modifyId']}
                 // hideColumns={['createDate','modifyDate']}
                 listModel='sysUser'
-                viewModel='userDetailVo'
+                viewModel='sysUser'
                 select_more={true}
                 customBtns={customBtns}
                 />

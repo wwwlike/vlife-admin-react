@@ -1,4 +1,4 @@
-import { Button, Popover, Table, Tag, TagInput, Tooltip } from '@douyinfe/semi-ui';
+import { Button, Popover, Space, Table, Tag, TagInput, Tooltip } from '@douyinfe/semi-ui';
 import { ColumnProps, RowSelection, TableProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useAuth } from '@src/context/auth-context';
 import { TranDict } from '@src/mvc/base';
@@ -142,14 +142,15 @@ export default ({
             title: '操作',
             dataIndex: 'operate',
             render: (text, record, index) => {
-              return <>
+              return  <Space >
                   {
                     lineMemoBtns.map((item)=>{
                         let prop:BtnMemoProp={}
                         if(item?.attr){
                           prop =item?.attr(record)
                         }
-                        const button =<Button icon={<Icon name={item.key||''} />} key={"_"+item.key+"_"+record.id} disabled={prop.disable}
+                        //icon={<Icon name={item.key||''} />}
+                        const button =<Button  key={"_"+item.key+"_"+record.id} disabled={prop.disable}
                         theme='borderless' type='primary' onClick={()=>{
                         item.fun&&item.fun(record)}}>
                               {item.title}
@@ -165,7 +166,7 @@ export default ({
                         }
                     })
                   }
-                </>
+                </Space>
             }
         })
       }
