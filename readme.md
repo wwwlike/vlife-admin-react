@@ -129,4 +129,4 @@ export const remove = (id: string): Promise<Result<number>> => {
   ![](http://vlife.wwwlike.cn/static/img/qq_qun_786134846.png)
 
 - 微信：vlifeBoot
-  <img src="http://oa.wwwlike.cn/wx.jpg" width=200 height=200 />
+  <img src="http://oa.wwwlike.cn/wx.jpg" width=150 height=150 />
