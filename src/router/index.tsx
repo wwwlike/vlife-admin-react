@@ -15,6 +15,7 @@ const DashboardWorkbeach = lazy(() => import('../pages/dashboard/workbeach'))
 const Quickstart = lazy(() => import('../pages/guide/quickstartMp4'))
 const AreaPage = lazy(() => import('../pages/sys/area'))
 const UserPage = lazy(() => import('../pages/sys/user'))
+const OrgPage = lazy(() => import('../pages/sys/org'))
 const DictPage = lazy(() => import('../pages/sys/dict'))
 const ResourcesPage = lazy(() => import('../pages/auth/resources'))
 const RolePage = lazy(() => import('@src/pages/auth/role'))
@@ -62,7 +63,7 @@ const routeList: RouteObject[] = [
 			},
 			{
 				path: 'sys/sysOrg',
-				element: <WrapperRouteComponent element={<TemplatePage />} titleId="机构管理" auth />
+				element: <WrapperRouteComponent element={<OrgPage />} titleId="机构管理" auth />
 			},
 			{
 				path: 'sys/sysArea',
