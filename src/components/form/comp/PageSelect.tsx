@@ -1,8 +1,8 @@
 import { connect,mapProps} from '@formily/react'
-import TreeQuery from '@src/components/tree/TreeQuery';
+import PageSelect from '@src/components/select/PageSelect';
 
 export default connect(
-    TreeQuery,
+  PageSelect,
     mapProps(
       {
         required: true,
@@ -12,12 +12,15 @@ export default connect(
       return {
             ...props,
             ...field['componentProps'][field.props.name],
-            onSelect(selectedKeys, selected, selectedNode) {
+
+            onChange(selectedKeys:any) {
               field.value=selectedKeys;
             }
+            // onSelect(selectedKeys, selected, selectedNode) {
+            //   field.value=selectedKeys;
+            // }
         }
       }
       ),
-    // mapReadPretty(PreviewText.Input)
   )
 

@@ -10,6 +10,8 @@ import {  fieldInfo, ModelInfo, TranDict } from '@src/mvc/base';
 import RelationInput from '@src/components/form/comp/RelationInput'
 import RoleResourcesSelect from '@src/pages/auth/role/RoleResourcesSelect/formily';
 import TabSelect from './comp/TabSelect';
+import PageSelect from './comp/PageSelect';
+import TreeSelect from './comp/TreeSelect';
 
 /**
  * 表单布局展示，需要固定写在函数式组件之外
@@ -20,7 +22,9 @@ import TabSelect from './comp/TabSelect';
     Input,FormItem,FormGrid,GridColumn,Select,ArrayItems,ArrayTable,Checkbox,DatePicker,
     RelationInput,//封装关系选择formily组件。特定组件支持特定业务
     RoleResourcesSelect,// 特定的业务型组件 占2列；自定义组件，根据传参来处理
-    TabSelect
+    TabSelect, //tab方式的过滤，权限选择上级权限时使用在，应该会被TreeSelect取代
+    PageSelect, //平铺选择组件（查询条件过滤使用在）
+    TreeSelect
   },
 })
 
@@ -156,10 +160,15 @@ export default ({maxColumns=[2,2,2],dicts,formData,
      (f.dataIndex&&
       f.dataIndex!=='id'&&
       f.dataIndex!=='status'&&
+      f.dataIndex!=='code'&&
       f.dataIndex!=='createId'&&
       f.dataIndex!=='modifyId'&&
       f.dataIndex!=='createDate'&&
-      f.dataIndex!=='modifyDate'))
+      f.dataIndex!=='modifyDate'&&
+      f.dataIndex!=='sysOrgId'&&
+      f.dataIndex!=='sysAreaId'&&
+      f.dataIndex!=='sysDeptId'
+      ))
     }}).forEach((f)=>{
     
       pp[f.dataIndex]={};
@@ -181,7 +190,8 @@ export default ({maxColumns=[2,2,2],dicts,formData,
       // }
       if(f.props){
         prop['x-component-props']={...prop['x-component-props'],
-        [f.dataIndex]:f.props};
+        [f.dataIndex]:f.props,
+        'props':f.props}
       }
 
       if(f.component){
@@ -226,7 +236,7 @@ export default ({maxColumns=[2,2,2],dicts,formData,
 
   return (
     <div>
-      {/* {JSON.stringify(formData)} */}
+      {/* {JSON.stringify(fieldsCover)} */}
       <FormProvider form={form}>
         <SchemaField schema={schema}></SchemaField>
       </FormProvider>

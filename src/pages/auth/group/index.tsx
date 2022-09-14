@@ -1,4 +1,5 @@
 import { Card } from '@douyinfe/semi-ui';
+import { listSysFilterVo, saveGroupFilterDto } from '@src/mvc/SysGroup';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
 import React, { useState} from 'react';
@@ -34,10 +35,33 @@ export default ()=>{
              <TablePage
                 req={formData} //搜索条件
                 entityName={entityName} 
-                viewModel={'sysGroupDetailVo'}
-                editModel={'groupDto'}
+                viewModel='sysGroupDetailVo'
+                editModel='groupDto'
+                customBtns={[
+                    {
+                      model:{
+                        name:'groupFilterDto',
+                        fieldsCover:[
+                          {
+                            dataIndex:'filterDetailIds',
+                            component:'PageSelect',//固定一个范围去取
+                            labelProps:{gridSpan:2},
+                            props:{
+                              loadData:listSysFilterVo,
+                              params:['id']// 需要id去取
+                            }
+                          }
+                        ]
+                      },
+                      // okFun:saveGroupFilterDto, //如不给就用baseProditer里的 save
+                      title:'数据权限',
+                      entityName,
+                      tableBtn:false
+                    }
+                  ]}
                 select_more={true}
-                />
+               >
+                </TablePage>
           </Card>
       </div> 
     </div>

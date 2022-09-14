@@ -18,12 +18,14 @@ const UserPage = lazy(() => import('../pages/sys/user'))
 const OrgPage = lazy(() => import('../pages/sys/org'))
 const DictPage = lazy(() => import('../pages/sys/dict'))
 const ResourcesPage = lazy(() => import('../pages/auth/resources'))
+const FilterPage = lazy(() => import('../pages/auth/filter'))
 const RolePage = lazy(() => import('@src/pages/auth/role'))
 const GroupPage = lazy(() => import('@src/pages/auth/group'))
 const Abnormal403 = lazy(() => import('@src/pages/abnormal/403'))
 const Abnormal404 = lazy(() => import('@src/pages/abnormal/404'))
 const Abnormal500 = lazy(() => import('@src/pages/abnormal/500'))
 const TsCode = lazy(() => import('@src/pages/tsCode'))
+const ProjectPage = lazy(() => import('@src/pages/bus/project'))
 const routeList: RouteObject[] = [
 	{
 		path: '/',
@@ -38,7 +40,7 @@ const routeList: RouteObject[] = [
 				element: <WrapperRouteComponent element={<DictPage />} titleId="字典管理" auth />
 			},
 			{
-				path: 'auth/resources',
+				path: 'conf/resources',
 				element: <WrapperRouteComponent element={<ResourcesPage />} titleId="资源管理" auth />
 			},
 			{
@@ -50,12 +52,16 @@ const routeList: RouteObject[] = [
 				element: <WrapperRouteComponent element={<GroupPage />} titleId="权限组管理" auth />
 			},
 			{
+				path: 'conf/filter',
+				element: <WrapperRouteComponent element={<FilterPage />} titleId="行级权限配置" auth />
+			},
+			{
 				path: 'template/*',
 				element: <WrapperRouteComponent element={<TemplatePage />} titleId="动态模板" auth />
 			},
 			{
 				path: 'oa/project',
-				element: <WrapperRouteComponent element={<TemplatePage />} titleId="项目管理" auth />
+				element: <WrapperRouteComponent element={<ProjectPage />} titleId="项目管理" auth />
 			},
 			{
 				path: 'sys/sysDept',

@@ -32,7 +32,20 @@ export const cleanObject = (object?: { [key: string]: unknown }) => {
   });
   return result;
 };
-
+/**
+ * 检索是否是子数据
+ * 根据itree的规范，
+ * 42_01是42的子数据，42_01_01是42的孙子
+ */
+export const checkSubData = (data: string, checkData: string): boolean => {
+  if (
+    checkData.startsWith(data + "_") && //以父类开头
+    checkData.substring(data.length + 1).indexOf("_") === -1 //剩余部分不包含下划线
+  ) {
+    return true;
+  }
+  return false;
+};
 /**
  * 传入一个对象，和键集合，返回对应的对象中的键值对
  * @param obj
@@ -50,20 +63,3 @@ export const subset = <
   );
   return Object.fromEntries(filteredEntries) as Pick<O, K>;
 };
-
-// export const arrayToStr = (arr: any[], ss: string = ",") => {
-//   let fh = ",";
-//   let str = arr;
-//   alert(arr.join(","));
-//   arr
-//     .map((s, index) => {
-//       if (s) {
-//         return s;
-//       } else {
-//         fh = "";
-//       }
-//     })
-//     .join(fh);
-
-//   return str;
-// };

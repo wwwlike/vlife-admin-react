@@ -100,16 +100,20 @@ export const useFindDictColumns = (
 };
 
 /**
- * 数据保存
+ * 通用数据保存
+ * save/dtoName
+ * save 实体名称进行的
  */
 export const useSave = ({
   manual = true,
-  entityName,
-  modelName,
   ...props
-}: Options<Result<any>, any> & { entityName: string; modelName?: string }) =>
+}: Options<Result<any>, any>) =>
   useRequest(
-    (params: Partial<any>): Promise<Result<any>> => {
+    (
+      params: Partial<any>,
+      entityName: string,
+      modelName?: string
+    ): Promise<Result<any>> => {
       return apiClient.post(
         `/${entityName}/save${
           modelName && modelName !== entityName ? "/" + modelName : ""
@@ -190,14 +194,12 @@ export const useDetails = ({
  * @param ids 主键id
  * @returns
  */
-export const getFkInfo = (
+export const find = (
   entityName: string,
+  field: string = "id",
   ids: (string | number)[]
 ): Promise<Result<any[]>> => {
-  return apiClient.get(
-    `/${entityName}/views/${entityName}?ids=${ids.join(",")}`,
-    {
-      params: {},
-    }
-  );
+  return apiClient.get(`/${entityName}/find/${field}?ids=${ids.join(",")}`, {
+    params: {},
+  });
 };

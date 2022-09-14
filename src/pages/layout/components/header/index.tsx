@@ -1,6 +1,7 @@
 import React, { FC } from 'react'
-import { Layout, Nav, Button, Avatar, Badge, Dropdown, RadioGroup, Radio } from '@douyinfe/semi-ui'
-import { IconBell, IconHelpCircle } from '@douyinfe/semi-icons'
+import { Layout, Nav, Button, Avatar, Badge, Dropdown, RadioGroup, Radio, Empty } from '@douyinfe/semi-ui'
+import { IconDesktop , IconGithubLogo } from '@douyinfe/semi-icons'
+import logo from '@src/logo.png'
 // import Breadcrumb from '../breadcrumb'
 // import useStore from '@src/store/common/global'
 // import Tags from '../tags'
@@ -26,22 +27,32 @@ const Index: FC = () => {
 	return (
 		<Header className="layout-header shadow" >
 			<Nav mode="horizontal" header={
-				<>
-					<IconApps />
-					<div>&nbsp;&nbsp;&nbsp;VLife-Admin</div>
-				</>}
+				<Empty image={<img src={logo} style={{ width: 30, height: 30,top:10 }} />}></Empty>}
 				footer={
 					<>
 						<Button
 							theme="borderless"
-							icon={<IconHelpCircle size="large" />}
+							icon={<IconDesktop size="large" />}
 							style={{
 								color: 'var(--semi-color-text-2)',
 								marginRight: '12px'
 							}}
-							// onClick={loginOut}
-						/>
-						<Badge count={5} type="danger">
+						 onClick={()=>{
+							window.open("http://wwwlike.cn")
+						 }}
+						>官网</Button>
+						<Button
+							theme="borderless"
+							icon={<IconGithubLogo size="large" />}
+							style={{
+								color: 'var(--semi-color-text-2)',
+								marginRight: '12px'
+							}}
+						 onClick={()=>{
+							window.open("https://github.com/wwwlike/vlife")
+						 }}
+						>GITHUB</Button>
+						{/* <Badge count={5} type="danger">
 							<Button
 								theme="borderless"
 								icon={<IconBell />}
@@ -50,7 +61,7 @@ const Index: FC = () => {
 									marginRight: '12px'
 								}}
 							/>
-						</Badge>
+						</Badge> */}
 
 						<Dropdown
 							render={

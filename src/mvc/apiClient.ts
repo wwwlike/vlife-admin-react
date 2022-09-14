@@ -2,6 +2,7 @@ import { Notification } from "@douyinfe/semi-ui";
 import axios, { AxiosRequestConfig } from "axios";
 import { useNavigate } from "react-router-dom";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
+const remove: boolean = import.meta.env.VITE_APP_SAVE_REMOVE;
 const localStorageKey = "__auth_provider_token__";
 //待启用
 const errorMessage = [
@@ -43,10 +44,12 @@ const diseaseApi = [
 instance.interceptors.request.use(
   (config: AxiosRequestConfig) => {
     config.cancelToken = source.token; // 写入取消请求的标识
-    if (diseaseApi.filter((str) => config.url?.indexOf(str) != -1).length > 0) {
+    if (
+      !remove &&
+      diseaseApi.filter((str) => config.url?.indexOf(str) != -1).length > 0
+    ) {
       source.cancel("演示环境不能进行该操作"); //取消请求
       source = CancelToken.source(); //终止cancel;否则全部请求都会取消
-      // return Promise.reject({ code: 555, msg: "不能处理" });
     }
     const token = window.localStorage.getItem(localStorageKey);
 

@@ -18,6 +18,7 @@ export interface MenuItem {
   items?: MenuItem[];
   component?: React.ComponentType<any>;
 }
+
 const MENU_CONFIG: MenuItem[] = [
   {
     itemKey: "4",
@@ -49,14 +50,6 @@ const MENU_CONFIG: MenuItem[] = [
     text: "权限管理",
     icon: IconHome,
     items: [
-      {
-        itemKey: "1-11",
-        text: "权限资源",
-        icon: IconTickCircle,
-        code: "sysResources",
-        path: "/auth/resources",
-      },
-
       {
         itemKey: "1-1",
         text: "角色管理",
@@ -114,14 +107,40 @@ const MENU_CONFIG: MenuItem[] = [
     ],
   },
   {
+    itemKey: "9",
+    text: "系统配置",
+    icon: IconEdit,
+    items: [
+      {
+        itemKey: "1-11",
+        text: "权限资源",
+        icon: IconTickCircle,
+        code: "sysResources",
+        path: "/conf/resources",
+      },
+      {
+        itemKey: "1-12",
+        text: "查询配置",
+        icon: IconTickCircle,
+        code: "sysFilterDetail",
+        path: "/conf/filter",
+      },
+    ],
+  },
+  {
     itemKey: "8",
     text: "演示模块",
     icon: IconEdit,
     items: [
       {
         itemKey: "8-1",
-        text: "项目管理",
+        text: "项目管理(模板组件)",
         path: "/template/project",
+      },
+      {
+        itemKey: "8-2",
+        text: "项目管理(编写页面)",
+        path: "/oa/project",
       },
     ],
   },

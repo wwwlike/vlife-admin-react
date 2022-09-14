@@ -49,7 +49,7 @@ export default ()=>{
                 props:{ //组件需要的属性
                   loadData:listAll, //请求数据的方法
                   valField:'code',
-                  rootCode:'420000',//待改成用户的地区信息
+                  rootCode:user?.codeArea,//待改成用户的地区信息
                 }
               }]}
               />

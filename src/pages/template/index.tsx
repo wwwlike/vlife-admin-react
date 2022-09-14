@@ -16,7 +16,6 @@ import { useTitle } from 'ahooks';
  export default ()=>{
   const params= useParams()
   const local=useLocation();
-  
   const [title,setTitle]=useState<string>();
   useTitle(title||'配置表单');
   const entityName=useMemo<string>(()=>{
@@ -47,13 +46,13 @@ import { useTitle } from 'ahooks';
           </Card>
       </div>
       <div className='h-full md:min-w-3/4'>
-           <Card title={title+'列表'} 
+           <Card title={title+'列表(采用模板组件创建的页面功能(/template/index.tsx))'} 
               headerLine={false}
               bordered={false} className='h-full'>
              <TablePage
                 req={formData}
                 entityName={entityName||''} 
-                hideColumns={['createDate','modifyDate','status','id','createId','modifyId']}
+                // hideColumns={['createDate','modifyDate','status','id','createId','modifyId']}
                 select_more={true}
                 editModel={{name:entityName,requiredCols:[]}}
                 />

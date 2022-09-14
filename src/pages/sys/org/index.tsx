@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Card } from '@douyinfe/semi-ui';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
-import { listAll } from '@src/mvc/SysArea';
+import { listAll as areaListAll } from '@src/mvc/SysArea';
+import { listAll } from '@src/mvc/SysOrg';
  export default ()=>{
   const [formData,setFormData]=useState<any>();
   return (
@@ -21,7 +22,7 @@ import { listAll } from '@src/mvc/SysArea';
               dataIndex:'sysAreaId',//字段
               component:'TreeQuery',//组件替换
               props:{ //组件需要的属性
-                loadData:listAll, //请求数据的方法
+                loadData:areaListAll, //请求数据的方法
                 valField:'id',
                 rootCode:'420000',//待改成用户的地区信息
               }
@@ -36,8 +37,41 @@ import { listAll } from '@src/mvc/SysArea';
               bordered={false} className='h-full'>
              <TablePage
                 req={formData}
-                entityName='sysOrg' 
-                hideColumns={['createDate','modifyDate','sysRoleId','status','createId','modifyId']}
+                entityName='sysOrg'
+                viewModel={{
+                  name:'sysOrg',
+                  fieldsCover:[
+                    {
+                      dataIndex:'pcode',
+                      component:'TreeSelect',
+                      props: {
+                         loadData: listAll //异步取数据的方法
+                        // // any各组件独有的属性
+                        // datas?: any[]; //元素单个加载时候给的数据
+                        // syscParams?: string[]; //异步的参数名称集合
+                        // syncDatas?: (obj: any) => Promise<Result<any>>; //组件提取时给的数据
+                      } //
+                    
+                    }
+                  ]
+                }} 
+                editModel={{
+                  name:'sysOrg',
+                  fieldsCover:[
+                    {
+                      dataIndex:'pcode',
+                      component:'TreeSelect',
+                      props: {
+                         loadData: listAll //异步取数据的方法
+                        // // any各组件独有的属性
+                        // datas?: any[]; //元素单个加载时候给的数据
+                        // syscParams?: string[]; //异步的参数名称集合
+                        // syncDatas?: (obj: any) => Promise<Result<any>>; //组件提取时给的数据
+                      } //
+                    
+                    }
+                  ]
+                }} 
                 select_more={true}
                 />
           </Card>

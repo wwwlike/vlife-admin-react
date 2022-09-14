@@ -56,12 +56,13 @@ export default () => {
 
         </Card>
         <br></br>
-        <Card className='text-xl'  title='一个CRUD单表操作的迭代步骤' >
-          <Steps className='bg-gray-300' current={currNum}  >
+        <Card className='text-xl'  title='讨论&帮助'>
+            <img src="http://admin.vlife.cc/image/linkme.png" style={{ width: 950, height: 260,top:10 }} />
+          {/* <Steps className='bg-gray-300' current={currNum}  >
           <Steps.Step title="模型编写" description="模型、注释、注解、字典代码编写" onClick={()=>setCurrNum(0)} />
           <Steps.Step title="代码生成" description="注释提取、代码生成" onClick={()=>setCurrNum(1)} />
           <Steps.Step title="前端配置" description="菜单添加、字典同步" onClick={()=>setCurrNum(2)} />
-          </Steps>
+          </Steps> */}
         </Card>
     </div>
 );

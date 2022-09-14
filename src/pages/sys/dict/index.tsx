@@ -28,9 +28,10 @@ export default ()=>{
         key:"sync",
         tableBtn:true,
         loading:sync.loading,
-        fun:()=>sync.runAsync().then(data=>{
-          setReload(!reload)
-        })
+        okFun:sync.runAsync
+        // fun:()=>sync.runAsync().then(data=>{
+        //   setReload(!reload)
+        // })
       },
     ]
   },[sync])
@@ -46,7 +47,7 @@ export default ()=>{
                 req={typeReq}
                 entityName={entityName} 
                 hideColumns={['createDate','modifyDate','id','status','sys','edit','val','code','createId','modifyId']}
-                btnEnable={{read:true}}//不需要默认的 CRUD
+                btnEnable={{disable:true}}//自带按钮全部禁用
                 customBtns={customBtns}
                 reload={reload}
                 onGetData={(data)=>{

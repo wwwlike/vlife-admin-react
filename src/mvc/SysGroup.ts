@@ -1,5 +1,6 @@
 import apiClient from "./apiClient";
 import { PageVo, DbEntity, SaveBean, PageQuery, VoBean, Result } from "./base";
+import { SysFilterVo } from "./SysFilter";
 // 角色聚合组
 export interface SysGroup extends DbEntity {
   name: string; // 角色组名称
@@ -10,6 +11,12 @@ export interface GroupDto extends SaveBean {
   name: string; // 组名称
   remark: string; // 组描述
   sysRoleId: string[]; // 角色集合
+}
+
+// 角色组dto
+export interface GroupFilterDto extends SaveBean {
+  name: string; // 组名称
+  filterDetailIds: string[]; // 角色集合
 }
 // 角色组分页查询条件
 export interface SysGroupPageReq extends PageQuery {
@@ -33,14 +40,28 @@ export const page = (
 ): Promise<Result<PageVo<SysGroup>>> => {
   return apiClient.get(`/sysGroup/page`, { params: req });
 };
+
 /**
  * 保存角色聚合组;
  * @param dto 角色聚合组;
  * @return 角色聚合组;
  */
 export const saveGroupDto = (dto: GroupDto): Promise<Result<GroupDto>> => {
-  return apiClient.post(`/sysGroup/save/groupDto`, { params: dto });
+  return apiClient.post(`/sysGroup/save/groupDto`, dto);
 };
+
+/**
+ * 保存角色聚合组;
+ * @param dto 角色聚合组;
+ * @return 角色聚合组;
+ */
+export const saveGroupFilterDto = (
+  dto: GroupFilterDto
+): Promise<Result<GroupFilterDto>> => {
+  console.log("dto", dto);
+  return apiClient.post(`/sysGroup/save/groupFilterDto`, dto);
+};
+
 /**
  * 保存角色聚合组;
  * @param dto 角色聚合组;
@@ -64,4 +85,13 @@ export const detail = (id: string): Promise<Result<SysGroup>> => {
  */
 export const remove = (id: string): Promise<Result<number>> => {
   return apiClient.delete(`/sysGroup/remove/${id}`);
+};
+
+/**
+ *
+ * @param id 角色id
+ * @returns
+ */
+export const listSysFilterVo = (id: string): Promise<Result<SysFilterVo[]>> => {
+  return apiClient.get(`/sysGroup/list/sysFilterVo/${id}`);
 };

@@ -2,6 +2,7 @@ import { Button, Popover, Space, Table, Tag, TagInput, Tooltip } from '@douyinfe
 import { ColumnProps, RowSelection, TableProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useAuth } from '@src/context/auth-context';
 import { TranDict } from '@src/mvc/base';
+import { modelProps } from '@src/pages/common/tablePage';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { brotliCompress } from 'zlib';
@@ -28,16 +29,19 @@ export type BtnMemoProp={
  * 按钮状态
  */
  export interface VfButton {
-  entityName?:string;//按钮所属模块
   title: string;//按钮名称
+  entityName?:string;//按钮所属模块
   icon?:string; //按钮图标
-  loading?:boolean,
-  attr?:(...objs:any)=>BtnMemoProp, //按钮动态属性
-  key?: string; //按钮Key
+  key?: string; //按钮Key，权限判定时使用
+  tableBtn?:boolean;//是否是表的bmtn
   index?: number; //排序索引
-  tableBtn?:boolean;//是否是表的btn
-  funDataType?:'obj'|'objs'|'id'|'ids'|'none'//回调方法传参类型，应该与fun保持一致，这里方便取数据
-  fun?: (...record: any) => void
+  loading?:boolean,//是否是加载状态 
+  attr?:(...objs:any)=>BtnMemoProp, //按钮动态属性，禁用、不能用提醒内容，覆盖上一级的title(loading时候可以用，`进行中`)
+  //-------------------
+  model?:string|modelProps,//按钮触发调用的视图弹出层名称或者对象,说明需要弹框
+  readView?:boolean,//预览模式 
+  okFun?: (...record: any) => void //最后确认回调方法
+  click?: (btn:VfButton,...record: any) => void //按钮点击事件
 }
 
  export interface ListProps extends TableProps {
@@ -46,6 +50,7 @@ export type BtnMemoProp={
     tableBtn?:VfButton[], //列表业务按钮补充
     sysDict?:TranDict[], //列转换的
     fkMap?:any,//外键数据的键值对
+    parentMap?:any,//上级单位的键值对
     select_more?:boolean;// undefined|false|true ->无勾选框|单选|多选
     select_show_field?:string;//选中时进行展示的字段，不传则不展示
     doubleClick?:(obj:any)=>void; //双击的事件
@@ -56,7 +61,7 @@ type selectType={id:string|number,name?:string};
 export default ({
   lineClick,
   tableBtn,hideColumns,
-  sysDict,dataSource,columns,fkMap,
+  sysDict,dataSource,columns,fkMap,parentMap,
   select_more,select_show_field,onSelected,selected,doubleClick,...props }: ListProps)=>{
   //state赋值不支持ifelse,所以写成函数式
   const [selectedRow,setSelectedRow]=useState<selectType[]>(
@@ -131,6 +136,10 @@ export default ({
             m['render']=(text,record,index)=>{
               return fkMap[text];
             }
+          }else if(m.entityFieldName==='pcode'){
+            m['render']=(text,record,index)=>{
+              return parentMap[text];
+            }
           } 
       })
 
@@ -152,7 +161,7 @@ export default ({
                         //icon={<Icon name={item.key||''} />}
                         const button =<Button  key={"_"+item.key+"_"+record.id} disabled={prop.disable}
                         theme='borderless' type='primary' onClick={()=>{
-                        item.fun&&item.fun(record)}}>
+                        item.click&&item.click(item,record)}}>
                               {item.title}
                           </Button>
                         if(prop.prompt){
@@ -221,14 +230,13 @@ export default ({
 
   return (
     <> 
-     {/* {JSON.stringify(selectedRow)} */}
       {
           tableMemoBtns.map(item=>{
             let prop:BtnMemoProp={}
             if(item?.attr){
               prop =item?.attr(...selectedRow)
             }
-            const button=<Button icon={<Icon name={item.icon||''} />} loading={item.loading} key={item.entityName+'_'+item.key} onClick={()=>{if(item.fun){item.fun(...selectedRow)};setSelectedRow([])}} 
+            const button=<Button icon={<Icon name={item.icon||''} />} loading={item.loading} key={item.entityName+'_'+item.key} onClick={()=>{if(item.click){item.click(item,...selectedRow)};setSelectedRow([])}} 
             disabled={prop?.disable}
           >{(!prop.disable&&prop.title)?prop.title:item.title}</Button>
 
@@ -243,9 +251,7 @@ export default ({
       onRow={onRow}
         rowSelection={select_more!=undefined?rowSelection:undefined} 
       {...props} />
-
     {select_show_field&&selectedRow.map(one=>{
-
         return <Tag key={one.id} avatarShape='circle' size='large' closable={true} onClose={()=>{
           setSelectedRow([...selectedRow.filter(row=>{
             return row.id!==one.id

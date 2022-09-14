@@ -1,7 +1,6 @@
 import { Modal, SideSheet } from '@douyinfe/semi-ui';
 import { ModalReactProps } from '@douyinfe/semi-ui/lib/es/modal';
 import { SideSheetReactProps } from '@douyinfe/semi-ui/lib/es/sideSheet';
-import { Button } from 'antd';
 import React,{ReactNode, useRef, useState} from 'react';
 import { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";

@@ -3,9 +3,6 @@ import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
 import React, { useState} from 'react';
 import { roleAllResources } from '@src/mvc/SysResources';
-import { rejects } from 'assert';
-import TabSelect from '@src/components/select/TabSelect';
-import TreeQuery from '@src/components/tree/TreeQuery';
 /**
  * 在封装一层
  * 1. entityName

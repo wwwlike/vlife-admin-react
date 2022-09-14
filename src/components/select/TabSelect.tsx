@@ -1,8 +1,8 @@
+/**
+ * tab类型的选择器
+ */
 import { Select } from '@douyinfe/semi-ui';
-import { stringify } from 'querystring';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-
-// code,pcode,name,menuCode
+import React, { useEffect, useMemo, useState } from 'react';
 
 export interface tabSelectProps{
   pcodeField?:string, //datas里 父code的字段名称
@@ -21,7 +21,7 @@ export interface tabSelectProps{
  * 两级下拉选项，第一级菜单，第二级选项
  */
 export default ({pcodeField='menuCode',
-  codeField='code',
+  codeField='resourcesCode',
   labelField='name',
   valField='id',
   selectMore=false,
@@ -106,7 +106,7 @@ export default ({pcodeField='menuCode',
    return  props.readPretty?(
     <>
     {obj?.label}
-    </>):(<Select
+    </>):(<div><Select
       // defaultOpen 进入打开
       autoAdjustOverflow={false}
       value={obj}
@@ -118,7 +118,7 @@ export default ({pcodeField='menuCode',
       // style={{ width: 200 }}
       outerTopSlot={outerTopSlotNode} //插槽内容
       optionList={getSub(key)} //第一页的内容
-  />)
+  /></div>)
       
 
 }

@@ -1,13 +1,16 @@
 import {useNiceModal } from '@src/store';
 import React, {useCallback, useEffect, useMemo, useState } from 'react';
-import { getFkInfo, useDetail,useModelInfo, usePage, useRemove, useSave } from '@src/provider/baseProvider';
+import { find, useDetail,useModelInfo, usePage, useRemove, useSave } from '@src/provider/baseProvider';
 import Table, { BtnMemoProp, ListProps, VfButton } from '@src/components/table';
 import { useAuth } from '@src/context/auth-context';
 import { reactions } from '@src/components/form';
 import { useLocation } from 'react-router-dom';
-import { fieldInfo } from '@src/mvc/base';
+import { fieldInfo, Result } from '@src/mvc/base';
 
-type editModelProps={
+/**
+ * 待写个文档
+ */
+export type modelProps={
   name:string,
   fieldsCover?:(Partial<fieldInfo>&{dataIndex:string})[],
   // 下面的字段应该要整合到fieldsCover里成为各个字段的属性
@@ -15,6 +18,16 @@ type editModelProps={
   hideCols?:string[], //隐藏字段
   readonlyCols?:string[], //只读字段
   requiredCols?:string[],//表单必填字段
+}
+
+/*页面自带的按钮信息 */
+type btnList={
+  disable:boolean,//全部禁用
+  edit:boolean,
+  add:boolean,
+  rm:boolean,
+  batchRm:boolean,
+  view:boolean
 }
 /**
  * 业务融合page模块(模块-> 简化页面调用)
@@ -24,16 +37,16 @@ type editModelProps={
  * 4. save,edit,delete,默认调用方法提供
  */
  export interface tablePageProps extends ListProps {
-    entityName:string,  //实体模型
-    listModel?:string,  //列表模型信息,为空则=entityName
-    editModel?:string|editModelProps, // 编辑视图模型，为空则=entityName
-    viewModel?:string, //视图查看模型，为空则=entityName
-    initData?:object,//新增时初始化的默认数据，不可改
-    reload?:boolean,//发生变化则刷新
-    req?:any //搜索form待入的条件
-    btnEnable?:{read?:boolean,edit?:boolean,add?:boolean,rm?:boolean,batchRm?:boolean,view?:boolean} //默认开放的按钮
-    customBtns?:VfButton[], //页面传入的个性化按钮
-    onGetData?:(datas:any[])=>void//数据加载完成事件,把数据传出去
+    entityName:string,  //实体模型名称
+    listModel:string,  //列表模型信息,为空则=entityName
+    editModel:string|modelProps, // 编辑视图模型，为空则=entityName
+    viewModel:string|modelProps, //视图查看模型，为空则=entityName
+    initData:object,//新增时初始化的默认数据，不可改
+    reload:boolean,//发生变化则刷新
+    req:any //搜索form待入的条件
+    btnEnable:Partial<btnList>, //页面自带按钮进行开关
+    customBtns:VfButton[], //页面传入的个性化按钮
+    onGetData:(datas:any[])=>void//数据加载完成事件,把数据传出去
     // onEditCallBack?:(id:string)=>Promise<any>,//编辑之前取得其他非表单外键之外需要传入的数据
     // onAddCallBack?:()=>Promise<any>,//新增之前取得传入表单的数据
   }
@@ -60,14 +73,15 @@ export const TablePage=({
   reload,
   initData,
   customBtns,
-  btnEnable={read:false,edit:true,add:true,rm:true,batchRm:true,view:true},//read==true,后面都无效
-  ...props}:tablePageProps)=>{
+  btnEnable={disable:false,edit:true,add:true,rm:true,batchRm:true,view:true},//read==true,后面都无效
+  ...props}:Partial<tablePageProps>&{entityName:string})=>{
 
   //加载弹出表单modal
   const formModal = useNiceModal("formModal");
   const confirmModal = useNiceModal("confirmModal");
   const {getDict,user,checkBtnPermission}=useAuth()
   const [fkMap,setFkMap]=useState<any>({});
+  const [parentMap,setParentMap]=useState<any>({});
 
   /**
    * 校验用户是否能操作这个数据
@@ -93,13 +107,18 @@ export const TablePage=({
     return {disable:false}
   },[]);
 
+
   /**
-   * 新增按钮的可操作权限和外部数据关联
+   * 新增按钮的可操作权限和外部数据关联,
+   * 当前时能看见新增按钮，就能处理
    */
   const addCheck=useCallback((...data:any):BtnMemoProp=> {
     return {disable:false}
   },[]);
 
+  /**
+   * 删除按钮逻辑控制
+   */
   const batchRmCheck=useCallback((...data:any):BtnMemoProp=> {
     if (data.length===0){
       return {disable:true,prompt:'请选中至少一条记录'}
@@ -122,23 +141,22 @@ export const TablePage=({
     }
   }});
   //数据保存的方法
-  const {runAsync:save} =useSave({entityName,modelName:typeof editModel=='string'?editModel:editModel.name})
+  const {runAsync:baseSave} =useSave({})
+
+  // const {runAsync:save} =useSave({entityName,modelName:typeof editModel=='string'?editModel:editModel.name})
   //获得数据明细的方法，??xxDetail如何传参
   const {runAsync:getDetail}=useDetail({entityName})
   //数据删除方法
   const {runAsync:rm} =useRemove({entityName})
   // 外键信息提取
-  const fkInfo=getFkInfo;
-  // const {runAsync:views}=useDetails({entityName});
-  const entityRm=(...data:any)=>{
-    //console.log('data',data)
-    confirmModal.show({
-      saveFun: ()=>{return rm(data.map((d:any)=>d.id))},
-      title:`确认删除${data.length}条记录`
-    }).then(data=>{
-      pageRefresh();
-    })
-  };
+
+  // const entityRm=(btn:VfButton,...data:any)=>{
+  //   //console.log('data',data)
+   
+  // };
+
+  
+
 
   useEffect(()=>{
     titleRun(listModel) //列头数据
@@ -151,10 +169,10 @@ export const TablePage=({
   },[req,reload])
 
   /**
-   * 外键信息
+   * 提取外键字段信息
    */
   const fkInfos=useMemo(()=>{
-    //不是entityName;则去取外键信息
+    //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
     if(modelInfo&&listModel&&entityName&&listModel===entityName){
       return modelInfo?.data?.fields.filter(f=>{
         return f.entityFieldName==="id"&& entityName!==f.entityType && !props.hideColumns?.includes(f.dataIndex)
@@ -163,12 +181,28 @@ export const TablePage=({
     return [];
   },[modelInfo])
 
+    /**
+   * 上级的code
+   */
+     const pcodeField=useMemo(():fieldInfo|undefined=>{
+      //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
+      if(modelInfo){
+        return modelInfo?.data?.fields.find(f=>{
+          return f.dataIndex==="pcode"
+        });
+      }
+      return undefined;
+    },[modelInfo])
+  
+
+  /**
+   * 获得本页外键字段的id,name的键值集合
+   */
   useEffect(()=>{
-    //step2 找到字段里有字典的数据，并从全局context里得到本次需要的字典数据
     fkInfos?.forEach( f=>{
       const ids:string[]=data?.data?.result.map(d=>d[f.dataIndex] as string)||[];
       if(ids.length>0){
-        fkInfo(f.entityType,ids).then(data=>{
+        find(f.entityType,"id",ids).then(data=>{
           data.data?.forEach(e=>{
             fkMap[e.id]=e.name
             setFkMap({...fkMap})      
@@ -178,102 +212,141 @@ export const TablePage=({
     })
 },[fkInfos,data])
 
-   
-  const setPage=useCallback((pageNo: number)=>{
-    page({...req,...{pager:{page:pageNo}}})
-  },[req]);
-
-  const pagination=useMemo(() => {
-    return {
-      pagination: {
-        formatPageText:props.select_more!==undefined,
-        currentPage: data?.data?.page,
-        pageSize: data?.data?.size,
-        total: data?.data?.total,
-        onPageChange: setPage,
-      }
-    };
-  }, [data?.data,]);
-
-
-  // 过滤列头信息里的字典
-  const dictKeys:(string)[]=useMemo(()=>{
-    if(modelInfo&&modelInfo.data){
-      const r:(string|undefined)[]=  modelInfo.data.fields.map(f=>{
-        return  f.dictCode
-      });
-      const s:string[]=[];
-      r.forEach(str=>{
-        if(str!=undefined)
-          s.push(str)
-      })
-      return s;
-    }
-    return [];
-  },[modelInfo])
 
   /**
-   * 
-   * @param read 
-   * @param model 
-   * @param record 
-   * @param save 
-   * @param compData indexForm里的组件需要的数据
+   * 获得本页外键字段的id,name的键值集合
    */
-  const modalShow=(read:boolean,model:string,record:any,save?:any)=>{
+   useEffect(()=>{
+    if(pcodeField){
+      const codes:string[]=data?.data?.result.map(d=>d[pcodeField.dataIndex] as string)||[];
+      if(codes.length>0){
+        find(pcodeField.entityType,"code",codes).then(data=>{
+          data.data?.forEach(e=>{
+            parentMap[e.code]=e.name
+            setParentMap({...parentMap})      
+          })
+        })
+      }
+    }
+},[pcodeField,data])
+
+const setPage=useCallback((pageNo: number)=>{
+  page({...req,...{pager:{page:pageNo}}})
+},[req]);
+
+const pagination=useMemo(() => {
+  return {
+    pagination: {
+      formatPageText:props.select_more!==undefined,
+      currentPage: data?.data?.page,
+      pageSize: data?.data?.size,
+      total: data?.data?.total,
+      onPageChange: setPage,
+    }
+  };
+}, [data?.data,]);
+
+
+/**
+ * 过滤列表模型里的字段里是字段类型的字典key集合
+ */
+const dictKeys:string[]=useMemo(()=>{
+  if(modelInfo&&modelInfo.data){
+    const r:(string|undefined)[]=  modelInfo.data.fields.map(f=>{
+      return  f.dictCode
+    });
+    const s:string[]=[];
+    r.forEach(str=>{
+      if(str!=undefined)
+        s.push(str)
+    })
+    return s;
+  }
+  return [];
+},[modelInfo])
+
+  /**
+   * @param read  展现形式
+   * @param model 模型信息
+   * @param record 初始数据
+   * @param save 确认按钮触发的方法m
+   */
+  const modalShow=(read:boolean,model:string|modelProps,record:any,save?:any)=>{
+    const modelName=typeof model=='string'?model:model.name;
     formModal.show({ //这里因为是any,所以show无提示，不优雅,
-      entityName, //voName
-      modelName:model,
+      entityName,
+      modelName,
       initData:record,
       saveFun:save,
       type:'dataForm',
-      ... typeof editModel!=='string'? editModel:undefined,
+      //模型传的是复杂类型(modelProps),则需要数据内容打散透传给modal
+      ... typeof model!=='string'? model:undefined,
       read
     }).then((saveData) => {
       pageRefresh();
     });
   }
 
-  const eidtiModalShow=(record?:any)=>{
-    const editName=typeof editModel=='string'?editModel:editModel.name;
-    if(editName!==listModel&&record&&record.id){
-      getDetail(record.id,editName).then(data=>{// 列表和编辑dto不同，需要加载数据
-        modalShow(false,editName,data.data,save);
+  /**
+   * 弹出层
+   * @param modelName 弹出层的数据model
+   * @param fun 弹出层里点保存的回调方法
+   * @param view 是否是read视图 true时 fun是可以为空的
+   * @param record  弹出层的数据m
+   */
+  const showDiv=(model:string|modelProps,isView:boolean,record?:any,fun?:any)=>{
+    const modelName=typeof model=='string'?model:model.name;
+    // 列表模型和编辑模型不同，需要去后台取编辑模型数据后在打开弹出框
+    if(model!==listModel&&record&&record.id){
+      getDetail(record.id,modelName).then(data=>{
+        modalShow(isView,model,data.data,fun);
       })
     }else{
-      modalShow(false,editName,record?record:initData,save);
+        modalShow(isView,model,record?record:initData,fun);
     }
   }
 
-  //触发调用的方法
-  const entitySave=(record?:any)=>{
-    eidtiModalShow(record);
-   };
-
-   //列表视图和查看视图一致则不用请求
-   const view=(record?:any)=>{
-    if(viewModel!==listModel){
-      getDetail(record.id,viewModel).then(data=>{
-        modalShow(true,viewModel,data.data);
+  /**
+   * 点击按钮统一触发的方法
+   * @param btn 按钮信息
+   * @param record 按钮所在行数据或者复选框选择的所有数据
+   */
+  const btnClick=(btn:VfButton,...record:any)=>{
+    if(btn.model){
+      // const mName=typeof btn.model=='string'?btn.model:btn.model.name;
+      const isView=btn.readView===undefined?false:btn.readView;
+      showDiv(btn.model,isView,record?record[0]:undefined,btn.okFun);
+    }else if(btn.okFun!==undefined){
+      confirmModal.show({
+        saveFun: ()=>{
+          return btn.okFun&&btn.okFun(record.length>0?[...record].map((d:any)=>d.id):undefined)},
+          title:`确认${btn.title}${record.length}条记录`
+      }).then(data=>{
+        pageRefresh();
       })
-    }else{
-      modalShow(true,viewModel,record);
     }
-   };
+  }
 
-   const local=useLocation();
-  
+  /**
+   * 通用保存方法调用
+   */
+  const save =useCallback((entityName:string,mName?:string|modelProps)=>{
+    const modelName=mName?(typeof mName=='string'?mName:mName.name):undefined;
+    return (data:any)=> baseSave(data,entityName,modelName)
+  },[])
+
+  const local=useLocation();
   const tableBtn=useMemo(():VfButton[]=>{
     const memoBtns:VfButton[]=[];
-    const addDefBtn={title:'新增',entityName:entityName, tableBtn:true,key:'save',fun:entitySave,attr:addCheck}
-    const rmDefBtn={title:'删除',entityName:entityName,tableBtn:false,key:'remove',fun:entityRm,attr:batchRmCheck}
-    const batchRmDefBtn={title:'删除',entityName:entityName,tableBtn:true,key:'remove',fun:entityRm,attr:batchRmCheck}
-    const editDefBtn={title:'修改',entityName:entityName,tableBtn:false,key:'save',fun:entitySave,attr:editCheck}
-    const detailDefBtn={title:'查看',entityName:entityName,tableBtn:false,key:'detail',fun:view}
+    const addDefBtn:VfButton={title:'新增',entityName,model:editModel,tableBtn:true,key:'save',okFun:save(entityName,editModel),click:btnClick,attr:addCheck}
+    const rmDefBtn:VfButton={title:'删除',entityName,tableBtn:false,key:'remove',click:btnClick,okFun:rm, attr:batchRmCheck}
+    const batchRmDefBtn:VfButton={title:'删除',entityName,tableBtn:true,key:'remove',click:btnClick,okFun:rm,attr:batchRmCheck}
+    const editDefBtn:VfButton={title:'修改',entityName,model:editModel,tableBtn:false,key:'save',okFun:save(entityName,editModel),click:btnClick,attr:editCheck}
+    const detailDefBtn:VfButton={title:'查看',entityName,readView:true, model:viewModel,tableBtn:false,key:'detail',click:btnClick}
 
+    //fromTmp 是模板页面template 当前先不进行权限判断
     const  fromTmp=local.pathname.includes('/template/');
-    // 是模板页面则不进行权限判断
-    if(btnEnable.read==false){
+    if(btnEnable.disable===undefined||btnEnable.disable===false){
       if(btnEnable.add&&(fromTmp||checkBtnPermission(addDefBtn))){
         memoBtns.push(addDefBtn)
       }
@@ -288,6 +361,14 @@ export const TablePage=({
     }
     customBtns?.forEach(cus=>{
       if(checkBtnPermission(cus)){
+        //自定义按钮如果没有传入点击事件，则用默认本页自带的逻辑
+        if(cus.click===undefined){
+          cus.click=btnClick
+        }
+        //确认保存的方法如果没有设置，也使用baseProvider里的
+        if(cus.okFun===undefined&&cus.model){
+          cus.okFun=save(cus.entityName||entityName,cus.model) 
+        }
         memoBtns.push(cus)
       }
     })
@@ -298,15 +379,16 @@ export const TablePage=({
     <div>
       <Table 
           columns={modelInfo?.data?.fields}
-          hideColumns={['createDate','modifyDate','status','id','createId','modifyId']}
+          hideColumns={['createDate','modifyDate','status','id','createId','modifyId','code','sysAreaId','sysOrgId','sysDeptId']}
           sysDict={getDict(...dictKeys)}
           dataSource={data?.data?.result}
           tableBtn={tableBtn}
           fkMap={fkMap}
+          parentMap={parentMap}
           {...pagination}
-          {...props} //透传
-          />
-          {/* {JSON.stringify(data?.data?.result)} */}
+          {...props}
+          >
+         </Table>
           </div>
  )
 }

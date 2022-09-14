@@ -1,6 +1,8 @@
 /**
  * 选择组件,用于搜索查询页面模块使用，
  * 将搜索条件以信息块形式展示出来
+ * 没有read预览模式，仅用在queryForm里
+ * 所以也没有formily的模式
  */
  import { Space, Tag } from '@douyinfe/semi-ui';
  import React, { useCallback, useEffect, useState } from 'react';

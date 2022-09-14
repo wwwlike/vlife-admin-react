@@ -1,7 +1,7 @@
 import VlifeForm, { FormProps } from '@src/components/form';
 import QueryForm from '@src/components/form/queryForm';
 import { useAuth } from '@src/context/auth-context';
-import { getFkInfo,  useModelInfo } from '@src/provider/baseProvider';
+import { find,  useModelInfo } from '@src/provider/baseProvider';
 import React, {useEffect,useMemo,useState } from 'react';
 
 
@@ -27,11 +27,9 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
   const {getDict} =useAuth(); //context里的字典信息
   const [fkMap,setFkMap]=useState<any>({}); // 外键数据集合
   const {run,data:modelInfo}=useModelInfo({entityName}); //表单模型信息
-  const fkInfoFun=getFkInfo;
   const [history,setHistory]=useState<any>(props.formData); //表单变化上一次的数据
   const [fdata,setFData]=useState<any>(props.formData); //表单最新数据
   const [staticFields,setStaticFields]=useState<any>(fieldsCover); //字段信息后台传过来，这里去取渲染需要的data
-  const [ddd,setDdd]=useState<any>();
   /**
    * loadData 特定字段需要加载数据，去请求
    * 数据变化，如果有异步请求数据需求则去处理
@@ -118,13 +116,6 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
      })
   },[modelInfo,props.formData])
 
-  function printName(name:string) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve(name)
-        }, 2000)
-    } )
-  }
   /**
    * 表单及字典数据配置信息获取
    */
@@ -139,7 +130,7 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
         if(props.formData[f.dataIndex]){
           const isStr= typeof props.formData[f.dataIndex]==='string'
           const ids:string[]=isStr?[props.formData[f.dataIndex]]:props.formData[f.dataIndex];
-          fkInfoFun(f.entityName,ids).then(data=>{
+          find(f.entityName,'id',ids).then(data=>{
             data.data?.forEach(e=>{
               fkMap[e.id]=e.name
               setFkMap({...fkMap})      
@@ -159,7 +150,7 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
   else if(type==='dataForm'){
     return (
       <> 
-   {/* {JSON.stringify(fkInfos)} */}
+   {/* {JSON.stringify(staticFields)} */}
         <VlifeForm 
           entityName={entityName}
           modelInfo={modelInfo.data}
@@ -182,7 +173,7 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
   }else{
     return (
       <>
-         {/* {JSON.stringify(fkMap)} */}
+         {/* {JSON.stringify(staticFields)} */}
                <QueryForm 
           entityName={entityName}
           modelInfo={modelInfo.data}

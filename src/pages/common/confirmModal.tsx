@@ -15,24 +15,21 @@
  }
  
  /**
-  * 传save则用传入的save进行保存，否则就用通用保存方法进行
-  * 因为是modal窗口，固数据不需要传输出去
-  * 
   */
  export const ConfirmModal=createNiceModal("confirmModal", ({saveFun,title="确认删除选中的记录么?"}:ConfirmModalProps) =>{
    const modal = useNiceModal("confirmModal");
    const handleSubmit = useCallback(() => { //提交按钮触发的事件
-   if(saveFun){    //通用保存
-      saveFun().then(data=>{
-        modal.resolve(data);
-      }).finally(()=>{
-         modal.hide();
-      });
-   }
+      if(saveFun){    //通用保存
+         saveFun().then(data=>{
+          modal.resolve(data);
+         }).finally(()=>{
+            modal.hide();
+         });
+      }
    }, [saveFun]);
  
    return (
-   <NiceModal id="confirmModal" title={'删除确认'} width={350} onOk={handleSubmit}>
+   <NiceModal id="confirmModal" title={'操作确认'} width={350} onOk={handleSubmit}>
       <p>{title}</p>
    </NiceModal>)
  })

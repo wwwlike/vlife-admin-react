@@ -17,7 +17,7 @@ export default ()=>{
   const [formData,setFormData]=useState<any>();
   const reactions=useMemo(():Map<string,reactions>=>{
     const map=new Map<string,reactions>();
-    map.set('code',{
+    map.set('resourcesCode',{
       dependencies:['.url'],
       when:'{{$deps[0]}}',
       fulfill:{
@@ -66,15 +66,17 @@ export default ()=>{
                   name:'sysResources',
                   fieldsCover:[
                     {
-                      dataIndex:'pcode',
+                      dataIndex:'resourcesPcode',
                       component:'TabSelect',//固定一个范围去取
                       props:{
-                        loadData:listAll
+                        loadData:listAll,
+                    
                       }
+                    
                     },
                   ],
                   reactions //级联关系数据,应该整合到fieldsCover里
-                  ,requiredCols:['code','name','type']//必填字段,应该整合到fieldsCover里
+                  ,requiredCols:['resourcesCode','name','type']//必填字段,应该整合到fieldsCover里
                 }}
                 hideColumns={['createDate','modifyDate','sysRoleId','status','createId','modifyId']}
                 select_more={true}

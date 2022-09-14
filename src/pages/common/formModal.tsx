@@ -1,11 +1,3 @@
-/**
- *
- *  vlife 新增，修改类型的弹出组件
- * 1. 提供外部调用的hook
- * 2. 对表信息进行拉取
- * 3. 完成model edit,add操作
- * 4. 也要与权限关联
- */
  import NiceModal, { createNiceModal, useNiceModal } from '@src/store';
  import React, { useCallback, useMemo, useState } from 'react';
  import FormPage, { FormPageProps } from './formPage';
@@ -46,14 +38,15 @@
    const handleSubmit = useCallback(() => { //提交按钮触发的事件
     if(saveFun&&form ){    //通用保存
         form.submit().then(data=>{
+          // console.log("ddd",data)
           saveFun(form.values).then(data=>{
-          modal.resolve(data);
+            modal.resolve(data);
           //  pageRefresh();
           modal.hide();
-       })
-        }).catch(e=>{
-         
-        })
+          })
+      }).catch(e=>{
+        
+      })
       
     }
    }, [formData,form]);
@@ -66,6 +59,7 @@
     //   {disabled:form&&form.errors.length>0}
     // }
      >
+      {/* {JSON.stringify(formData)} */}
       <FormPage 
         onError={setErrors}
         formData={initData} 
