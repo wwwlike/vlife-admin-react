@@ -100,6 +100,12 @@ const Index: FC = () => {
 						code: "sysUser",
 						path: "/sys/user",
 					},
+					{
+						itemKey: "2-1",
+						text: "地区管理",
+						code: "sysArea",
+						path: "/sys/sysArea",
+					},
 		
 					{
 						itemKey: "2-2",
@@ -114,12 +120,7 @@ const Index: FC = () => {
 						code: "sysDept",
 						path: "/sys/sysDept",
 					},
-					{
-						itemKey: "2-1",
-						text: "地区管理",
-						code: "sysArea",
-						path: "/sys/sysArea",
-					},
+				
 					{
 						itemKey: "3-1",
 						text: "参数字典",

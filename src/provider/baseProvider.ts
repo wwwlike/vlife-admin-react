@@ -144,7 +144,21 @@ export const useRemove = ({
     (id: string | number): Promise<Result<number>> => {
       return apiClient.delete(`/${entityName}/remove/${id}`);
     },
-    { manual, ...options }
+    {
+      manual,
+      onSuccess(data) {
+        if (data.data === -1) {
+          Notification.warning({
+            content: `有关联数据存在,不允许删除`,
+          });
+        } else {
+          Notification.success({
+            content: `操作成功`,
+          });
+        }
+      },
+      ...options,
+    }
   );
 
 /**

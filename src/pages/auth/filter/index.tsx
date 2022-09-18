@@ -32,18 +32,11 @@
                  entityName={entityName} 
                  customBtns={[
                      {
-                       title:'设为默认',
-                       entityName,
-                       tableBtn:false,
-                       okFun:initData
-                     },
-                     {
                       title:'权限同步',
                       entityName,
                       tableBtn:true,
                       okFun:initData
                     }
-
                    ]}
                  select_more={true}
                 >

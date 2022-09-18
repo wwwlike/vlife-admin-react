@@ -16,6 +16,7 @@ const Quickstart = lazy(() => import('../pages/guide/quickstartMp4'))
 const AreaPage = lazy(() => import('../pages/sys/area'))
 const UserPage = lazy(() => import('../pages/sys/user'))
 const OrgPage = lazy(() => import('../pages/sys/org'))
+const DeptPage = lazy(() => import('../pages/sys/dept'))
 const DictPage = lazy(() => import('../pages/sys/dict'))
 const ResourcesPage = lazy(() => import('../pages/auth/resources'))
 const FilterPage = lazy(() => import('../pages/auth/filter'))
@@ -65,7 +66,7 @@ const routeList: RouteObject[] = [
 			},
 			{
 				path: 'sys/sysDept',
-				element: <WrapperRouteComponent element={<TemplatePage />} titleId="部门管理" auth />
+				element: <WrapperRouteComponent element={<DeptPage />} titleId="部门管理" auth />
 			},
 			{
 				path: 'sys/sysOrg',

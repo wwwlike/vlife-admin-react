@@ -12,7 +12,6 @@ export default connect(
       return {
             ...props,
             ...field['componentProps'][field.props.name],
-
             onChange(selectedKeys:any) {
               field.value=selectedKeys;
             }

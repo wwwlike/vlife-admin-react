@@ -42,6 +42,9 @@ export default () => {
         <Card className='text-xl'  title='VLIFE已开放前端代码生成功能' >
           <p className='text-xl'><b>1. 生成与服务端匹配的业务模型定义代码（VO/REQ/ENTITY/DTO）的TS代码</b></p>
           <p className='text-xl'><b>2. 生成与服务端API接口匹配的服务调用函数的TS代码</b></p>
+          <p className='text-xl'><b>3. 访问线上服务生成前端代码<a href='http://admin.vlife.cc/ts/code'>http://admin.vlife.cc/ts/code</a></b></p>
+
+          
         </Card>
         <br/>
         {/* <Card className='text-xl'  title='操作步骤' >

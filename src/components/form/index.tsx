@@ -109,18 +109,36 @@ export default ({maxColumns=[2,2,2],dicts,formData,
   /**
    * code层字段信息覆盖配置层的内容
    */
+  // const fieldInfos=useMemo(():(fieldInfo)[]=>{
+  //   if(!fieldsCover){
+  //     return modelInfo?.fields||[];
+  //   }else{
+  //     return modelInfo?.fields.map(field=>{
+  //       const filterResult:Partial<fieldInfo>[] =fieldsCover.filter(cover=>cover.dataIndex===field.dataIndex)
+  //       if(filterResult&&filterResult[0]){
+  //         return {...field,...filterResult[0]}
+  //       }
+  //       return field;
+  //     })||[]
+  //   }
+  // },[fieldsCover,modelInfo?.fields])
+
   const fieldInfos=useMemo(():(fieldInfo)[]=>{
-    if(!fieldsCover){
-      return modelInfo?.fields||[];
-    }else{
-      return modelInfo?.fields.map(field=>{
-        const filterResult:Partial<fieldInfo>[] =fieldsCover.filter(cover=>cover.dataIndex===field.dataIndex)
-        if(filterResult&&filterResult[0]){
-          return {...field,...filterResult[0]}
-        }
-        return field;
-      })||[]
+    const infos= ():fieldInfo[]=>{
+      if(!fieldsCover){
+        return modelInfo?.fields||[];
+      }else{
+        return modelInfo?.fields.map(field=>{
+          const filterResult:Partial<fieldInfo>[] =fieldsCover.filter(cover=>{
+            return cover.dataIndex===field.dataIndex})
+          if(filterResult&&filterResult[0]){
+            return {...field,...filterResult[0]}
+          }
+          return field;
+        })||[]
+      }
     }
+    return infos().filter(f=>f.uiState!=='hide');
   },[fieldsCover,modelInfo?.fields])
 
 
@@ -164,10 +182,10 @@ export default ({maxColumns=[2,2,2],dicts,formData,
       f.dataIndex!=='createId'&&
       f.dataIndex!=='modifyId'&&
       f.dataIndex!=='createDate'&&
-      f.dataIndex!=='modifyDate'&&
-      f.dataIndex!=='sysOrgId'&&
-      f.dataIndex!=='sysAreaId'&&
-      f.dataIndex!=='sysDeptId'
+      f.dataIndex!=='modifyDate'
+      // &&f.dataIndex!=='sysOrgId'&&
+      // f.dataIndex!=='sysAreaId'&&
+      // f.dataIndex!=='sysDeptId'
       ))
     }}).forEach((f)=>{
     

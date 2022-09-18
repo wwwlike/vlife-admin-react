@@ -78,9 +78,10 @@ export interface fieldInfo {
   dictCode?: string; //字典code
   pathName: string; // 全量路径字段
   entityFieldName: string; //数据库模型字段
+  uiState: "show" | "hide" | "write"; //页面是否展示
   entityType: string;
   // 附加属性
-  component: string; //使用组件
+  component: "PageSelect" | "TabSelect" | "TreeSelect" | string; //使用组件
   labelProps: any; //包装名称层属性
   span: number; //组件栅格数量
   props: {

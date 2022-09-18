@@ -11,6 +11,9 @@ export default connect(
       //   validateStatus: true,
       // },
       (props, field:any) => {
+        console.log("datas",field['componentProps'])
+
+        const datas=field['componentProps'][field.props.name].datas;
       return {
            autoAdjustOverflow:true,
            ...props,//组件上的属性
@@ -19,7 +22,7 @@ export default connect(
            //只管显示的值
           //  displayRender:(selected:[]) => selected[selected.length-1],
           ...field['componentProps'][field.props.name],
-           treeData:getTreeData(field['componentProps'][field.props.name].datas,null),            //该字段上上fieldCover解构开
+          treeData:datas&&datas.length>0?getTreeData(datas,null):[],            //该字段上上fieldCover解构开
             // onChange(values:[]) {
             //    field.value=values[values.length-1];
             // }

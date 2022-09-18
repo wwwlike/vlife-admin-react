@@ -6,9 +6,13 @@
  import TablePage from '@src/pages/common/tablePage';
  import React, { useState} from 'react';
  import { initData } from '@src/mvc/SysFilter';
-
+import { listAll as orgAll } from '@src/mvc/SysOrg';
+import { listAll as deptAll } from '@src/mvc/SysDept';
+import { listAll as areaAll } from '@src/mvc/SysArea';
+import { useAuth } from '@src/context/auth-context';
  export default ()=>{
    const [formData,setFormData]=useState<any>({});
+   const {user}= useAuth();
    const entityName="project";
    return (
      <div className='h-full overscroll-auto'>
@@ -19,6 +23,32 @@
                formData={formData} 
                onDataChange={setFormData} //相应事件。
                entityName={entityName}  
+               fieldsCover={[
+                {
+                  dataIndex:'sysArea_code',
+                  component:'TreeQuery',
+                  props:{
+                    loadData:areaAll,
+                    valField:'code',
+                    // rootCode:user?.codeArea,
+                  }
+                },
+                {
+                  dataIndex:'sysOrg_code',
+                  component:'TreeQuery',
+                  props:{
+                    loadData:orgAll,
+                    valField:'code',
+                  }
+                },{
+                  dataIndex:'sysDept_code',
+                  component:'TreeQuery',
+                  props:{
+                    loadData:deptAll,
+                    valField:'code',
+                  }
+                }
+               ]}
                modelName='ProjectPageReq' /> }
            </Card>
        </div>

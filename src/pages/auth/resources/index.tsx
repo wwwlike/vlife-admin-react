@@ -70,7 +70,6 @@ export default ()=>{
                       component:'TabSelect',//固定一个范围去取
                       props:{
                         loadData:listAll,
-                    
                       }
                     
                     },

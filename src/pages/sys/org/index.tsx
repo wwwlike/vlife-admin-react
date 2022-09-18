@@ -19,12 +19,19 @@ import { listAll } from '@src/mvc/SysOrg';
             modelName='sysOrgPageReq'
             fieldsCover={[
               {
-              dataIndex:'sysAreaId',//字段
+              dataIndex:'sysArea_code',//字段
               component:'TreeQuery',//组件替换
               props:{ //组件需要的属性
                 loadData:areaListAll, //请求数据的方法
-                valField:'id',
-                rootCode:'420000',//待改成用户的地区信息
+                valField:'code',
+              }
+            },
+            {
+              dataIndex:'code',//字段
+              component:'TreeQuery',//组件替换
+              props:{ //组件需要的属性
+                loadData:listAll, //请求数据的方法
+                valField:'code',
               }
             }]}
 

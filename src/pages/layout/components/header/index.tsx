@@ -38,7 +38,7 @@ const Index: FC = () => {
 								marginRight: '12px'
 							}}
 						 onClick={()=>{
-							window.open("http://wwwlike.cn")
+							window.open("http://vlife.cc")
 						 }}
 						>官网</Button>
 						<Button

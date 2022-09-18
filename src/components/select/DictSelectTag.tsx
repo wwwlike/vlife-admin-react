@@ -5,13 +5,12 @@
  * 所以也没有formily的模式
  */
  import { Space, Tag } from '@douyinfe/semi-ui';
- import React, { useCallback, useEffect, useState } from 'react';
+ import React, { useEffect, useState } from 'react';
  type DictSelectTagProps={
-   fieldName:string,
    datas:{label?:string,value?:number|string}[], //字典模式
    selected?:(number|string)[],//初始选中
    selectMore?:boolean,
-   onSelected:(ids:(string|number|undefined)[])=>void//事件
+   onSelected?:(ids:(string|number|undefined)[])=>void//事件
    showMax?:number;//最多显示数量,待启用
  }
  /**
@@ -23,7 +22,7 @@
   * 3. 当前选中数据传输出去
   * 4. 全部则表示(不选择)
   */
- const DictSelectTag =({fieldName,datas,selected,onSelected,selectMore=false,showMax=20,...props}:DictSelectTagProps)=>{
+ const DictSelectTag =({datas,selected,onSelected,selectMore=false,showMax=20,...props}:DictSelectTagProps)=>{
   const [selectedValues,setSelectedValues]=useState<((string|number|undefined)[])>(selected?{...selected}:[]);
   
   useEffect(()=>{

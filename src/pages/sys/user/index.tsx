@@ -1,7 +1,8 @@
 import { Card } from '@douyinfe/semi-ui';
 import { BtnMemoProp, VfButton } from '@src/components/table';
 import { useAuth } from '@src/context/auth-context';
-import { listAll } from '@src/mvc/SysArea';
+import { listAll as orgList } from '@src/mvc/SysOrg';
+import { listAll as deptList} from '@src/mvc/SysDept';
 import { SysUserPageReq } from '@src/mvc/SysUser';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
@@ -44,12 +45,18 @@ export default ()=>{
               modelName='sysUserPageReq'
               fieldsCover={[
                 {
-                dataIndex:'area',//字段
+                dataIndex:'sysDept_code',//字段
                 component:'TreeQuery',//组件替换
                 props:{ //组件需要的属性
-                  loadData:listAll, //请求数据的方法
+                  loadData:deptList, //请求数据的方法
                   valField:'code',
-                  rootCode:user?.codeArea,//待改成用户的地区信息
+                }
+              }, {
+                dataIndex:'sysOrg_code',
+                component:'TreeQuery',
+                props:{ 
+                  loadData:orgList, 
+                  valField:'code',
                 }
               }]}
               />

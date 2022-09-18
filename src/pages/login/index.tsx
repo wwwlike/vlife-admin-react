@@ -8,7 +8,7 @@ import { AuthForm } from '@src/provider/userProvider';
 const Index: React.FC = () => {
     const {user,login,error} = useAuth();
     const navigate = useNavigate()
-    const {values,errors,setFieldValue } = useForm<AuthForm>({username:'admin',password:'123456'},null);
+    const {values,errors,setFieldValue } = useForm<AuthForm>({username:'manage',password:'123456'},null);
     useEffect(()=>{
         if(user&&user.id){
             navigate("/")
@@ -28,8 +28,8 @@ const Index: React.FC = () => {
       <main className="bg-white max-w-lg mx-auto p-8 md:p-12 my-10 rounded-lg shadow-2xl">
         <section>
             <h3 className="font-bold text-2xl">欢迎你体验VLIFE平台快速开发能力</h3>
-            <p className="text-gray-600 pt-2">普通用户：admin/123456</p>
             <p className="text-gray-600 pt-2">管理员：manage/123456</p>
+            <p className="text-gray-600 pt-2">普通用户：admin/123456</p>
         </section>
         <section className="mt-10">
             <div className="flex flex-col" >

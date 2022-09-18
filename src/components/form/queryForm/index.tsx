@@ -83,21 +83,24 @@
     * 单个表单属性组合/覆盖
     */
    const fieldInfos=useMemo(():(fieldInfo)[]=>{
-    if(!fieldsCover){
-      return modelInfo?.fields||[];
-    }else{
-      // console.log('fieldsCover',fieldsCover);
-      return modelInfo?.fields.map(field=>{
-        const filterResult:Partial<fieldInfo>[] =fieldsCover.filter(cover=>{
-          // console.log(cover.dataIndex,field.dataIndex)
-          return cover.dataIndex===field.dataIndex})
-     
-        if(filterResult&&filterResult[0]){
-          return {...field,...filterResult[0]}
-        }
-        return field;
-      })||[]
+    const infos= ():fieldInfo[]=>{
+      if(!fieldsCover){
+        return modelInfo?.fields||[];
+      }else{
+        // console.log('fieldsCover',fieldsCover);
+        return modelInfo?.fields.map(field=>{
+          const filterResult:Partial<fieldInfo>[] =fieldsCover.filter(cover=>{
+            // console.log(cover.dataIndex,field.dataIndex)
+            return cover.dataIndex===field.dataIndex})
+      
+          if(filterResult&&filterResult[0]){
+            return {...field,...filterResult[0]}
+          }
+          return field;
+        })||[]
+      }
     }
+    return infos().filter(f=>f.uiState!=='hide');
   },[fieldsCover,modelInfo?.fields])
  
 

@@ -1,5 +1,5 @@
 import { Card } from '@douyinfe/semi-ui';
-import { listSysFilterVo, saveGroupFilterDto } from '@src/mvc/SysGroup';
+import { listSysFilterVo } from '@src/mvc/SysGroup';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
 import React, { useState} from 'react';

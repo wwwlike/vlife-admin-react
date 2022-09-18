@@ -31,15 +31,17 @@ export default () => {
 
   return (
     <div >
-       <Card className='text-xl'  title='vlife-admin是基于vlife前后端组件封装能力打造的管理端业务应用开发平台' >
+       <Card className='text-xl'  title='vlife-admin是基于vlife前后端组件封装能力打造的权限管理的脚手架应用' >
            <p className='text-xl' style={{ lineHeight: 1.8 }}>
-            V-LIFE以数据模型为中心，制定小而美的约定规则、简单简约人性化的设计理念，降低研发门槛，可提升数倍研发效能。
+            编写数据模型(javabean)就能完成前后端各种的功能开发是vlife的目标愿景。
+            </p><p className='text-xl' style={{ lineHeight: 1.8 }}>
+            虽然总会有人质疑说着就是造轮子，就是代码生成器，低代码就只能解决一般CRUD简单需求。
           </p>
           <p className='text-xl' style={{ lineHeight: 1.8 }}>
             【技&nbsp;&nbsp;术&nbsp;&nbsp;栈】： 前端react  后端：springboot
           </p>
           <p className='text-xl' style={{ lineHeight: 1.8 }}>
-            【使用指南】 <a target={'_blank'} href='http://vlife.wwwlike.cn'>http://vlife.wwwlike.cn</a>
+            【使用指南】 <a target={'_blank'} href='http://vlife.cc'>http://vlife.cc</a>
           </p>
           <p className='text-xl' style={{ lineHeight: 1.8 }}>
             【VLIFE平台】<a target={'_blank'} href='https://github.com/wwwlike/vlife'>https://github.com/wwwlike/vlife</a> 
