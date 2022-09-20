@@ -68,6 +68,34 @@ type modelInfoProps = Options<Result<ModelInfo>, any> & {
 };
 
 /**
+ * 单个用户信息视图
+ * @param id
+ * @return
+ */
+export const modelInfo = (
+  entityName: string,
+  modelName: string
+): Promise<Result<ModelInfo>> => {
+  return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
+};
+
+// function getSomeThing(): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//       resolve("获取成功");
+//     }, 3000);
+//   });
+// }
+
+// async function test():string {
+//   let a = await getSomeThing();
+
+//   console.log(a);
+//   return "1";
+// }
+// test(); // 3秒后输出：获取成功
+
+/**
  * 模型信息查询
  */
 export const useModelInfo = ({
@@ -80,6 +108,18 @@ export const useModelInfo = ({
       return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
     },
     { manual, ...props }
+  );
+};
+
+/**
+ * 模型信息查询
+ */
+export const useModelInfo1 = () => {
+  return useRequest(
+    (entityName: string, modelName: string): Promise<Result<ModelInfo>> => {
+      return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
+    },
+    { manual: true }
   );
 };
 

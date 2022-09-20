@@ -1,7 +1,8 @@
 import VlifeForm, { FormProps } from '@src/components/form';
 import QueryForm from '@src/components/form/queryForm';
 import { useAuth } from '@src/context/auth-context';
-import { find,  useModelInfo } from '@src/provider/baseProvider';
+import { ModelInfo } from '@src/mvc/base';
+import { find} from '@src/provider/baseProvider';
 import React, {useEffect,useMemo,useState } from 'react';
 
 
@@ -24,12 +25,18 @@ export interface FormPageProps extends Omit<FormProps,'dicts'|'modelInfo'>{
 }
  
 const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataChange,fieldsCover,...props}:FormPageProps)=>{
-  const {getDict} =useAuth(); //context里的字典信息
+  const {getDict,getModelInfo,models} =useAuth(); //context里的字典信息
   const [fkMap,setFkMap]=useState<any>({}); // 外键数据集合
-  const {run,data:modelInfo}=useModelInfo({entityName}); //表单模型信息
   const [history,setHistory]=useState<any>(props.formData); //表单变化上一次的数据
   const [fdata,setFData]=useState<any>(props.formData); //表单最新数据
   const [staticFields,setStaticFields]=useState<any>(fieldsCover); //字段信息后台传过来，这里去取渲染需要的data
+  const [model,setModel]=useState<ModelInfo|undefined>();
+  useEffect(()=>{
+      getModelInfo(entityName,modelName?modelName:entityName).then(data=>{
+        setModel(data);
+     })
+  },[entityName,modelName])
+  
   /**
    * loadData 特定字段需要加载数据，去请求
    * 数据变化，如果有异步请求数据需求则去处理
@@ -69,10 +76,10 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
   },[fdata]);
 
   /**
-   * 模型里的字典数组
+   * 模 型里的字典数组
    */
    const modelDicts=useMemo(():string[]=>{
-    let allFieldCodes=modelInfo?.data?.fields.map(f=>{
+    let allFieldCodes=model?.fields.map(f=>{
       return  f.dictCode
     })||[];
     const distCodes:string[]=[];
@@ -81,7 +88,7 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
         distCodes.push(s);
     })
    return distCodes;
-  },[modelInfo])
+  },[model])
 
   /**
    * 外键字段信息
@@ -92,9 +99,9 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
       return [];
     }
     //找出外键的字段
-    const fkFields= modelInfo?.data?.fields.filter(f=>{
+    const fkFields= model?.fields.filter(f=>{
       return  (f.dataIndex!=='id'&&
-      f.entityType!==modelInfo.data?.entityType&&
+      f.entityType!==model?.entityType&&
       (f.pathName.endsWith('Id')||f.pathName.endsWith('_id')))  ||
       ((f.dataIndex==='createId'|| f.dataIndex==='modifyId')) //特列
      })||[]
@@ -114,15 +121,7 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
         // }
       }
      })
-  },[modelInfo,props.formData])
-
-  /**
-   * 表单及字典数据配置信息获取
-   */
-  useEffect(()=>{
-    //step1 从数据库里取表单模型信息,判断表单是否是外键，外键是否有值
-    run(modelName||entityName);
-  },[entityName,modelName])
+  },[model,props.formData])
 
   useEffect(()=>{
         //step2 找到字段里有字典的数据，并从全局context里得到本次需要的字典数据
@@ -140,21 +139,23 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
         })
     },[fkInfos])
 
-  if(!modelInfo){
+  if(!model){
     return (<>
+        {/* 
+        错误提示，每次都会在页面先渲染不好
         <div>{modelName}模型在后端应用中不存在，请按照规范进行配置</div>
-        规范：列表查询模型的命名,应该以模型名称开头，pageReq结尾
+        规范：列表查询模型的命名,应该以模型名称开头，pageReq结尾 */}
       </>
       )
   }
   else if(type==='dataForm'){
     return (
       <> 
-   {/* {JSON.stringify(staticFields)} */}
+   {/* {JSON.stringify(model)} */}
         <VlifeForm 
           entityName={entityName}
-          modelInfo={modelInfo.data}
-          dicts={getDict(...modelDicts)}
+          modelInfo={model}
+          dicts={getDict({emptyLabel:'请选择',codes:[...modelDicts]})}
           fkMap={fkMap}
           maxColumns={maxColumns}
           fieldsCover={staticFields}
@@ -173,11 +174,10 @@ const FormPage=({entityName,modelName,type='dataForm',maxColumns=[2,2,2],onDataC
   }else{
     return (
       <>
-         {/* {JSON.stringify(staticFields)} */}
                <QueryForm 
           entityName={entityName}
-          modelInfo={modelInfo.data}
-          dicts={getDict(...modelDicts)}
+          modelInfo={model}
+          dicts={getDict({codes:[...modelDicts]})}
           fkMap={{...fkMap}}
           maxColumns={maxColumns}
           fieldsCover={staticFields}

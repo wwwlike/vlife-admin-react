@@ -8,7 +8,7 @@ import SuspendFallbackLoading from '../../components/fallback-loading'
 import TableModal from '../common/tableModal'
 import FormModal from '../common/formModal'
 import ConfirmModal from '../common/confirmModal'
-
+import Mp4Modal from '../common/mp4Modal'
 const { Content } = Layout
 
 const Index: React.FC = () => {
@@ -29,6 +29,7 @@ const Index: React.FC = () => {
 			<FormModal />
 			<TableModal />
 			<ConfirmModal />
+			<Mp4Modal/>
 		</Layout>
 	)
 }

@@ -4,7 +4,7 @@
  */
 import React, { useCallback, useMemo } from 'react';
 import { createForm, Form, IFormFeedback, onFormInit,onFormMount,onFormValuesChange } from '@formily/core';
-import { createSchemaField, FormProvider} from '@formily/react';
+import { createSchemaField, FormProvider, Schema, SchemaReaction} from '@formily/react';
 import { FormItem, Input ,FormGrid,GridColumn,Select,ArrayItems,ArrayTable, Checkbox,DatePicker} from '@formily/semi';
 import {  fieldInfo, ModelInfo, TranDict } from '@src/mvc/base';
 import RelationInput from '@src/components/form/comp/RelationInput'
@@ -32,15 +32,15 @@ import TreeSelect from './comp/TreeSelect';
  * 数据联动
  * https://react.formilyjs.org/zh-CN/api/shared/schema#schemareactions
  */
-export interface reactions{
-  dependencies:string[],
-  when:string,
-  fulfill:{
-    state:{
-      value:string
-    }
-  }
-}
+// export interface reactions{
+//   dependencies:string[],
+//   when:string,
+//   fulfill:{
+//     state:{
+//       value:string
+//     }
+//   }
+// }
 
  //表信息
 export interface FormProps {
@@ -57,7 +57,7 @@ export interface FormProps {
   maxColumns?: number[];//列信息
   modelInfo:ModelInfo|undefined;
   onError?:((error:IFormFeedback[])=>void);
-  reactions?:Map<string,reactions>; //联动关系
+  reactions?:Map<string,SchemaReaction<any>[]>; //所有字段的联动关系
   hideCols?:string[]; //表单隐藏字段
   readonlyCols?:string[]; //表单只读字段
   requiredCols?:string[]; //表单必填字段
@@ -123,7 +123,7 @@ export default ({maxColumns=[2,2,2],dicts,formData,
   //   }
   // },[fieldsCover,modelInfo?.fields])
 
-  const fieldInfos=useMemo(():(fieldInfo)[]=>{
+  const fieldInfos=useMemo(():fieldInfo[]=>{
     const infos= ():fieldInfo[]=>{
       if(!fieldsCover){
         return modelInfo?.fields||[];
@@ -166,15 +166,16 @@ export default ({maxColumns=[2,2,2],dicts,formData,
 
    /**
     * 动态表单formily
+    * 讲后端fieldInfo信息转换成schema信息
     */
    const schema= useMemo(()=>{
     const pp:any={};
       fieldInfos.filter(f=>{
        const hideFlag= hideCols&&hideCols.includes(f.dataIndex)
-       if(hideFlag){
-        return false;
-       }else{
-        return ((read&& f.dataIndex!=='id'&&f.dataIndex!=='status')||//
+       if(hideFlag===(false ||undefined)){
+        return (
+          (read&& f.dataIndex!=='id'&&f.dataIndex!=='status') //只读模式这2个字段不显示
+          ||//
      (f.dataIndex&&
       f.dataIndex!=='id'&&
       f.dataIndex!=='status'&&
@@ -188,15 +189,14 @@ export default ({maxColumns=[2,2,2],dicts,formData,
       // f.dataIndex!=='sysDeptId'
       ))
     }}).forEach((f)=>{
-    
       pp[f.dataIndex]={};
-      const prop:any=pp[f.dataIndex];
+      const prop:Schema=pp[f.dataIndex];
       prop.title=f.title;
       if(requiredCols&& (requiredCols.length===0||requiredCols.includes(f.dataIndex))){
          prop.required= true;
       }
       if(readonlyCols&&readonlyCols.includes(f.dataIndex)){
-        prop.readPretty= true;
+        prop['x-read-only']=true;
        }
       prop['x-decorator']= 'FormItem';
 

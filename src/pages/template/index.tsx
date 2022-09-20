@@ -2,10 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router'
 import { Card } from '@douyinfe/semi-ui';
 import TablePage from '@src/pages/common/tablePage';
-import { useModelInfo } from '@src/provider/baseProvider';
 import FormPage from '../common/formPage';
 import { useTitle } from 'ahooks';
-
+import { useAuth } from '@src/context/auth-context';
 
 /**
  * CRUD配置模板页面
@@ -14,6 +13,7 @@ import { useTitle } from 'ahooks';
  * - 存在该页面请求模型信息，table也请求的重复情况
  */
  export default ()=>{
+  const {getModelInfo} =useAuth();
   const params= useParams()
   const local=useLocation();
   const [title,setTitle]=useState<string>();
@@ -22,10 +22,10 @@ import { useTitle } from 'ahooks';
     const length=local.pathname.split("/").length;
     return  local.pathname.split("/")[length-1];
   },[params])
-  const {data,runAsync}=useModelInfo({entityName})
+  // const {data,runAsync}=useModelInfo({entityName})
   useEffect(()=>{
-    runAsync(entityName).then(data=>{
-      setTitle(data.data?.title||'')
+    getModelInfo(entityName,entityName).then(data=>{
+      setTitle(data?.title||'')
       setFormData({})
     })
   },[entityName]);

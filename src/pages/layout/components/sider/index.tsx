@@ -54,17 +54,18 @@ const Index: FC = () => {
 						path: "/dashboard/workbeach",
 					},
 					{
+					  itemKey: "1-4",
+					  text: "视频教程",
+					  icon: IconHome,
+					  path: "/help",
+					},
+					{
 						itemKey: "1-3",
 						text: "生成代码",
 						icon: IconHome,
 						path: "/ts/code",
-					},
-					// {
-					//   itemKey: "1-3",
-					//   text: "快速入门",
-					//   icon: IconHome,
-					//   path: "/guide/quickStart",
-					// },
+					}
+				
 				],
 			},
 			{

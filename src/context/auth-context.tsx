@@ -3,24 +3,30 @@
  */
 import {AuthForm, useCurrUser,useLogin}  from '@src/provider/userProvider';
 import {useAllDict}  from '@src/provider/dictProvider';
-import { TranDict } from '@src/mvc/base';
+import { ModelInfo, Result, TranDict } from '@src/mvc/base';
 import { useMount } from 'ahooks';
 import React, { ReactNode, useCallback, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { VfButton } from '@src/components/table';
 import { SysDict } from '@src/mvc/SysDict';
 import { UserDetailVo } from '@src/mvc/SysUser';
+import { modelProps } from '@src/pages/common/tablePage';
+import { modelInfo, useModelInfo, useModelInfo1 } from '@src/provider/baseProvider';
+import { addAbortSignal } from 'stream';
 
 
 const localStorageKey = "__auth_provider_token__";
 //全局状态类型定义，初始化为undefiend ,注意这里返回的是Pomise函数
 const AuthContext = React.createContext<{
+      getModelInfo:(entityName:string,modelName:string)=>Promise<ModelInfo|undefined>;
       user: UserDetailVo | undefined;
+      models:any,
       login: (form: AuthForm) => void;
       loginOut:()=>void;
-      getDict:(...dictCodes:string[])=>any[];//获得字典信息
+      getDict:(obj:{emptyLabel?:string,codes:string[]})=>any[];//获得字典信息
       checkBtnPermission:(btn:VfButton)=>boolean,//检查按钮权限
-      error:string|null|undefined;
+      error:string|null|undefined,
+
     }
   | undefined
 >(undefined);
@@ -33,17 +39,19 @@ AuthContext.displayName = "AuthContext";
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user,setUser]=useState<UserDetailVo>();
+  //存模型信息的对象，key是modelName, modelInfoProps
+  const [models,setModels]=useState<any>({});
   const [dicts,setDicts]=useState<SysDict[]>([]);
   const [error,setError]=useState<string|null>();
   const navigate = useNavigate()
 	const location = useLocation()
+  const models1=useModelInfo1();
   const {pathname}=location;
   const {data:currUser,runAsync:runCurruser} =useCurrUser()
   const {runAsync:userLogin} = useLogin();
   const {data:allDict,runAsync}=useAllDict();
   //不刷新则只加载一次
   useMount(()=>{
-
     //拉取用户信息的同时拉取字典信息
     runCurruser().then((res)=>{
       setUser(res.data);
@@ -56,16 +64,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   })
 
 
+ async function getModelInfo(entityName:string,modelName:string):Promise<ModelInfo|undefined>{
+  if(models[modelName]===undefined){
+    //简写
+    let model=await (await modelInfo(entityName,modelName)).data
+    setModels({...models,modelName:model})
+    // then的写法
+    // await modelInfo(entityName,modelName).then(data=>{
+      //   model=data.data;
+      //   setModels({...models,modelName:model})
+      // });
+    return model;
+  
+  }else{
+    return models[modelName];
+  }
+}
+
+
+
+  // /**
+  //  * 获得模型信息，modelN
+  //  * @param modelName 
+  //  * @returns 
+  //  */
+  // const getModelInfo11= (entityName:string,modelName:string):ModelInfo | undefined=>{
+  //   let modelResult =undefined;
+  //   if(models[modelName]===undefined){
+  //        modelResult = ( modelInfo(modelName,entityName)).data
+  //       // setModels({...models,modelName:modelResult.data})
+  //     }
+  //   return modelResult;
+  // }
+
+
+
+
    /**
    * @param codes 多条字典信息
    * @returns
    */
-    const getDict = (...codes: string[]): TranDict[] => {
+    const getDict = (
+      {
+        emptyLabel="全部",
+        codes
+      }:{
+        emptyLabel?:string,
+        codes: string[]
+      }): TranDict[] => {
       let tranDicts: TranDict[] = [];
       if(dicts){
         codes.forEach((code) => {
           const codeDicts: Pick<SysDict,'title'|'val'>[]=[];
-           codeDicts.push({val:undefined,title:'全部'})
+           codeDicts.push({val:undefined,title:'请选择'})
            codeDicts.push(...dicts.filter((sysDict) => {
             return sysDict.code === code&& sysDict.val;
           }));
@@ -123,7 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider
       children={children}
-      value={{user,login,error,loginOut,getDict,checkBtnPermission}}
+      value={{user,login,error,loginOut,getDict,checkBtnPermission,getModelInfo,models}}
     />
   );
 };

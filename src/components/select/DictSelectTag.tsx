@@ -10,7 +10,7 @@
    datas:{label?:string,value?:number|string}[], //字典模式
    selected?:(number|string)[],//初始选中
    selectMore?:boolean,
-   onSelected?:(ids:(string|number|undefined)[])=>void//事件
+   onSelected:(ids:(string|number|undefined)[])=>void//事件
    showMax?:number;//最多显示数量,待启用
  }
  /**
@@ -31,8 +31,7 @@
     }else{
       onSelected(selectedValues);
     }
-        },[selectedValues])
-
+  },[selectedValues])
    return (
      <Space wrap={true}>
         {/* {JSON.stringify(selectedValues)} */}

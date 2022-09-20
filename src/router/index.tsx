@@ -26,6 +26,7 @@ const Abnormal403 = lazy(() => import('@src/pages/abnormal/403'))
 const Abnormal404 = lazy(() => import('@src/pages/abnormal/404'))
 const Abnormal500 = lazy(() => import('@src/pages/abnormal/500'))
 const TsCode = lazy(() => import('@src/pages/tsCode'))
+const MP4 = lazy(() => import('@src/pages/guide'))
 const ProjectPage = lazy(() => import('@src/pages/bus/project'))
 const routeList: RouteObject[] = [
 	{
@@ -81,8 +82,8 @@ const routeList: RouteObject[] = [
 				element: <WrapperRouteComponent element={<DashboardWorkbeach />} titleId="工作台" auth />
 			},
 			{
-				path: 'guide/quickStart',
-				element: <WrapperRouteComponent element={<Quickstart />} titleId="视频介绍" auth />
+				path: 'help',
+				element: <WrapperRouteComponent element={<MP4 />} titleId="视频介绍" auth />
 			},
 			{
 				path: 'abnormal/403',

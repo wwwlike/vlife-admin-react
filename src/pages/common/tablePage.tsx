@@ -1,11 +1,11 @@
 import {useNiceModal } from '@src/store';
 import React, {useCallback, useEffect, useMemo, useState } from 'react';
-import { find, useDetail,useModelInfo, usePage, useRemove, useSave } from '@src/provider/baseProvider';
+import { find, useDetail, usePage, useRemove, useSave } from '@src/provider/baseProvider';
 import Table, { BtnMemoProp, ListProps, VfButton } from '@src/components/table';
 import { useAuth } from '@src/context/auth-context';
 import { reactions } from '@src/components/form';
 import { useLocation } from 'react-router-dom';
-import { fieldInfo, Result } from '@src/mvc/base';
+import { fieldInfo, ModelInfo, Result } from '@src/mvc/base';
 
 /**
  * 待写个文档
@@ -79,9 +79,23 @@ export const TablePage=({
   //加载弹出表单modal
   const formModal = useNiceModal("formModal");
   const confirmModal = useNiceModal("confirmModal");
-  const {getDict,user,checkBtnPermission}=useAuth()
+  const {getDict,user,checkBtnPermission,getModelInfo}=useAuth()
   const [fkMap,setFkMap]=useState<any>({});
   const [parentMap,setParentMap]=useState<any>({});
+
+
+  // 列头信息
+  // const {run:titleRun,data:modelInfo}=useModelInfo({entityName});
+
+  // 列头信息
+  const [modelInfo,setModelInfo]=useState<ModelInfo|undefined>();;
+
+  useEffect(()=>{
+    getModelInfo(entityName,listModel).then(data=>{
+      setModelInfo(data);
+   })
+},[entityName,listModel])
+
 
   /**
    * 校验用户是否能操作这个数据
@@ -132,8 +146,6 @@ export const TablePage=({
     return {disable:false}
   },[]);
 
-  // 列头信息
-  const {run:titleRun,data:modelInfo}=useModelInfo({entityName});
   // 列表信息
   const {run:page,refresh:pageRefresh,data}=usePage({entityName,listModel,onSuccess:(data)=>{
     if(onGetData){
@@ -158,9 +170,6 @@ export const TablePage=({
   
 
 
-  useEffect(()=>{
-    titleRun(listModel) //列头数据
-  },[listModel])
     //监听组件外部查询条件的变化
   useEffect(()=>{req
     // console.log('req-> search组件会引起req搜索两次，第一次search空，第二次 undefiend，需要解决',req);
@@ -174,7 +183,7 @@ export const TablePage=({
   const fkInfos=useMemo(()=>{
     //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
     if(modelInfo&&listModel&&entityName&&listModel===entityName){
-      return modelInfo?.data?.fields.filter(f=>{
+      return modelInfo?.fields.filter(f=>{
         return f.entityFieldName==="id"&& entityName!==f.entityType && !props.hideColumns?.includes(f.dataIndex)
       });
     }
@@ -187,7 +196,7 @@ export const TablePage=({
      const pcodeField=useMemo(():fieldInfo|undefined=>{
       //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
       if(modelInfo){
-        return modelInfo?.data?.fields.find(f=>{
+        return modelInfo?.fields.find(f=>{
           return f.dataIndex==="pcode"
         });
       }
@@ -251,8 +260,8 @@ const pagination=useMemo(() => {
  * 过滤列表模型里的字段里是字段类型的字典key集合
  */
 const dictKeys:string[]=useMemo(()=>{
-  if(modelInfo&&modelInfo.data){
-    const r:(string|undefined)[]=  modelInfo.data.fields.map(f=>{
+  if(modelInfo){
+    const r:(string|undefined)[]=  modelInfo.fields.map(f=>{
       return  f.dictCode
     });
     const s:string[]=[];
@@ -378,9 +387,9 @@ const dictKeys:string[]=useMemo(()=>{
   return (
     <div>
       <Table 
-          columns={modelInfo?.data?.fields}
+          columns={modelInfo?.fields}
           hideColumns={['createDate','modifyDate','status','id','createId','modifyId','code','sysAreaId','sysOrgId','sysDeptId']}
-          sysDict={getDict(...dictKeys)}
+          sysDict={getDict({emptyLabel:'-',codes:[...dictKeys]})}
           dataSource={data?.data?.result}
           tableBtn={tableBtn}
           fkMap={fkMap}

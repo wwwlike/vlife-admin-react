@@ -1,9 +1,9 @@
 import { Card } from '@douyinfe/semi-ui';
-import { reactions } from '@src/components/form';
 import FormPage from '@src/pages/common/formPage';
 import TablePage from '@src/pages/common/tablePage';
 import { listAll } from '@src/mvc/SysResources';
 import React, { useMemo, useState} from 'react';
+import { Schema, SchemaReaction, SchemaReactions } from '@formily/react';
 
 
 /**
@@ -15,18 +15,21 @@ import React, { useMemo, useState} from 'react';
 export default ()=>{
   //2页面模块需要共享的查询条件状态
   const [formData,setFormData]=useState<any>();
-  const reactions=useMemo(():Map<string,reactions>=>{
-    const map=new Map<string,reactions>();
-    map.set('resourcesCode',{
+  const reactions=useMemo(():Map<string,SchemaReaction<any>[]>=>{
+    const map=new Map<string,SchemaReaction<any>[]>();
+    map.set('resourcesCode',[{
       dependencies:['.url'],
       when:'{{$deps[0]}}',
       fulfill:{
         state:{
           value:'{{($deps[0].startsWith("/")?$deps[0].substring(1):$deps[0]).split("/").join(":")}}',
+        },
+        schema:{//影响属性
+          "x-hidden":'{{($deps[0]==="123"?true:false)}}',
         }
       }
-    })
-    map.set('menuCode',{
+    }])
+    map.set('menuCode',[{
       dependencies:['.url'],
       when:'{{$deps[0]}}',
       fulfill:{
@@ -34,7 +37,7 @@ export default ()=>{
           value:'{{$deps[0].split("/")[1]}}',
         }
       }
-    })
+    }])
     return map;
   },[])
   
@@ -71,11 +74,11 @@ export default ()=>{
                       props:{
                         loadData:listAll,
                       }
-                    
                     },
                   ],
-                  reactions //级联关系数据,应该整合到fieldsCover里
+                   reactions //级联关系数据,应该整合到fieldsCover里
                   ,requiredCols:['resourcesCode','name','type']//必填字段,应该整合到fieldsCover里
+                  ,readonlyCols:['name']
                 }}
                 hideColumns={['createDate','modifyDate','sysRoleId','status','createId','modifyId']}
                 select_more={true}
