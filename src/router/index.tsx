@@ -83,7 +83,7 @@ const routeList: RouteObject[] = [
 			},
 			{
 				path: 'help',
-				element: <WrapperRouteComponent element={<MP4 />} titleId="视频介绍" auth />
+				element: <WrapperRouteComponent element={<MP4 />} titleId="视频介绍"/>
 			},
 			{
 				path: 'abnormal/403',

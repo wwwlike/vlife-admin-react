@@ -9,9 +9,8 @@
     * 1. 动态取数据，页面提供配置，然后存到前端 reactQuery方式缓存
     */
  export interface Mp4ModalProps {
-    mp4Url:string,
+    id:string,
     title?:string,//默认删除的内容
-    
  }
  
  /**
@@ -25,7 +24,7 @@
    return (
    <NiceModal id="mp4Modal" title={props.title} width={1024} onOk={handleSubmit}>
        <iframe
-         src="//player.bilibili.com/player.html?aid=472144073&page=1&danmaku=0&high_quality=1"
+         src={"//player.bilibili.com/player.html?aid="+props.id+"&page=1&danmaku=0&high_quality=1"}
          // allowfullscreen="allowfullscreen"
          width="100%"
          height="800"
