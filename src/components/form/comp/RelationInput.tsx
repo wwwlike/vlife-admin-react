@@ -51,8 +51,6 @@ const RelationInput=observer((props:RelationInputProps)=>{
     if(typeof field.value==='string'&& x===field.value ){
       temp.push({id:x,name:fkmap[x]})
     }else if (field.value instanceof Array){//数组字段 关系字段在关联表
-      // 多个选择逻辑，目前在用户模块会报错
-      // console.log('field.value',field.value);
       field.value?.forEach(id=>{
         if(id===x){
           temp.push({id:x,name:fkmap[x]})
@@ -60,8 +58,9 @@ const RelationInput=observer((props:RelationInputProps)=>{
       })
     }
    }
-
-   setProject([...temp])
+   if(temp.length>0){
+      setProject([...temp])
+   }
    const names=field.componentProps['pathName'].split('_');
    if(names.length>1&&names[names.length-1]==='id'){
       setEntityName(names[names.length-2])
@@ -84,7 +83,7 @@ const RelationInput=observer((props:RelationInputProps)=>{
       }).then((data:any)=>{ //点确认后回调,data=>table返回的数据
           if(activeModalId){// tue=>  showAsSub之前是弹出框
             //弹出层展示->给initData赋值id, 在form层请求name
-            //...formModal.args 打开之前的矿口
+            //...formModal.args 打开之前的窗口口
             if(data.length===0){
               hideAndOpenParent({...args,initData:{...form.values,[fieldName]:undefined}});
             }else if(selectMore){
@@ -103,19 +102,22 @@ const RelationInput=observer((props:RelationInputProps)=>{
             }else{
               form.setValuesIn(fieldName,data.map((d:any)=>d.id)[0])
             }
+            console.log("data",data)
             //本页面input展示内容改变
             setProject(data)
           }
         // },300)
     });
     };
-  return form.readPretty?<>  {project.map(m=>m.name)}</>:<TagInput  
+  return form.readPretty?<>  {project.map(m=>m.name)}</>:
+  <>
+  {/* {JSON.stringify(project)} */}
+  <TagInput  
   showClear 
   placeholder={field.title} 
   value={project.map(m=>m.name)} 
   defaultValue={project.map(m=>m?.id)} 
   onFocus={onFocus} 
-  // onRemove={(v,i) => {console.log(`onRemove，移除：${v}, 序号：${i}`);}} 
   onRemove={(v,i) => {
 
   const obj=[...project.filter((d,index)=>{
@@ -136,6 +138,6 @@ const RelationInput=observer((props:RelationInputProps)=>{
       }
     }
   }}
-  />
+  /></>
 }) 
 export default RelationInput;
