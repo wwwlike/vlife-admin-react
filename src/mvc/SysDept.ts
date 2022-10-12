@@ -13,8 +13,10 @@ export interface SysDeptPageReq extends PageQuery {
 }
 
 /** */
-export const listAll = (): Promise<Result<SysDept[]>> => {
-  return apiClient.get(`/sysDept/list/all`);
+export const listAll = (params: {
+  entityName: string;
+}): Promise<Result<SysDept[]>> => {
+  return apiClient.get(`/sysDept/list/all`, { params: params });
 };
 /**
  * 分页查询null;

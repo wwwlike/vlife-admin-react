@@ -40,7 +40,7 @@ const Index: FC = () => {
 						 onClick={()=>{
 							window.open("http://vlife.cc")
 						 }}
-						>官网</Button>
+						>使用指南</Button>
 						<Button
 							theme="borderless"
 							icon={<IconGithubLogo size="large" />}

@@ -1,3 +1,6 @@
+import { Schema } from "@formily/react";
+import { SysDict } from "./SysDict";
+
 // 数据传输dto
 export interface IdBean {
   id: string;
@@ -56,22 +59,23 @@ export interface BaseRequest {
  */
 export interface TranDict {
   column: string;
-  sysDict: { val?: string | undefined; title: string }[];
+  sysDict: Partial<SysDict>[];
 }
 
 /**
- * 模型信息
+ * 模型信息(待删除)
  */
-export interface ModelInfo {
+export interface ModelInfo extends IdBean {
   title: string;
   type: string;
   itemType: string;
   entityType: string;
   fields: fieldInfo[];
 }
-//字段信息
-export interface fieldInfo {
-  dataIndex: string; // 字段名
+//字段信息(待删除)
+export interface fieldInfo extends Schema, IdBean {
+  [key: string]: any;
+  fieldName: string; //字段名
   type: "string" | "number" | "boolean" | "date"; //字段类型 string
   fieldType: "basic" | "list";
   title: string; //中文名
@@ -81,8 +85,14 @@ export interface fieldInfo {
   uiState: "show" | "hide" | "write"; //页面是否展示
   entityType: string;
   // 附加属性
-  component: "PageSelect" | "TabSelect" | "TreeSelect" | string; //使用组件
+  x_hidden: boolean;
+  disabled: boolean;
+  initialValues: string; //默认值
+  x_component: "PageSelect" | "TabSelect" | "TreeSelect" | string; //使用组件
   labelProps: any; //包装名称层属性
+  x_validator: string; //校验方式
+  vlife_pattern: string; //正则校验
+  vlife_message: string; //校验不通过提醒
   span: number; //组件栅格数量
   props: {
     //自定义组件需要的属性

@@ -58,7 +58,6 @@ export const saveGroupDto = (dto: GroupDto): Promise<Result<GroupDto>> => {
 export const saveGroupFilterDto = (
   dto: GroupFilterDto
 ): Promise<Result<GroupFilterDto>> => {
-  console.log("dto", dto);
   return apiClient.post(`/sysGroup/save/groupFilterDto`, dto);
 };
 
@@ -92,6 +91,8 @@ export const remove = (id: string): Promise<Result<number>> => {
  * @param id 角色id
  * @returns
  */
-export const listSysFilterVo = (id: string): Promise<Result<SysFilterVo[]>> => {
-  return apiClient.get(`/sysGroup/list/sysFilterVo/${id}`);
+export const listSysFilterVo = (
+  params: string
+): Promise<Result<SysFilterVo[]>> => {
+  return apiClient.get(`/sysGroup/list/sysFilterVo`, { params: params });
 };

@@ -57,6 +57,8 @@ export const remove = (id: string): Promise<Result<number>> => {
  * @param id 主键id;
  * @return null;
  */
-export const listAll = (): Promise<Result<SysOrg[]>> => {
-  return apiClient.get(`/sysOrg/list/all`);
+export const listAll = (params: {
+  entityName: string;
+}): Promise<Result<SysOrg[]>> => {
+  return apiClient.get(`/sysOrg/list/all`, { params: params });
 };

@@ -1,4 +1,5 @@
 type itree = {
+  id: string;
   pcode: string;
   code: string;
   name: string;
@@ -18,7 +19,8 @@ type treeData = {
  */
 export const getTreeData = (
   datas: itree[],
-  pcode: string | null
+  pcode: string | null,
+  valField: "id" | "code"
 ): treeData[] | undefined => {
   //找到根节点
   let filter = datas.filter((d) => d.pcode === pcode);
@@ -33,9 +35,9 @@ export const getTreeData = (
   return filter.map((dd) => {
     return {
       label: dd.name,
-      value: dd.code,
-      key: dd.code,
-      children: getTreeData(datas, dd.code),
+      value: dd[valField],
+      key: dd.id,
+      children: getTreeData(datas, dd.code, valField),
     };
   });
 };

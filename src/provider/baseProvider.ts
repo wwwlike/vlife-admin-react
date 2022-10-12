@@ -79,50 +79,6 @@ export const modelInfo = (
   return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
 };
 
-// function getSomeThing(): Promise<string> {
-//   return new Promise((resolve, reject) => {
-//     setTimeout(() => {
-//       resolve("获取成功");
-//     }, 3000);
-//   });
-// }
-
-// async function test():string {
-//   let a = await getSomeThing();
-
-//   console.log(a);
-//   return "1";
-// }
-// test(); // 3秒后输出：获取成功
-
-/**
- * 模型信息查询
- */
-export const useModelInfo = ({
-  entityName,
-  manual = true,
-  ...props
-}: modelInfoProps) => {
-  return useRequest(
-    (modelName: string): Promise<Result<ModelInfo>> => {
-      return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
-    },
-    { manual, ...props }
-  );
-};
-
-/**
- * 模型信息查询
- */
-export const useModelInfo1 = () => {
-  return useRequest(
-    (entityName: string, modelName: string): Promise<Result<ModelInfo>> => {
-      return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
-    },
-    { manual: true }
-  );
-};
-
 /**
  * 模型信息查询
  */
@@ -164,9 +120,9 @@ export const useSave = ({
     {
       manual,
       onSuccess(data) {
-        Notification.success({
-          content: `操作成功`,
-        });
+        // Notification.success({
+        //   content: `操作成功`,
+        // })
       },
       ...props,
     }

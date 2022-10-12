@@ -2,6 +2,7 @@ import apiClient from "./apiClient";
 import { RoleDto } from "./SysRole";
 import { SysRoleGroup } from "./SysRoleGroup";
 import { PageVo, DbEntity, SaveBean, PageQuery, VoBean, Result } from "./base";
+import qs from "qs";
 // 权限资源
 export interface SysResources extends DbEntity {
   resourcesCode: string; // 资源编码
@@ -40,6 +41,13 @@ export interface ResourcesVo extends VoBean {
 export const save = (dto: SysResources): Promise<Result<SysResources>> => {
   return apiClient.post(`/sysResources/save`, { params: dto });
 };
+
+export const saveImport = (
+  dto: SysResources
+): Promise<Result<SysResources>> => {
+  return apiClient.post(`/sysResources/save/import`, dto);
+};
+
 /**
  * 明细查询权限资源;
  * @param id 主键id;
@@ -53,10 +61,11 @@ export const detail = (id: string): Promise<Result<SysResources>> => {
  * @param sysRoleId
  * @return
  */
-export const roleAllResources = (
-  sysRoleId: string
-): Promise<Result<SysResources[]>> => {
-  return apiClient.get(`/sysResources/roleAllResources/${sysRoleId}`);
+export const roleAllResources = (params: {
+  id: string;
+}): Promise<Result<SysResources[]>> => {
+  // console.log("aaa", id);
+  return apiClient.get(`/sysResources/roleAllResources/${params.id}`);
 };
 /**
  * 全量的资源数据
@@ -64,6 +73,28 @@ export const roleAllResources = (
 export const listAll = (): Promise<Result<SysResources[]>> => {
   return apiClient.get(`/sysResources/list/all`);
 };
+
+/**
+ * 全量的菜单资源
+ */
+export const listMenu = (): Promise<Result<SysResources[]>> => {
+  return apiClient.get(`/sysResources/list/menu`);
+};
+
+/**
+ * 待导入的资源
+ */
+export const pageImport = (
+  req: SysResourcesPageReq
+): Promise<Result<PageVo<SysResources>>> => {
+  return apiClient.get(
+    `/sysResources/page/import?${qs.stringify(req, {
+      allowDots: true, //多级对象转str中间加点
+      arrayFormat: "comma", //数组采用逗号分隔 ,这里转换不通用，get查询都需要这样转换
+    })}`
+  );
+};
+
 /**
  * 逻辑删除;
  * @param id 主键id;

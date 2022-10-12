@@ -1,7 +1,7 @@
 import { Modal, SideSheet } from '@douyinfe/semi-ui';
 import { ModalReactProps } from '@douyinfe/semi-ui/lib/es/modal';
 import { SideSheetReactProps } from '@douyinfe/semi-ui/lib/es/sideSheet';
-import React,{ReactNode, useRef, useState} from 'react';
+import React,{ReactNode, useEffect, useRef, useState} from 'react';
 import { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -54,7 +54,11 @@ function hideModal(modalId: string, force: any) {
     },
   };
 }
-
+/**
+ * 
+ * @param modalId hook
+ * @returns 
+ */
 export const useNiceModal = (modalId: string) => {
   const dispatch = useDispatch();
     //从store里读取活动的modal层ID
@@ -176,7 +180,7 @@ function NiceModal({ id, children,width, ...rest }:NiceModelProps) {
   return (
     <Modal width={width}
       onCancel={() => modal.hide()} // 默认点击 cancel 时关闭对话框
-      onOk={() => modal.hide()} // 默认点击确定关闭对话框
+      onOk={() => {modal.hide()}} // 默认点击确定关闭对话框
       afterClose={() => modal.hide(true)} // 动画完成后真正关闭
       visible={!modal.hiding}
       {...rest} // 允许在使用 NiceModal 时透传参数给实际的 Modal
@@ -209,18 +213,20 @@ export function DrawerModel({ id, children, ...rest }:NiceDrowerProps){
  }
 
  /**
-  * 可看作创建组件的方法，tableModel.tsx使用它创建后，在layout里进行引用
+  *函数方法，返回一个组件；可看作创建组件的方法，tableModel.tsx使用它创建后，在layout里进行引用
   * 方法里面return 一个组件函数，说明该方法是用来创建组件的。
   * @param modalId 弹出层名称
-  * @param Comp 使用渲染的组件，child里使用
+  * @param Comp 使用渲染的组件，child里使用 包含入参
   * @returns 
   */
 export const createNiceModal = (modalId:string, Comp:any) => {
+  //props是创建 Comp传入的入参，需要监听它的变化，改变弹出层，这样弹出层可以获得提交的数据信息，
   return (props:any) => { // props 是初始参数 layout里使用
     const { visible, args } = useNiceModal(modalId); //纳入到store管理
     if (!visible){  //它会在对话框不可见时直接返回 null，从而不渲染任何内容；并且确保即使页面上定义了 100 个对话框，也不会影响性能：
       return null
     };
+    //args 组件核心方法
     return <Comp {...args} {...props} />;
   };
 };

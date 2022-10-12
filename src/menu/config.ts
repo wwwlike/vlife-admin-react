@@ -32,17 +32,17 @@ const MENU_CONFIG: MenuItem[] = [
         path: "/dashboard/workbeach",
       },
       {
+        itemKey: "1-4",
+        text: "视频教程",
+        icon: IconHome,
+        path: "/help",
+      },
+      {
         itemKey: "1-3",
         text: "生成代码",
         icon: IconHome,
         path: "/ts/code",
       },
-      // {
-      //   itemKey: "1-3",
-      //   text: "快速入门",
-      //   icon: IconHome,
-      //   path: "/guide/quickStart",
-      // },
     ],
   },
   {
@@ -78,6 +78,12 @@ const MENU_CONFIG: MenuItem[] = [
         code: "sysUser",
         path: "/sys/user",
       },
+      {
+        itemKey: "2-1",
+        text: "地区管理",
+        code: "sysArea",
+        path: "/sys/sysArea",
+      },
 
       {
         itemKey: "2-2",
@@ -92,12 +98,7 @@ const MENU_CONFIG: MenuItem[] = [
         code: "sysDept",
         path: "/sys/sysDept",
       },
-      {
-        itemKey: "2-1",
-        text: "地区管理",
-        code: "sysArea",
-        path: "/sys/sysArea",
-      },
+
       {
         itemKey: "3-1",
         text: "参数字典",
@@ -112,17 +113,24 @@ const MENU_CONFIG: MenuItem[] = [
     icon: IconEdit,
     items: [
       {
+        itemKey: "1-13",
+        text: "表单设计",
+        icon: IconTickCircle,
+        code: "form",
+        path: "/conf/design",
+      },
+      {
         itemKey: "1-11",
         text: "权限资源",
         icon: IconTickCircle,
-        code: "sysResources",
+        code: "sysResources", // 与菜单编码对应
         path: "/conf/resources",
       },
       {
         itemKey: "1-12",
         text: "查询配置",
         icon: IconTickCircle,
-        code: "sysFilterDetail",
+        code: "sysFilter",
         path: "/conf/filter",
       },
     ],
@@ -140,6 +148,7 @@ const MENU_CONFIG: MenuItem[] = [
       {
         itemKey: "8-2",
         text: "项目管理(编写页面)",
+        code: "project", // 与菜单编码对应
         path: "/oa/project",
       },
     ],
