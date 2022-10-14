@@ -142,7 +142,7 @@ export default ({
    * 字典数据提取
    */
   const fieldEnum = useCallback(
-    (dictCode: string) => {
+    (dictCode: string, fieldType: string) => {
       const dictEnum: { label?: string; value: any }[] = [];
       if (dicts) {
         const array = dicts.filter((sysDict) => {
@@ -152,7 +152,11 @@ export default ({
         });
         if (array && array.length > 0) {
           array[0].sysDict.forEach((d) => {
-            dictEnum.push({ label: d.title, value: d.val });
+            if (fieldType === "integer") {
+              dictEnum.push({ label: d.title, value: Number(d.val) });
+            } else {
+              dictEnum.push({ label: d.title, value: d.val });
+            }
           });
         }
       }
@@ -221,16 +225,12 @@ export default ({
             props: f.props,
           };
         }
-
-        // if(f.component){
-        //   prop['x-component']=f.component;
-        // }
         //组件关联属性附加(待移除,也需要从页面添加)
         if (
           (f.x_component === "Select" || f.x_component === "DictSelectTag") &&
           f.dictCode
         ) {
-          prop.enum = fieldEnum(f.dictCode);
+          prop.enum = fieldEnum(f.dictCode, f.type);
         } else if (f.x_component === "DatePicker") {
           //日期格式设置
           if (f.fieldType === "list") {

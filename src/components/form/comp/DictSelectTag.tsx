@@ -12,8 +12,12 @@ export default connect(
       return {
         ...props,
         selectMore: !(
-          field.componentProps["field"]["type"] === "string" &&
-          field.componentProps["field"]["fieldType"] === "basic"
+          //单选
+          (
+            (field.componentProps["field"]["type"] === "string" ||
+              field.componentProps["field"]["type"] === "boolean") &&
+            field.componentProps["field"]["fieldType"] === "basic"
+          )
         ),
         datas: field.dataSource,
         onSelected: (ids: (string | number | undefined)[]) => {

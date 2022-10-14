@@ -163,7 +163,7 @@ export default ({
             m["render"] = (text, record, index) => {
               return (
                 d.sysDict.find((dd) => {
-                  return dd.val === text;
+                  return dd.val + "" === text + "";
                 })?.title || "-"
               );
             };

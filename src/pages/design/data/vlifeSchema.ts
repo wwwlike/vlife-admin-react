@@ -53,7 +53,7 @@ const schemaDef: SchemaClz = {
         uiType: "req",
         deps: {
           field: "type",
-          value: ["string"],
+          value: ["string", "boolean"],
         },
       },
       {

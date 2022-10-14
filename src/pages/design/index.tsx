@@ -156,6 +156,13 @@ export default () => {
           f.x_component = "DictSelectTag";
         } else if (f.type === "date") {
           f.x_component = "DatePicker";
+        } else if (f.type === "boolean") {
+          f.dictCode = "TF";
+          if (uiType === "save") {
+            f.x_component = "Select";
+          } else {
+            f.x_component = "DictSelectTag";
+          }
         } else if (
           (f.fieldName !== "id" &&
             f.entityType !== currModel?.entityType &&
@@ -214,7 +221,8 @@ export default () => {
       });
       //路由跳转重新加载
       setSaveFlag({ ...saveFlag, [currModel.entityType]: false });
-      window.location.href = `/conf/design?uiType=${uiType}&model=${currModel.type}&`;
+      // grid有变化就跳转
+      // window.location.href = `/conf/design?uiType=${uiType}&model=${currModel.type}&`;
     }
   }, [currModel]);
 

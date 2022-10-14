@@ -538,7 +538,7 @@ export const TablePage = ({
 
   return (
     <div>
-      {/* {JSON.stringify(memoBtns)} */}
+      {/* {JSON.stringify(getDict({ emptyLabel: "-", codes: [...dictKeys] }))} */}
       {props.simpleSearchField ? (
         <Input
           onChange={(v) => {

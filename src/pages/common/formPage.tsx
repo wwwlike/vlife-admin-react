@@ -128,15 +128,7 @@ const FormPage = ({
     }
     //找出外键的字段
     const fkFields =
-      model?.fields.filter((f) => {
-        return (
-          (f.fieldName !== "id" &&
-            f.entityType !== model?.entityType &&
-            (f.pathName.endsWith("Id") || f.pathName.endsWith("_id"))) ||
-          f.fieldName === "createId" ||
-          f.fieldName === "modifyId"
-        ); //特列
-      }) || [];
+      model?.fields.filter((f) => f.x_component === "RelationInput") || [];
     // filedINfo 转换成 {fieldName，enetityName}结构的数据
     return fkFields.map((f) => {
       if (f.fieldName === "createId" || f.fieldName === "modifyId") {

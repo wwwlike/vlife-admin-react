@@ -4,13 +4,15 @@ import { PageVo, DbEntity, Result, VoBean } from "./base";
 export interface SysFilterDetail extends DbEntity {
   // Project  //数据过滤的类型1本级 2本级下级，3本级和上级
   type: string; // 过滤方式
-  fieldName: string; // 过滤字段sysOrgId
+  // fieldName: string; // 过滤字段sysOrgId
+  scope: number;
   name: string; // 查看用户所在机构和下级机构的项目
   sysFilterId: string; // 所属分类
 }
 export interface FilterDetailCompVo extends VoBean {
   label: string;
   value: string;
+  scope: number;
 }
 
 /**

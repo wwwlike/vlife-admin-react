@@ -10,6 +10,7 @@ export interface SysGroup extends DbEntity {
 export interface GroupDto extends SaveBean {
   name: string; // 组名称
   remark: string; // 组描述
+  scope: number;
   sysRoleId: string[]; // 角色集合
 }
 

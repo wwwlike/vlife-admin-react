@@ -130,7 +130,7 @@ const MENU_CONFIG: MenuItem[] = [
         itemKey: "1-12",
         text: "查询配置",
         icon: IconTickCircle,
-        code: "sysFilter",
+        code: "sysFilterDetail",
         path: "/conf/filter",
       },
     ],
