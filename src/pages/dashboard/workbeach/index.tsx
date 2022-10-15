@@ -82,7 +82,8 @@ export default () => {
         </p>
       </Card>
       <Card className="text-xl" title="更新日志">
-        <p>[10/12] 表单配置工具上线 [系统配置] - [表单设计]</p>
+        <p>[10/12] 行级数据权限过滤 [权限组] - [数据权限]</p>
+        <p>[10/14] 表单配置工具上线 [系统配置] - [表单设计]</p>
       </Card>
       <br></br>
       <Card className="text-xl" title="讨论&帮助">

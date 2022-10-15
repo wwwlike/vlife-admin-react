@@ -52,8 +52,6 @@ const uiTypeObj: any = {
  */
 export default () => {
   const { getDict } = useAuth();
-  // 时间设置modal
-
   /**
    * 字典大类
    */
@@ -63,9 +61,9 @@ export default () => {
   }, []);
 
   const [urlParam, setUrlParam] = useUrlQueryParam([
-    "uiType",
-    "model",
-    "filterSys",
+    "uiType", //场景
+    "model", //指定模块
+    "filterSys", //是否系统
   ]);
 
   /**
@@ -73,11 +71,17 @@ export default () => {
    * url有值就不过滤（false）
    */
   const [filterSys, setFilterSys] = useState<boolean>(
-    urlParam.filterSys === undefined ? true : false
+    urlParam.filterSys === "true" || urlParam.filterSys === undefined
+      ? true
+      : false
   );
   /**
    * 当前场景
    */
+  // const [uiType, setUiType] = useState<"req" | "vo" | "save" | "list" | any>(
+  //   urlParam.uiType ? urlParam.uiType : "save"
+  // );
+
   const [uiType, setUiType] = useState<"req" | "vo" | "save" | "list" | any>(
     urlParam.uiType ? urlParam.uiType : "save"
   );
@@ -87,6 +91,34 @@ export default () => {
 
   //当前模型
   const [currModel, setCurrModel] = useState<FormVo>();
+
+  const [gridSpan, setGridSpan] = useState<string>();
+
+  useEffect(() => {
+    if (uiType) {
+      setUrlParam({
+        ...urlParam,
+        uiType,
+        model: currModel?.type,
+        filterSys: filterSys,
+      });
+    }
+    if (gridSpan === undefined && currModel) {
+      setGridSpan(currModel.type + currModel.gridSpan); // sysUser2
+    } else if (
+      currModel &&
+      gridSpan &&
+      currModel.type &&
+      gridSpan.startsWith(currModel?.type) === false &&
+      currModel?.gridSpan + "" !== gridSpan.substring(gridSpan.length - 1)
+    ) {
+      // alert(gridSpan + "_" + currModel?.type);
+      //切换了model且gridspan不同则需要刷新页面
+      window.location.reload();
+      //需要刷新当前页面
+    }
+  }, [uiType, currModel, filterSys]);
+
   //当前字段
   const [currField, setCurrField] = useState<FormFieldVo>();
   //保存按钮可操作标识
@@ -100,19 +132,19 @@ export default () => {
   useEffect(() => {
     formModels(uiType).then((data) => {
       let total = data.data;
-      if (filterSys) {
-        total = data.data?.filter(
-          (m) =>
-            !(m.entityType.startsWith("sys") || m.entityType.startsWith("form"))
-        );
-      }
       setModels(total);
-      if (total) {
+      let filter = total?.filter((m) =>
+        filterSys === true &&
+        (m.entityType.startsWith("sys") || m.entityType.startsWith("form"))
+          ? false
+          : true
+      );
+      if (filter) {
         setCurrModel(
           urlParam.model &&
-            total?.filter((f) => f.type === urlParam.model).length > 0
-            ? total.filter((f) => f.type === urlParam.model)[0]
-            : total[0]
+            filter?.filter((f) => f.type === urlParam.model).length > 0
+            ? filter.filter((f) => f.type === urlParam.model)[0]
+            : filter[0]
         );
       }
     });
@@ -221,6 +253,10 @@ export default () => {
       });
       //路由跳转重新加载
       setSaveFlag({ ...saveFlag, [currModel.entityType]: false });
+
+      if (currModel.type + currModel.gridSpan !== gridSpan) {
+        window.location.reload();
+      }
       // grid有变化就跳转
       // window.location.href = `/conf/design?uiType=${uiType}&model=${currModel.type}&`;
     }
@@ -256,15 +292,17 @@ export default () => {
    */
   const modelChange = useCallback(
     (selectModel: FormVo | undefined) => {
-      window.location.href = `/conf/design?uiType=${uiType}&model=${
-        selectModel?.type
-      }&${filterSys === false ? "filterSys=false" : ""}`;
-      // setCurrModel(selectModel);
-      // setCurrField(undefined);
+      setCurrModel(selectModel);
+      setCurrField(undefined);
     },
     [models]
   );
 
+  //当gridSpan大小发生变化则进行跳转
+  // useEffect(() => {}, [currModel?.gridSpan]);
+
+  // window.location.href = `/conf/design?uiType=${uiType}&model=${
+  //   selectModel?.type
   //----------memo------------------------
 
   /**
@@ -296,8 +334,8 @@ export default () => {
                   value={uiType}
                   insetLabel="应用场景"
                   onChange={(v) => {
-                    window.location.href = `/conf/design?uiType=${v}`;
-                    // setUiType(v);
+                    //  window.location.href = `/conf/design?uiType=${v}`;
+                    setUiType(v);
                   }}
                   optionList={[
                     ...Object.keys(uiTypeObj).map((key) => {
@@ -338,18 +376,29 @@ export default () => {
             footer={
               <Space>
                 <Checkbox
-                  defaultChecked={!filterSys}
+                  defaultChecked={filterSys === true ? false : true}
                   value={true}
                   onChange={(f) => {
-                    window.location.href = `/conf/design?uiType=${uiType}&model=${
-                      currModel?.type
-                    }${f.target.checked ? "&filterSys=false" : ""}`;
-
-                    // setUrlParam({
-                    //   ...urlParam,
-                    //   filterSys: f.target.checked ? false : undefined,
-                    // });
-                    // f.target.checked ? setFilterSys(false) : setFilterSys(true);
+                    // window.location.href = `/conf/design?uiType=${uiType}&model=${
+                    //   currModel?.type
+                    // }${f.target.checked ? "&filterSys=false" : ""}`;
+                    f.target.checked ? setFilterSys(false) : setFilterSys(true);
+                    if (
+                      f.target.checked === false &&
+                      (currModel?.entityType.startsWith("sys") ||
+                        currModel?.entityType.startsWith("form"))
+                    ) {
+                      //不显示系统的,但是当前currModel是的,则需要对currModel重新设置
+                      setCurrModel(
+                        models?.filter((m) =>
+                          filterSys === true &&
+                          (m.entityType.startsWith("sys") ||
+                            m.entityType.startsWith("form"))
+                            ? false
+                            : true
+                        )[0]
+                      );
+                    }
                   }}
                 >
                   系统级{filterSys}
