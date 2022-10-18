@@ -31,8 +31,9 @@ const useTablePage = (
 };
 
 interface optionProps extends Options<Result<PageVo<any>>, any> {
-  entityName: string; //实体模型名称
+  entityName?: string; //实体模型名称
   listModel?: string; //查询列表模型
+  loadData?: (params: Pager) => Promise<Result<PageVo<any>>>; //直接传入异步方法，取代规则（动态方法路径）
 }
 
 type Pager = { pager: { size: number; page: number } };
@@ -44,23 +45,21 @@ type Pager = { pager: { size: number; page: number } };
  */
 export const usePage = ({
   manual = true,
+  loadData = (params: Pager): Promise<Result<PageVo<any>>> => {
+    return apiClient.get(
+      `/${entityName}/page${
+        listModel && listModel !== entityName ? "/" + listModel : ""
+      }?${qs.stringify(params, {
+        allowDots: true, //多级对象转str中间加点
+        arrayFormat: "comma", //数组采用逗号分隔 ,这里转换不通用，get查询都需要这样转换
+      })}`
+    );
+  },
   entityName,
   listModel,
   ...options
 }: optionProps) => {
-  return useRequest(
-    (params: Pager): Promise<Result<PageVo<any>>> => {
-      return apiClient.get(
-        `/${entityName}/page${
-          listModel && listModel !== entityName ? "/" + listModel : ""
-        }?${qs.stringify(params, {
-          allowDots: true, //多级对象转str中间加点
-          arrayFormat: "comma", //数组采用逗号分隔 ,这里转换不通用，get查询都需要这样转换
-        })}`
-      );
-    },
-    { manual, ...options }
-  );
+  return useRequest(loadData, { manual, ...options });
 };
 
 type modelInfoProps = Options<Result<ModelInfo>, any> & {

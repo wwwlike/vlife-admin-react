@@ -23,6 +23,7 @@ import {
   ArrayTable,
   Checkbox,
   DatePicker,
+  FormTab,
 } from "@formily/semi";
 import { fieldInfo, TranDict } from "@src/mvc/base";
 import RelationInput from "@src/components/form/comp/RelationInput";
@@ -43,6 +44,7 @@ const SchemaField = createSchemaField({
     GridColumn,
     Select,
     ArrayItems,
+    FormTab,
     ArrayTable,
     Checkbox,
     DatePicker,
@@ -64,6 +66,7 @@ import VlifeSelect from "./comp/VlifeSelect";
 import SearchInput from "./comp/SearchInput";
 import DictSelectTag from "./comp/DictSelectTag";
 import TreeQuery from "./comp/TreeQuery";
+import { FormGroup } from "@src/mvc/FormGroup";
 
 // reaction
 //https://react.formilyjs.org/zh-CN/api/shared/schema#schemareactions
@@ -71,20 +74,22 @@ import TreeQuery from "./comp/TreeQuery";
 //表信息
 export interface FormProps {
   entityName: string; //预留字段
+  modelInfo: FormVo; //模型信息
   formData?: any; // form初始数据
   highlight?: string; //高亮字段(设计器使用)
-  onDataChange?: (data: any, field?: string) => void; //整体数据变化回调,最新变化的字段
-  onForm?: (form: Form) => void; //将最新表单信息传输出去（formModal使用）
-  hideColumns?: string[]; //需要隐藏的不显示的列
+  //“表单数据”数据变化回调,最新变化的字段，查询条件里常用
+  onDataChange?: (data: any, field?: string) => void;
+  //将最"新表单信息"传输出去（formModal使用）
+  onForm?: (form: Form) => void;
   read?: boolean; //显示模式
-  // layout?:string,// [] 横/纵布局
+  onError?: (error: IFormFeedback[]) => void; // 将最新错误信息传输出去 formModal使用
   dicts?: TranDict[]; //所有用到的字典信息(没有从authContext里取，避免耦合)
   fkMap?: any; // 外键对象信息{ID,NAME}
-  // maxColumns?: number[]; //列信息个数
-  modelInfo?: FormVo; //模型信息
-  onError?: (error: IFormFeedback[]) => void; // 将最新错误信息传输出去 formModal使用
+  //单字段模式，只显示fieldMode里的一个字段
+  fieldMode?: string;
   //覆盖model.fileds里的数据，也可以对field里没有的信息可以进行补充
 }
+const formTab = FormTab.createFormTab?.("tab1");
 
 registerValidateLocale({
   "zh-CN": {
@@ -102,6 +107,7 @@ export default ({
   modelInfo,
   onError,
   highlight,
+  fieldMode,
 }: FormProps) => {
   /**
    * 动态表单数据初始化
@@ -166,13 +172,47 @@ export default ({
   );
 
   /**
+   * 过滤得到分组的表单对象
+   * @param pp 过滤的表单对象
+   * @param groupId 分组id
+   * @param index 分组索引号
+   * @returns
+   */
+  const filterProperties = function (
+    pp: any,
+    groupId: string,
+    index: number
+  ): any {
+    const tmp = { ...pp };
+    Object.keys(pp).forEach((key) => {
+      if (
+        (pp[key]["formGroupId"] === null && index === 0) ||
+        pp[key]["formGroupId"] === groupId
+      ) {
+      } else {
+        tmp[key] = undefined;
+      }
+    });
+    return tmp;
+  };
+
+  /**
    * 动态表单formily
    * 讲后端fieldInfo信息转换成schema信息
    */
   const schema = useMemo(() => {
     const pp: any = {};
+
     if (modelInfo) {
-      modelInfo.fields.forEach((f) => {
+      if (modelInfo.groups) {
+        // alert("有页签");
+      }
+      let fields = modelInfo.fields;
+      if (fieldMode) {
+        fields = modelInfo.fields.filter((f) => f.fieldName === fieldMode);
+      }
+
+      fields.forEach((f) => {
         pp[f.fieldName] = { ...f };
         const prop: fieldInfo = pp[f.fieldName];
         // java属性不能包含“-”是"_",故进行转换，并批量赋值
@@ -275,62 +315,133 @@ export default ({
         prop.type = "string";
       });
 
-      // pp["validator_style_2"] = {
-      //   title: "局部定义风格",
-      //   "x-validator": {
-      //     validator: `{{(value, rule)=> {
-      //       if (!value) return ''
-      //       return /cat/.test(value)
-      //     }}}`,
-      //     message: "错误了❎",
-      //   },
-      //   "x-component": "Input",
-      //   "x-decorator": "FormItem",
-      // };
-      return {
-        type: "object",
-        properties: {
-          grid: {
-            type: "void",
-            "x-component": "FormGrid",
-            "x-component-props": {
-              maxColumns: [
-                modelInfo.gridSpan,
-                modelInfo.gridSpan,
-                modelInfo.gridSpan,
-              ], //固定6列
-              minColumns: [
-                modelInfo.gridSpan,
-                modelInfo.gridSpan,
-                modelInfo.gridSpan,
-              ],
-            },
-            properties: pp,
-
-            // properties: {
-            //   id: {
-            //     "x-component": "Input",
-            //     "x-decorator": "FormItem",
-            //     "x-decorator-props": { gridSpan: 1 },
-            //   },
-            //   id1: {
-            //     "x-component": "Input",
-            //     "x-decorator": "FormItem",
-            //     "x-decorator-props": { gridSpan: 3 },
-            //   },
-            //   id2: {
-            //     "x-component": "Input",
-            //     "x-decorator": "FormItem",
-            //     "x-decorator-props": { gridSpan: 2 },
-            //   },
-            // },
-          },
+      const schemaObj: any = { type: "object", properties: {} };
+      const grid = {
+        type: "void",
+        "x-component": "FormGrid",
+        "x-component-props": {
+          maxColumns: [
+            modelInfo.gridSpan,
+            modelInfo.gridSpan,
+            modelInfo.gridSpan,
+          ], //固定6列
+          minColumns: [
+            modelInfo.gridSpan,
+            modelInfo.gridSpan,
+            modelInfo.gridSpan,
+          ],
         },
       };
+      //有分组则加入分组容器，把内容组件放入容器里
+      if (modelInfo.groups) {
+        schemaObj.properties = {
+          tab: {
+            type: "void",
+            "x-component": "FormTab",
+            properties: {},
+          },
+        };
+        modelInfo.groups.forEach((group, index) => {
+          schemaObj.properties.tab.properties["tab" + index] = {
+            type: "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              tab: group.name,
+            },
+            properties: {
+              content: {
+                ...grid,
+                properties: filterProperties(pp, group.id, index),
+              },
+            },
+          };
+        });
+        return schemaObj;
+      } else {
+        //无分组直接返回
+        return {
+          type: "object",
+          properties: {
+            content: { ...grid, properties: pp },
+          },
+        };
+      }
     }
     return {};
   }, [modelInfo, fkMap, formData]);
 
+  const schema1 = {
+    type: "object",
+    properties: {
+      collapse: {
+        type: "void",
+        "x-component": "FormTab",
+        "x-component-props": {
+          // formTab: '{{formTab}}',
+          // activeKey: 'tab3'
+        },
+        properties: {
+          tab1: {
+            type: "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              tab: "tab1",
+            },
+            properties: {
+              grid: {
+                "x-component": "FormGrid",
+                "x-component-props": {
+                  maxColumns: [6, 6, 6], //固定6列
+                  minColumns: [6, 6, 6],
+                },
+                properties: {
+                  aaa: {
+                    type: "string",
+                    title: "AAA",
+                    "x-decorator": "FormItem",
+                    required: true,
+                    "x-component": "Input",
+                  },
+                },
+              },
+            },
+          },
+          tab2: {
+            type: "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              tab: "tab2",
+            },
+            properties: {
+              bbb: {
+                type: "string",
+                title: "BBB",
+                "x-decorator": "FormItem",
+                required: true,
+                "x-component": "Input",
+              },
+            },
+          },
+          tab3: {
+            type: "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              tab: "tab3",
+            },
+            properties: {
+              ccc: {
+                type: "string",
+                title: "CCC",
+                "x-decorator": "FormItem",
+                required: true,
+                "x-component": "Input",
+              },
+            },
+          },
+        },
+      },
+    },
+  };
   return (
     <div>
       {/* <FormProvider form={form}>
@@ -341,6 +452,7 @@ export default ({
         {/* <FormConsumer>
           {(form) => JSON.stringify(form.values.name)}
         </FormConsumer> */}
+        {/* <SchemaField schema={schema1} scope={{ formTab }}></SchemaField> */}
         <SchemaField schema={schema}></SchemaField>
         {/* <FormConsumer>  {(form) => JSON.stringify(form.values.name)}
            </FormConsumer> */}

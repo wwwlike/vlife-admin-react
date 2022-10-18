@@ -10,7 +10,7 @@ import {
 import Table, { BtnMemoProp, ListProps, VfButton } from "@src/components/table";
 import { useAuth } from "@src/context/auth-context";
 import { useLocation } from "react-router-dom";
-import { fieldInfo, ModelInfo, PageQuery, PageVo } from "@src/mvc/base";
+import { fieldInfo, ModelInfo, PageQuery, PageVo, Result } from "@src/mvc/base";
 import { customRequestArgs } from "@douyinfe/semi-ui/lib/es/upload";
 import { Input } from "@douyinfe/semi-ui";
 
@@ -42,7 +42,7 @@ type btnList = {
 export interface tablePageProps extends ListProps {
   entityName: string; //实体模型名称
   listModel: string; //列表模型信息,为空则=entityName
-  loadData: <T extends PageQuery>(any: T) => Promise<PageVo<any>>; //异步加载数据的地址，替换 listModel原本地址
+  loadData: <T extends PageQuery>(any: T) => Promise<Result<PageVo<any>>>; //异步加载数据的地址，替换 listModel原本地址
   editModel: string; // 编辑视图模型，为空则=entityName
   viewModel: string; //视图查看模型，为空则=entityName
   initData: object; //新增时初始化的默认数据，不可改
@@ -51,7 +51,7 @@ export interface tablePageProps extends ListProps {
   req: any; //搜索form待入的条件
   btnEnable: Partial<btnList>; //页面自带按钮进行开关
   customBtns: VfButton[]; //页面传入的个性化按钮
-  onGetData: (datas: any[]) => void; //数据加载完成事件,把数据传出去
+  onGetData: (datas: any[]) => void; //列表数据加载完成事件,把数据传出去
   // onEditCallBack?:(id:string)=>Promise<any>,//编辑之前取得其他非表单外键之外需要传入的数据
   // onAddCallBack?:()=>Promise<any>,//新增之前取得传入表单的数据
 }
@@ -88,15 +88,20 @@ export const TablePage = ({
   }, //read==true,后面都无效
   ...props
 }: Partial<tablePageProps> & { entityName: string }) => {
+  // 当前列表数据
+  const [tableData, setTableData] = useState<any>();
   //加载弹出表单modal
   const formModal = useNiceModal("formModal");
+  // 弹出提醒modal
   const confirmModal = useNiceModal("confirmModal");
   const { getDict, user, checkBtnPermission, getModelInfo } = useAuth();
+  //外键信息
   const [fkMap, setFkMap] = useState<any>({});
+  // pcode的name集合
   const [parentMap, setParentMap] = useState<any>({});
-
-  // 列头信息
+  // 模型信息(待转成formVO)
   const [modelInfo, setModelInfo] = useState<ModelInfo | undefined>();
+  //加载模型数据
   useEffect(() => {
     getModelInfo(entityName, listModel).then((data) => {
       setModelInfo(data);
@@ -104,7 +109,7 @@ export const TablePage = ({
   }, [entityName, listModel]);
 
   /**
-   * 校验用户是否能操作这个数据
+   * 根据行数据校验按钮的可操作属性(enable)
    */
   const checkUser = useCallback(
     (records: any[]): boolean => {
@@ -162,8 +167,7 @@ export const TablePage = ({
     return { disable: false };
   }, []);
 
-  const [tableData, setTableData] = useState<any>();
-  // 列表数据加载
+  // 通用逻辑的列表数据加载使用ahook
   const {
     run: page,
     refresh: pageRefresh,
@@ -171,6 +175,7 @@ export const TablePage = ({
   } = usePage({
     entityName,
     listModel,
+    loadData: props.loadData,
     onSuccess: (data) => {
       setTableData(data);
       if (onGetData) {
@@ -178,6 +183,7 @@ export const TablePage = ({
       }
     },
   });
+
   //数据保存的方法
   const { runAsync: baseSave } = useSave({});
   //获得数据明细的方法，??xxDetail如何传参
@@ -188,16 +194,8 @@ export const TablePage = ({
   useEffect(() => {
     // console.log('req-> search组件会引起req搜索两次，第一次search空，第二次 undefiend，需要解决',req);
     // 弹出table目前没有做搜索条件,故无req入参]
-    if (props.loadData) {
-      //传入查询函数
-      props.loadData(req).then((data) => {
-        setTableData(data);
-      });
-    } else {
-      //使用默认的搜索方法
-      page({ ...req });
-    }
-  }, [req, reload, props.loadData]);
+    page({ ...req });
+  }, [req, reload]);
 
   /**
    * 提取外键字段信息
@@ -272,17 +270,9 @@ export const TablePage = ({
    */
   const setPage = useCallback(
     (pageNo: number) => {
-      if (props.loadData) {
-        props
-          .loadData({ ...req, ...{ pager: { page: pageNo } } })
-          .then((data) => {
-            setTableData(data);
-          });
-      } else {
-        page({ ...req, ...{ pager: { page: pageNo } } });
-      }
+      page({ ...req, ...{ pager: { page: pageNo } } });
     },
-    [req, props.loadData]
+    [req]
   );
 
   /**
@@ -537,25 +527,12 @@ export const TablePage = ({
   }, [customBtns, user?.resourceCodes, btnEnable, local]);
 
   return (
-    <div>
-      {/* {JSON.stringify(getDict({ emptyLabel: "-", codes: [...dictKeys] }))} */}
+    <>
+      {/*简单搜索  */}
       {props.simpleSearchField ? (
         <Input
           onChange={(v) => {
-            if (props.loadData) {
-              //传入查询函数
-              props
-                .loadData({
-                  pager: { page: 1, size: 5 },
-                  [props.simpleSearchField || ""]: v,
-                })
-                .then((data) => {
-                  setTableData(data);
-                });
-            } else {
-              //使用默认的搜索方法
-              page({ ...{ [props.simpleSearchField || ""]: v } });
-            }
+            page({ ...{ [props.simpleSearchField || ""]: v } });
           }}
         />
       ) : (
@@ -585,7 +562,7 @@ export const TablePage = ({
         {...pagination}
         {...props}
       ></Table>
-    </div>
+    </>
   );
 };
 export default TablePage;

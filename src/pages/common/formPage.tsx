@@ -19,7 +19,7 @@ import loadDatas from "../design/data/loadData";
 export interface FormPageProps extends Omit<FormProps, "dicts" | "modelInfo"> {
   entityName: string; // 实体名称
   modelName?: string; // 模型名称
-  modelInfo?: FormVo; //模型信息(表单设计实时会传)，如果传了本模块model可不从authContext提取
+  modelInfo?: FormVo; //模型信息可选，设计表单时实时传
   type: "req" | "save"; //表单类型，查询表单/数据表单/待加入设计表单
 }
 const FormPage = ({
@@ -31,17 +31,22 @@ const FormPage = ({
   ...props
 }: FormPageProps) => {
   const { getDict, getFormInfo } = useAuth(); //context里的字典信息、模型信息提取
-  const [model, setModel] = useState<FormVo | undefined>(modelInfo); //模型信息
+  //模型信息信息
+  const [model, setModel] = useState<FormVo | undefined>(
+    modelInfo ? modelInfo : undefined
+  );
+  //外键字段(待删除)
   const [fkMap, setFkMap] = useState<any>({}); // 外键数据集合
-  /**
-   * 入参模型信息变更
-   */
-  useEffect(() => {
-    setModel(modelInfo);
-  }, [modelInfo]);
+
+  // 组件数据(promise不能作为返回)
+  const [dataModel, setDataModel] = useState<FormVo>();
+
   //模型信息提取
   useEffect(() => {
-    if (model === undefined) {
+    if (modelInfo) {
+      setModel(modelInfo);
+    }
+    if (modelInfo === undefined) {
       getFormInfo(modelName ? modelName : entityName, type).then((data) => {
         setModel(data);
       });
@@ -63,13 +68,8 @@ const FormPage = ({
   }, [model, props.formData]);
 
   /**
-   * 组件数据
-   */
-  const [dataModel, setDataModel] = useState(model);
-
-  /**
    * 自定义组件需要的数据提取与包装到field的props里
-
+   * setDataModel设置值
    */
   useEffect(() => {
     if (model && model.fields) {
@@ -99,6 +99,8 @@ const FormPage = ({
       ).then((data) => {
         setDataModel({ ...model, fields: data });
       });
+    } else {
+      setDataModel(model);
     }
   }, [model]);
 
@@ -181,7 +183,7 @@ const FormPage = ({
     setHistory({ ...fdata }); //更新上一次数据
   }, [fdata]);
 
-  if (!model) {
+  if (!dataModel) {
     return (
       <>
         {/* 加入连接跳转到设计页面里

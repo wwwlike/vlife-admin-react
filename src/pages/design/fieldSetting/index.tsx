@@ -1,13 +1,7 @@
-import {
-  Breadcrumb,
-  Card,
-  Collapse,
-  Divider,
-  Form,
-  InputGroup,
-} from "@douyinfe/semi-ui";
+import { Collapse, Divider, Form, InputGroup } from "@douyinfe/semi-ui";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { useAuth } from "@src/context/auth-context";
+import { FormVo } from "@src/mvc/model/Form";
 import { FormFieldVo } from "@src/mvc/model/FormField";
 import { SysDict } from "@src/mvc/SysDict";
 import React, {
@@ -26,38 +20,37 @@ import schemaDef, { SchemaClz, types } from "../data/vlifeSchema";
 
 interface schemaModalProp {
   field: FormFieldVo;
-  uiType: string; //场景
-  // span: number; //最小单位字段宽度
-  type?: string; //只限制指定类型的
+  form: FormVo;
   onDataChange: (field: FormFieldVo) => void; //数据修改后回调
 }
-export default ({
-  field,
-  type,
-  uiType,
-  onDataChange,
-  ...schemaModalProp
-}: schemaModalProp) => {
+export default ({ field, form, onDataChange, ...prop }: schemaModalProp) => {
   const api = useRef<FormApi>();
   const { getDict } = useAuth();
   // const [dict, setDict] = useState<Partial<SysDict>[]>();
 
   /**
-   *  对字段属性的字典，和列宽 进行计算和提取在这里完成组装
+   *  对字段属性的字典，和列宽,所在容器进行计算和提取在这里完成组装
    */
   const fieldsConf = useMemo((): SchemaClz => {
     const dictTypes = getDict({ emptyLabel: "请选择" })[0].sysDict;
     schemaDef["dictCode"].items = [];
+    schemaDef["formGroupId"].items = [];
+    if (form.groups && form.groups.length > 0) {
+      form.groups.forEach((group) => {
+        schemaDef["formGroupId"].items?.push({
+          value: group.id || "",
+          label: group.name || "",
+        });
+      });
+    }
     dictTypes.forEach((dict) => {
       schemaDef["dictCode"].items?.push({
         value: dict.code || "",
         label: dict.title || "",
       });
     });
-    // schemaDef["x_decorator_props$gridSpan"].items = [];
-
     return schemaDef;
-  }, []);
+  }, [form]);
 
   //表单数据初始化,字段变化数据重新初始化
   useEffect(() => {
@@ -129,14 +122,14 @@ export default ({
                       (fieldsConf[key].deps === undefined &&
                         fieldsConf[key].uiType === undefined) ||
                       (fieldsConf[key].uiType &&
-                        fieldsConf[key].uiType === uiType && //场景满足
+                        fieldsConf[key].uiType === form.uiType && //场景满足
                         fieldsConf[key].deps &&
                         fieldsConf[key].deps?.value.includes(
                           field[fieldsConf[key].deps?.field || ""]
                         )) ||
                       (fieldsConf[key].uiType &&
                         fieldsConf[key].deps == undefined &&
-                        fieldsConf[key].uiType === uiType) ||
+                        fieldsConf[key].uiType === form.uiType) ||
                       (fieldsConf[key].deps &&
                         fieldsConf[key].uiType == undefined &&
                         fieldsConf[key].deps?.value.includes(
@@ -155,7 +148,7 @@ export default ({
                                   field[f.deps?.field || ""]
                                 ) &&
                                 f.uiType &&
-                                uiType === f.uiType) ||
+                                form.uiType === f.uiType) ||
                               (f.deps &&
                                 f.uiType === undefined &&
                                 f.deps.value.includes(
@@ -163,7 +156,7 @@ export default ({
                                 )) ||
                               (f.uiType &&
                                 f.deps === undefined &&
-                                uiType === f.uiType)
+                                form.uiType === f.uiType)
                             ) {
                               return true;
                             }

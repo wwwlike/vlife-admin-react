@@ -58,7 +58,10 @@ export default () => {
         </p>
         <p className="text-xl" style={{ lineHeight: 1.8 }}>
           【VLIFE-ADMIN后端】
-          <a target={"_blank"} href="https://github.com/wwwlike/vlife-admin">
+          <a
+            target={"_blank"}
+            href="https://github.com/wwwlike/vlife/vlife-admin"
+          >
             https://github.com/wwwlike/vlife-admin
           </a>
         </p>

@@ -23,6 +23,8 @@ import {
   IconArrowDown,
   IconReply,
   IconSave,
+  IconOrderedList,
+  IconKanban,
 } from "@douyinfe/semi-icons";
 import FormPage from "@src/pages/common/formPage";
 import { FormVo } from "@src/mvc/model/Form";
@@ -33,6 +35,8 @@ import EventTabPage from "@src/pages/design/event";
 import FieldSetting from "./fieldSetting";
 import { useUrlQueryParam } from "@src/utils/lib";
 import VlifeButton from "@src/components/basic/vlifeButton";
+import FormSetting from "./formSetting";
+import { cachedDataVersionTag } from "v8";
 const { Content, Sider } = Layout;
 const modelType: any = {
   entity: "实体模型",
@@ -249,13 +253,17 @@ export default () => {
   const saveForm = useCallback(() => {
     if (currModel) {
       saveFormDto({ ...currModel }).then((data) => {
-        setCurrModel(data.data);
+        //更新主键
+        if (currModel.id === undefined && data?.data?.id) {
+          setCurrModel({ ...currModel, id: data.data?.id });
+        }
       });
       //路由跳转重新加载
-      setSaveFlag({ ...saveFlag, [currModel.entityType]: false });
-
       if (currModel.type + currModel.gridSpan !== gridSpan) {
         window.location.reload();
+      } else {
+        //按钮disable
+        setSaveFlag({ ...saveFlag, [currModel.entityType]: false });
       }
       // grid有变化就跳转
       // window.location.href = `/conf/design?uiType=${uiType}&model=${currModel.type}&`;
@@ -406,10 +414,8 @@ export default () => {
                 {/* 增加页签的时候写页签名，字选择字段，分组同理 */}
                 {uiType === "save" ? (
                   <>
-                    {/* 
-                      <Button icon={<IconKanban />} >页签</Button>
-                      <Button icon={<IconOrderedList/>} >分组</Button> 
-                    */}
+                    {/* <Button icon={<IconKanban />}>页签</Button>
+                    <Button icon={<IconOrderedList />}>分组</Button> */}
                   </>
                 ) : (
                   ""
@@ -578,7 +584,12 @@ export default () => {
 
               {currModel && currModel.id && uiType === "save" ? (
                 <TabPane tab="事件响应" itemKey="eventTab">
-                  <EventTabPage currModel={currModel}></EventTabPage>
+                  <EventTabPage
+                    onChange={(model) => {
+                      setCurrModel({ ...model });
+                    }}
+                    currModel={currModel}
+                  ></EventTabPage>
                 </TabPane>
               ) : (
                 ""
@@ -607,7 +618,7 @@ export default () => {
                       )
                     }
                   >
-                    <Input
+                    {/* <Input
                       value={currModel.name}
                       onChange={(data) => {
                         setCurrModel({ ...currModel, name: data });
@@ -643,7 +654,23 @@ export default () => {
                         { label: "5列", value: 5 },
                         { label: "6列", value: 6 },
                       ]}
-                    ></Select>
+                    ></Select> */}
+                    <FormSetting
+                      uiType={uiType}
+                      form={currModel}
+                      onDataChange={(form: FormVo) => {
+                        setCurrModel({
+                          ...currModel,
+                          name: form.name,
+                          gridSpan: form.gridSpan,
+                          groups: form.groups,
+                        });
+                        setSaveFlag({
+                          ...saveFlag,
+                          [currModel.entityType]: true,
+                        });
+                      }}
+                    />
                   </Card>
                 </TabPane>
               ) : (
@@ -660,9 +687,9 @@ export default () => {
               maxWidth: "280px",
             }}
           >
-            {currField ? (
+            {currField && currModel ? (
               <FieldSetting
-                uiType={uiType}
+                form={currModel}
                 onDataChange={(data) => {
                   setCurrField({ ...data });
                   if (currModel) {

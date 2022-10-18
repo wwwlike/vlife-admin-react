@@ -56,6 +56,7 @@ const schemaDef: SchemaClz = {
           value: ["string", "boolean"],
         },
       },
+
       {
         value: "Input",
         label: "字符输入",
@@ -279,6 +280,15 @@ const schemaDef: SchemaClz = {
         value: "right",
       },
     ],
+  },
+
+  formGroupId: {
+    name: "所在页签",
+    type: "select",
+    tag: "layout",
+    // deps://有数量才显示
+    // deps: { field: "x_decorator_props$layout", value: ["vertical"] },
+    items: [],
   },
   x_decorator_props$gridSpan: {
     name: "组件宽度",
