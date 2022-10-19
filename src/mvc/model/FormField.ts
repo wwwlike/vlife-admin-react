@@ -7,7 +7,7 @@ import { FormReactionVo } from "./FormReaction";
 // 列表字段
 export interface FormField extends DbEntity {
   formId: string; // 所属表单
-  formGroupId: String; //所属上一级容器
+  formGroupCode: String; //所属上一级容器
   pathName: string; // 全路径
   fieldName: string; // 字段名
   description: string; // 描述

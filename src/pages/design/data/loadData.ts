@@ -4,6 +4,7 @@ import { listAll, listMenu } from "@src/mvc/SysResources";
 import { listAll as orgList } from "@src/mvc/SysOrg";
 import { listAll as deptList } from "@src/mvc/SysDept";
 import { listAll as areaList } from "@src/mvc/SysArea";
+import { list as listUser } from "@src/mvc/SysUser";
 import { listSysFilterVo } from "@src/mvc/SysGroup";
 /**
  * 组件异步接口信息
@@ -25,6 +26,9 @@ const loadDatas: { [key: string]: loadDatasProps } = {
   },
   listMenu: {
     loadData: listMenu,
+  },
+  listUser: {
+    loadData: listUser,
   },
   areaTree: {
     loadData: areaList,

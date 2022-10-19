@@ -36,7 +36,6 @@ import FieldSetting from "./fieldSetting";
 import { useUrlQueryParam } from "@src/utils/lib";
 import VlifeButton from "@src/components/basic/vlifeButton";
 import FormSetting from "./formSetting";
-import { cachedDataVersionTag } from "v8";
 const { Content, Sider } = Layout;
 const modelType: any = {
   entity: "实体模型",
@@ -236,6 +235,9 @@ export default () => {
           "createId",
           "createDate",
           "modifyDate",
+          "sysDeptId",
+          "sysAreaId",
+          "sysOrgId",
           "password",
         ];
         if (hide.filter((h) => h === f.pathName).length > 0) {

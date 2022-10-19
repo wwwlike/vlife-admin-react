@@ -180,17 +180,16 @@ export default ({
    */
   const filterProperties = function (
     pp: any,
-    groupId: string,
+    code: string, //组件编码
     index: number
   ): any {
-    const tmp = { ...pp };
+    const tmp: any = {};
     Object.keys(pp).forEach((key) => {
       if (
-        (pp[key]["formGroupId"] === null && index === 0) ||
-        pp[key]["formGroupId"] === groupId
+        (pp[key]["formGroupCode"] === null && index === 0) ||
+        pp[key]["formGroupCode"] === code
       ) {
-      } else {
-        tmp[key] = undefined;
+        tmp[key] = pp[key];
       }
     });
     return tmp;
@@ -247,7 +246,7 @@ export default ({
             }
           });
         prop["x-decorator"] = "FormItem";
-        // 高亮字段(表单设计器)
+        // 高亮字段(表单设计器)；设计器还缺少对tab页签的切换高亮
         if (f.fieldName === highlight) {
           prop["x-decorator-props"] = {
             ...prop["x-decorator-props"],
@@ -272,7 +271,7 @@ export default ({
         ) {
           prop.enum = fieldEnum(f.dictCode, f.type);
         } else if (f.x_component === "DatePicker") {
-          //日期格式设置
+          //日期格式设置（需在设计器里指定日期格式（待））
           if (f.fieldType === "list") {
             prop["x-component-props"] = {
               ...prop["x-component-props"],
@@ -286,6 +285,7 @@ export default ({
             };
           }
         } else if (f.x_component === "RelationInput") {
+          //待移除
           //模型信息全部传入到RelationInput里，该组件与接口耦合
           prop["x-component-props"] = {
             ...prop["x-component-props"],
@@ -293,6 +293,7 @@ export default ({
             ...f,
           };
         }
+        //正则验证
         if (f.vlife_pattern) {
           prop["x-validator"] = {
             validator:
@@ -335,14 +336,15 @@ export default ({
       //有分组则加入分组容器，把内容组件放入容器里
       if (modelInfo.groups) {
         schemaObj.properties = {
-          tab: {
+          collapse: {
             type: "void",
             "x-component": "FormTab",
             properties: {},
           },
         };
+
         modelInfo.groups.forEach((group, index) => {
-          schemaObj.properties.tab.properties["tab" + index] = {
+          schemaObj.properties.collapse.properties[group.code] = {
             type: "void",
             "x-component": "FormTab.TabPane",
             "x-component-props": {
@@ -351,7 +353,35 @@ export default ({
             properties: {
               content: {
                 ...grid,
-                properties: filterProperties(pp, group.id, index),
+                properties: filterProperties(pp, group.code, index),
+                // index === 0
+                //   ? {
+                //       source: {
+                //         type: "string",
+                //         "x-component": "Input",
+                //         "x-reactions": {
+                //           target: "target",
+                //           when: "{{$self.value === '123'}}",
+                //           fulfill: {
+                //             state: {
+                //               visible: false,
+                //             },
+                //           },
+                //           otherwise: {
+                //             state: {
+                //               visible: true,
+                //             },
+                //           },
+                //         },
+                //       },
+                //       target: {
+                //         type: "string",
+                //         "x-component": "Input",
+                //       },
+                //     }
+                //   : {},
+
+                // filterProperties(pp, group.code, index),
               },
             },
           };
@@ -370,16 +400,95 @@ export default ({
     return {};
   }, [modelInfo, fkMap, formData]);
 
+  const schema2 = {
+    type: "object",
+    properties: {
+      collapse: {
+        type: "void",
+        "x-component": "FormTab",
+        properties: {
+          tab2: {
+            type: "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              tab: "tab2",
+            },
+            properties: {
+              grid: {
+                type: "void",
+                "x-component": "FormGrid",
+                "x-component-props": {
+                  maxColumns: [6, 6, 6], //固定6列
+                  minColumns: [6, 6, 6],
+                },
+                properties: {
+                  source: {
+                    type: "string",
+                    "x-component": "Input",
+                    "x-reactions": {
+                      target: "target",
+                      when: "{{$self.value === '123'}}",
+                      fulfill: {
+                        state: {
+                          visible: false,
+                        },
+                      },
+                      otherwise: {
+                        state: {
+                          visible: true,
+                        },
+                      },
+                    },
+                  },
+                  target: {
+                    type: "string",
+                    "x-component": "Input",
+                  },
+                },
+              },
+            },
+          },
+          tab3: {
+            type: "void",
+            "x-component": "FormTab.TabPane",
+            "x-component-props": {
+              tab: "tab3",
+            },
+            properties: {
+              source1: {
+                type: "string",
+                "x-component": "Input",
+                "x-reactions": {
+                  target: "target1",
+                  when: "{{$self.value === '1234'}}",
+                  fulfill: {
+                    state: {
+                      visible: false,
+                    },
+                  },
+                  otherwise: {
+                    state: {
+                      visible: true,
+                    },
+                  },
+                },
+              },
+              target1: {
+                type: "string",
+                "x-component": "Input",
+              },
+            },
+          },
+        },
+      },
+    },
+  };
   const schema1 = {
     type: "object",
     properties: {
       collapse: {
         type: "void",
         "x-component": "FormTab",
-        "x-component-props": {
-          // formTab: '{{formTab}}',
-          // activeKey: 'tab3'
-        },
         properties: {
           tab1: {
             type: "void",
@@ -389,17 +498,33 @@ export default ({
             },
             properties: {
               grid: {
+                type: "void",
                 "x-component": "FormGrid",
                 "x-component-props": {
                   maxColumns: [6, 6, 6], //固定6列
                   minColumns: [6, 6, 6],
                 },
                 properties: {
-                  aaa: {
+                  source: {
                     type: "string",
-                    title: "AAA",
-                    "x-decorator": "FormItem",
-                    required: true,
+                    "x-component": "Input",
+                    "x-reactions": {
+                      target: "target",
+                      when: "{{$self.value === '123'}}",
+                      fulfill: {
+                        state: {
+                          visible: false,
+                        },
+                      },
+                      otherwise: {
+                        state: {
+                          visible: true,
+                        },
+                      },
+                    },
+                  },
+                  target: {
+                    type: "string",
                     "x-component": "Input",
                   },
                 },
@@ -448,12 +573,13 @@ export default ({
           <Field name="input" component={[Input]} />
           <FormConsumer>{(form) => form.values.input}</FormConsumer>
       </FormProvider> */}
+      {/* {JSON.stringify(schema)} */}
       <FormProvider form={form}>
         {/* <FormConsumer>
           {(form) => JSON.stringify(form.values.name)}
         </FormConsumer> */}
         {/* <SchemaField schema={schema1} scope={{ formTab }}></SchemaField> */}
-        <SchemaField schema={schema}></SchemaField>
+        <SchemaField schema={schema} scope={{ formTab }}></SchemaField>
         {/* <FormConsumer>  {(form) => JSON.stringify(form.values.name)}
            </FormConsumer> */}
         {/* <Observer>{() => <div>{obs.value}</div>}</Observer>

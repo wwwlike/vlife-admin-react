@@ -67,10 +67,16 @@ export const pageUser = (
 ): Promise<Result<PageVo<UserVo>>> => {
   return apiClient.get(`/sysUser/page/userVo`, { params: req });
 };
-/** */
+/** 用户列表分页 */
 export const page = (req: SysUserPageReq): Promise<Result<PageVo<SysUser>>> => {
   return apiClient.get(`/sysUser/page`, { params: req });
 };
+
+/** 用户列表不分页*/
+export const list = (req: SysUserPageReq): Promise<Result<SysUser[]>> => {
+  return apiClient.get(`/sysUser/list`, { params: req });
+};
+
 /**
  * 保存用户表;
  * @param dto 用户表;

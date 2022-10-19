@@ -180,7 +180,7 @@ export default ({ model, dto, onValueChange, title }: eventProps) => {
    * name变化则触发事件
    */
   useEffect(() => {
-    // onValueChange({ ...data, ...api.current?.getValues(), name });
+    onValueChange({ ...data, ...api.current?.getValues(), name });
   }, [name]);
 
   return (
@@ -319,92 +319,97 @@ export default ({ model, dto, onValueChange, title }: eventProps) => {
             <Button onClick={add} theme="light">
               新增响应
             </Button>
-            {/* <Button onClick={() => {addWithInitValue({ name: '自定义贴纸', type: '2D' });}} style={{ marginLeft:8 }}>新增带有初始值的行</Button> */}
             {arrayFields.map(({ field, key, remove }, i) => (
-              <Row key={"row" + i}>
-                <Col span={6} key="col1">
-                  <Form.Select
-                    field={`${field}[formFieldId]`}
-                    label="响应字段"
-                    style={{ width: "90%" }}
-                  >
-                    {model.fields
-                      .filter((f) => f.x_hidden !== true)
-                      .map((f) => (
-                        <Form.Select.Option value={f.id} key={f.id}>
-                          {f.title}
-                        </Form.Select.Option>
-                      ))}
-                  </Form.Select>
-                </Col>
-                <Col span={6} key="col2">
-                  {data && data.eventType !== undefined ? (
+              <div key={key}>
+                <Row key={"row" + i}>
+                  <Col span={6} key="col1">
                     <Form.Select
-                      field={`${field}[reactionAttr]`}
-                      label="属性"
+                      field={`${field}[formFieldId]`}
+                      label="响应字段"
                       style={{ width: "90%" }}
                     >
-                      {Object.keys(attrs)
-                        .filter((attr) =>
-                          (data.eventType &&
-                            events[data.eventType].matchAttr &&
-                            events[data.eventType].matchAttr?.includes(attr)) ||
-                          (data.eventType &&
-                            events[data.eventType] &&
-                            events[data.eventType].matchAttr === undefined)
-                            ? true
-                            : false
-                        )
-                        .map((key) => {
-                          return (
-                            <Form.Select.Option value={key} key={key + "attr"}>
-                              {attrs[key].name}
-                            </Form.Select.Option>
-                          );
-                        })}
+                      {model.fields
+                        .filter((f) => f.x_hidden !== true)
+                        .map((f) => (
+                          <Form.Select.Option value={f.id} key={f.id}>
+                            {f.title}
+                          </Form.Select.Option>
+                        ))}
                     </Form.Select>
-                  ) : (
-                    ""
-                  )}
-                </Col>
-                <Col span={6} key="col3">
-                  {data.reactions &&
-                  data.reactions[i] &&
-                  data.reactions[i].reactionAttr ? (
-                    attrs[data.reactions[i].reactionAttr || ""].type ===
-                    "string" ? (
-                      <Form.Input
-                        style={{ width: "90%" }}
-                        field={`${field}[reactionValue]`}
-                        label="影响值"
-                      />
-                    ) : attrs[data.reactions[i].reactionAttr || ""].type ===
-                      "number" ? (
-                      <Form.InputNumber
-                        style={{ width: "90%" }}
-                        field={`${field}[reactionValue]`}
-                        label="影响值"
-                      />
-                    ) : attrs[data.reactions[i].reactionAttr || ""].type ===
-                      "boolean" ? (
+                  </Col>
+                  <Col span={6} key="col2">
+                    {data && data.eventType !== undefined ? (
                       <Form.Select
-                        field={`${field}[reactionValue]`}
-                        label="影响值"
+                        field={`${field}[reactionAttr]`}
+                        label="属性"
+                        style={{ width: "90%" }}
                       >
-                        <Form.Select.Option value={"true"}>
-                          true
-                        </Form.Select.Option>
-                        <Form.Select.Option value={"false"}>
-                          false
-                        </Form.Select.Option>
+                        {Object.keys(attrs)
+                          .filter((attr) =>
+                            (data.eventType &&
+                              events[data.eventType].matchAttr &&
+                              events[data.eventType].matchAttr?.includes(
+                                attr
+                              )) ||
+                            (data.eventType &&
+                              events[data.eventType] &&
+                              events[data.eventType].matchAttr === undefined)
+                              ? true
+                              : false
+                          )
+                          .map((key) => {
+                            return (
+                              <Form.Select.Option
+                                value={key}
+                                key={key + "attr"}
+                              >
+                                {attrs[key].name}
+                              </Form.Select.Option>
+                            );
+                          })}
                       </Form.Select>
                     ) : (
                       ""
-                    )
-                  ) : (
-                    ""
-                  )}
-                  {/* { data.reactions
+                    )}
+                  </Col>
+                  <Col span={6} key="col3">
+                    {data.reactions &&
+                    data.reactions[i] &&
+                    data.reactions[i].reactionAttr ? (
+                      attrs[data.reactions[i].reactionAttr || ""].type ===
+                      "string" ? (
+                        <Form.Input
+                          style={{ width: "90%" }}
+                          field={`${field}[reactionValue]`}
+                          label="影响值"
+                        />
+                      ) : attrs[data.reactions[i].reactionAttr || ""].type ===
+                        "number" ? (
+                        <Form.InputNumber
+                          style={{ width: "90%" }}
+                          field={`${field}[reactionValue]`}
+                          label="影响值"
+                        />
+                      ) : attrs[data.reactions[i].reactionAttr || ""].type ===
+                        "boolean" ? (
+                        <Form.Select
+                          field={`${field}[reactionValue]`}
+                          label="影响值"
+                        >
+                          <Form.Select.Option value={"true"}>
+                            true
+                          </Form.Select.Option>
+                          <Form.Select.Option value={"false"}>
+                            false
+                          </Form.Select.Option>
+                        </Form.Select>
+                      ) : (
+                        ""
+                      )
+                    ) : (
+                      ""
+                    )}
+                    {/* { data.reactions
                 &&data.reactions[i]
                 &&data.reactions[i].reactionAttr&&
                 attrs['aaa'].type==="string"
@@ -427,23 +432,24 @@ export default ({ model, dto, onValueChange, title }: eventProps) => {
             :""}
              */}
 
-                  {/* <Form.Input
+                    {/* <Form.Input
                         field={`${field}[reactionValue]`}
                         label={`影响值`}
                         style={{ width: 200, marginRight: 16 }}>
                 </Form.Input> */}
-                </Col>
-                <Col span={6} key="col4">
-                  <Button
-                    type="danger"
-                    theme="borderless"
-                    onClick={remove}
-                    style={{ margin: 12 }}
-                  >
-                    删
-                  </Button>
-                </Col>
-              </Row>
+                  </Col>
+                  <Col span={6} key="col4">
+                    <Button
+                      type="danger"
+                      theme="borderless"
+                      onClick={remove}
+                      style={{ margin: 12 }}
+                    >
+                      删
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
             ))}
           </React.Fragment>
         )}

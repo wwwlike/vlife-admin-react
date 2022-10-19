@@ -34,11 +34,11 @@ export default ({ field, form, onDataChange, ...prop }: schemaModalProp) => {
   const fieldsConf = useMemo((): SchemaClz => {
     const dictTypes = getDict({ emptyLabel: "请选择" })[0].sysDict;
     schemaDef["dictCode"].items = [];
-    schemaDef["formGroupId"].items = [];
+    schemaDef["formGroupCode"].items = [];
     if (form.groups && form.groups.length > 0) {
-      form.groups.forEach((group) => {
-        schemaDef["formGroupId"].items?.push({
-          value: group.id || "",
+      form.groups.forEach((group, index) => {
+        schemaDef["formGroupCode"].items?.push({
+          value: group.code,
           label: group.name || "",
         });
       });

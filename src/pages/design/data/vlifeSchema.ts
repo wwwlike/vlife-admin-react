@@ -169,6 +169,14 @@ const schemaDef: SchemaClz = {
         },
       },
       {
+        value: "listUser",
+        label: "用户选择",
+        deps: {
+          field: "x_component",
+          value: ["VlifeSelect"],
+        },
+      },
+      {
         value: "orgTree",
         label: "机构树",
         deps: {
@@ -282,7 +290,7 @@ const schemaDef: SchemaClz = {
     ],
   },
 
-  formGroupId: {
+  formGroupCode: {
     name: "所在页签",
     type: "select",
     tag: "layout",

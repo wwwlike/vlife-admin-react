@@ -12,10 +12,11 @@ import {
   Input,
   Row,
 } from "@douyinfe/semi-ui";
+import { IconPlusCircle, IconMinusCircle } from "@douyinfe/semi-icons";
 import { ArrayField, FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { FormVo } from "@src/mvc/model/Form";
 import { useUpdateEffect } from "ahooks";
-import React, { useEffect } from "react";
+import React from "react";
 import { useRef, useState } from "react";
 interface formSettingProp {
   form: FormVo;
@@ -78,27 +79,27 @@ export default ({ form, uiType, onDataChange, ...prop }: formSettingProp) => {
               <Button onClick={add} theme="light">
                 新增
               </Button>
-              {/* <Button onClick={() => {addWithInitValue({ name: '自定义贴纸', type: '2D' });}} style={{ marginLeft:8 }}>新增带有初始值的行</Button> */}
               {arrayFields.map(({ field, key, remove }, i) => (
-                <Row key={"row" + i}>
-                  <Col span={8} key="col1">
-                    <Form.Input
-                      field={`${field}[name]`}
-                      label="页签名称"
-                      style={{ width: "90%" }}
-                    ></Form.Input>
-                  </Col>
-                  <Col span={4} key="col4">
-                    <Button
-                      type="danger"
-                      theme="borderless"
-                      onClick={remove}
-                      style={{ margin: 12 }}
-                    >
-                      删
-                    </Button>
-                  </Col>
-                </Row>
+                <div key={key} style={{ width: "100%", display: "flex" }}>
+                  <Form.Input
+                    field={`${field}[name]`}
+                    label="页签名称"
+                    style={{ width: "90%" }}
+                  ></Form.Input>
+                  <Form.Input
+                    field={`${field}[code]`}
+                    label="页签编码"
+                    initValue={"tab_" + (i + 1)}
+                    style={{ width: "90%" }}
+                  ></Form.Input>
+                  <Button
+                    type="danger"
+                    theme="borderless"
+                    icon={<IconMinusCircle />}
+                    onClick={remove}
+                    style={{ margin: 12 }}
+                  ></Button>
+                </div>
               ))}
             </React.Fragment>
           )}
