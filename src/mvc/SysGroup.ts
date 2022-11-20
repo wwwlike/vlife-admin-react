@@ -92,8 +92,8 @@ export const remove = (id: string): Promise<Result<number>> => {
  * @param id 角色id
  * @returns
  */
-export const listSysFilterVo = (
-  params: string
-): Promise<Result<SysFilterVo[]>> => {
-  return apiClient.get(`/sysGroup/list/sysFilterVo`, { params: params });
+export const listSysFilterVo = ({
+  id,
+}: any): Promise<Result<SysFilterVo[]>> => {
+  return apiClient.get(`/sysGroup/list/sysFilterVo?id=${id}`);
 };

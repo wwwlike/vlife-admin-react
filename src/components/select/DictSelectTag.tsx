@@ -10,7 +10,7 @@ type DictSelectTagProps = {
   datas: { label?: string; value?: number | string }[]; //字典模式
   selected?: (number | string)[]; //初始选中
   selectMore?: boolean;
-  onSelected: (ids: (string | number | undefined)[]) => void; //事件
+  onDataChange: (ids: (string | number | undefined)[]) => void; //事件
   showMax?: number; //最多显示数量,待启用
 };
 /**
@@ -25,7 +25,7 @@ type DictSelectTagProps = {
 const DictSelectTag = ({
   datas,
   selected,
-  onSelected,
+  onDataChange,
   selectMore = false,
   showMax = 20,
   ...props
@@ -36,9 +36,9 @@ const DictSelectTag = ({
 
   useEffect(() => {
     if (selectedValues[0] === undefined) {
-      onSelected([]);
+      onDataChange([]);
     } else {
-      onSelected(selectedValues);
+      onDataChange(selectedValues);
     }
   }, [selectedValues]);
   return (

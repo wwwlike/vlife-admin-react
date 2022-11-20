@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { Card } from "@douyinfe/semi-ui";
 import FormPage from "@src/pages/common/formPage";
 import TablePage from "@src/pages/common/tablePage";
-import { listAll } from "@src/mvc/SysArea";
-import { useAuth } from "@src/context/auth-context";
-
+/**
+ * 可将该页面封住成组件
+ */
 export default () => {
   const [formData, setFormData] = useState<any>();
-  const { user } = useAuth();
   return (
     <div className="h-full overscroll-auto">
       <div className="h-full w-72 float-left ">
@@ -20,12 +19,10 @@ export default () => {
         >
           <FormPage
             type="req"
-            formData={formData}
-            onDataChange={setFormData}
+            onDataChange={(data) => setFormData({ ...data })}
             entityName="sysArea"
             modelName="sysAreaPageReq"
           />
-          {/* {JSON.stringify(formData)} */}
         </Card>
       </div>
       <div className="h-full md:min-w-3/4">
@@ -35,20 +32,7 @@ export default () => {
           bordered={false}
           className="h-full"
         >
-          <TablePage
-            req={formData}
-            entityName="sysArea"
-            editModel="sysArea"
-            hideColumns={[
-              "createDate",
-              "modifyDate",
-              "sysRoleId",
-              "status",
-              "createId",
-              "modifyId",
-            ]}
-            select_more={true}
-          />
+          <TablePage req={formData} entityName="sysArea" select_more={true} />
         </Card>
       </div>
     </div>

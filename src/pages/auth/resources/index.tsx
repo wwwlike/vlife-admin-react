@@ -31,8 +31,7 @@ export default () => {
         >
           <FormPage
             type="req"
-            formData={formData}
-            onDataChange={setFormData}
+            onDataChange={(data) => setFormData({ ...data })}
             entityName="sysResources"
             modelName="sysResourcesPageReq"
           />

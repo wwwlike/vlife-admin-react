@@ -5,14 +5,8 @@ import { Card } from "@douyinfe/semi-ui";
 import FormPage from "@src/pages/common/formPage";
 import TablePage from "@src/pages/common/tablePage";
 import React, { useState } from "react";
-import { initData } from "@src/mvc/SysFilter";
-import { listAll as orgAll } from "@src/mvc/SysOrg";
-import { listAll as deptAll } from "@src/mvc/SysDept";
-import { listAll as areaAll } from "@src/mvc/SysArea";
-import { useAuth } from "@src/context/auth-context";
 export default () => {
   const [formData, setFormData] = useState<any>({});
-  const { user } = useAuth();
   const entityName = "project";
   return (
     <div className="h-full overscroll-auto">
@@ -27,8 +21,7 @@ export default () => {
           {
             <FormPage
               type="req"
-              formData={formData}
-              onDataChange={setFormData} //相应事件。
+              onDataChange={(data) => setFormData({ ...data })}
               entityName={entityName}
               modelName="ProjectPageReq"
             />

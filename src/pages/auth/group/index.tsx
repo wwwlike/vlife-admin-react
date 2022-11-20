@@ -32,9 +32,8 @@ export default () => {
           {
             <FormPage
               type="req"
-              formData={formData}
+              onDataChange={(data) => setFormData({ ...data })}
               entityName={entityName}
-              onDataChange={setFormData} //相应事件。
               modelName="sysGroupPageReq"
             />
           }

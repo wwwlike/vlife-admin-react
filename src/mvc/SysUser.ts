@@ -73,7 +73,9 @@ export const page = (req: SysUserPageReq): Promise<Result<PageVo<SysUser>>> => {
 };
 
 /** 用户列表不分页*/
-export const list = (req: SysUserPageReq): Promise<Result<SysUser[]>> => {
+export const list = (
+  req: Partial<SysUserPageReq>
+): Promise<Result<SysUser[]>> => {
   return apiClient.get(`/sysUser/list`, { params: req });
 };
 
@@ -121,4 +123,22 @@ export const currUser = (): Promise<Result<UserDetailVo>> => {
  */
 export const userInfoVoDetail = (id: string): Promise<Result<UserInfoVo>> => {
   return apiClient.get(`/sysUserTest/detail/userInfoVo/${id}`);
+};
+
+/**
+ * 单个用户信息视图
+ * @param id
+ * @return
+ */
+export const giteeLogin = (): Promise<Result<string>> => {
+  return apiClient.get(`/gitee/auth`);
+};
+
+/**
+ * 单个用户信息视图
+ * @param id
+ * @return
+ */
+export const giteeCallBack = (code: string): Promise<Result<string>> => {
+  return apiClient.get(`/gitee/callback?code=${code}`);
 };

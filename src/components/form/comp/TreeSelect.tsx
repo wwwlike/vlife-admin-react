@@ -8,7 +8,6 @@ import { Cascader, TreeSelect } from "@formily/semi";
 export default connect(
   TreeSelect,
   mapProps((props, field: any) => {
-    console.log("datas", field["componentProps"]);
     const datas = field["componentProps"][field.props.name]?.datas;
     const fieldName: string = field.props.name;
     const key = fieldName.endsWith("code") ? "code" : "id";

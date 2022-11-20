@@ -1,3 +1,4 @@
+import qs from "qs";
 import apiClient from "./apiClient";
 import { PageVo, DbEntity, PageQuery, Result } from "./base";
 // 项目管理
@@ -43,6 +44,7 @@ export const save = (dto: Project): Promise<Result<Project>> => {
 export const detail = (id: string): Promise<Result<Project>> => {
   return apiClient.get(`/project/detail/${id}`);
 };
+
 /**
  * 逻辑删除;
  * @param id 主键id;

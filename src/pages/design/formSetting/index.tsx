@@ -16,7 +16,7 @@ import { IconPlusCircle, IconMinusCircle } from "@douyinfe/semi-icons";
 import { ArrayField, FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { FormVo } from "@src/mvc/model/Form";
 import { useUpdateEffect } from "ahooks";
-import React from "react";
+import React, { useEffect } from "react";
 import { useRef, useState } from "react";
 interface formSettingProp {
   form: FormVo;
@@ -27,6 +27,11 @@ interface formSettingProp {
 export default ({ form, uiType, onDataChange, ...prop }: formSettingProp) => {
   const api = useRef<FormApi>();
   const [formData, setFormData] = useState<FormVo>({ ...form });
+
+  useEffect(() => {
+    setFormData({ ...form });
+    api.current?.setValues({ ...form });
+  }, [form.entityType]);
   //非首次执行
   useUpdateEffect(() => {
     onDataChange({ ...formData });

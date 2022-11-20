@@ -1,3 +1,4 @@
+import { VfTree } from "@src/components";
 import apiClient from "./apiClient";
 import { PageVo, DbEntity, PageQuery, VoBean, Result } from "./base";
 // 机构
@@ -53,12 +54,10 @@ export const remove = (id: string): Promise<Result<number>> => {
 };
 
 /**
- * 明细查询null;
- * @param id 主键id;
- * @return null;
+ * 树型组件数据
  */
 export const listAll = (params: {
   entityName: string;
-}): Promise<Result<SysOrg[]>> => {
+}): Promise<Result<VfTree[]>> => {
   return apiClient.get(`/sysOrg/list/all`, { params: params });
 };

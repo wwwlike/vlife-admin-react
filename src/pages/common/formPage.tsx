@@ -1,6 +1,7 @@
 import VlifeForm, { FormProps } from "@src/components/form";
 import { useAuth } from "@src/context/auth-context";
 import { FormVo } from "@src/mvc/model/Form";
+import { componentProps } from "@src/mvc/model/FormField";
 import { find } from "@src/provider/baseProvider";
 import React, { useEffect, useMemo, useState } from "react";
 import loadDatas from "../design/data/loadData";
@@ -26,15 +27,14 @@ const FormPage = ({
   entityName,
   modelName,
   modelInfo,
+  reload,
   type,
   onDataChange,
   ...props
 }: FormPageProps) => {
   const { getDict, getFormInfo } = useAuth(); //context里的字典信息、模型信息提取
-  //模型信息信息
-  const [model, setModel] = useState<FormVo | undefined>(
-    modelInfo ? modelInfo : undefined
-  );
+  //模型信息状态初始化,对组件信息json转对象
+  const [model, setModel] = useState<FormVo | undefined>();
   //外键字段(待删除)
   const [fkMap, setFkMap] = useState<any>({}); // 外键数据集合
 
@@ -44,14 +44,26 @@ const FormPage = ({
   //模型信息提取
   useEffect(() => {
     if (modelInfo) {
-      setModel(modelInfo);
+      const mm = {
+        ...modelInfo,
+        fields: modelInfo.fields.map((f) => {
+          return {
+            ...f,
+            componentSetting:
+              f && f.componentSettingJson
+                ? JSON.parse(f.componentSettingJson)
+                : undefined,
+          };
+        }),
+      };
+      setModel(mm);
     }
     if (modelInfo === undefined) {
       getFormInfo(modelName ? modelName : entityName, type).then((data) => {
         setModel(data);
       });
     }
-  }, [entityName, modelName, modelInfo]);
+  }, [entityName, modelName, modelInfo, reload]);
 
   //表单数据与初始化数据整合，新增时从模型信息里提取初始化数据
   const formData = useMemo(() => {
@@ -65,44 +77,57 @@ const FormPage = ({
       return memoModel;
     }
     return props.formData;
-  }, [model, props.formData]);
+  }, [model, props.formData, reload]);
 
   /**
-   * 自定义组件需要的数据提取与包装到field的props里
-   * setDataModel设置值
+   * “同步数据源”方案处理；异步的联动的需要把接口传入到index里，在其触发时执行
+   * 自定义组件prop数据处理
+   * 1. datas提取
+   * 2. read设置
    */
-  useEffect(() => {
-    if (model && model.fields) {
-      Promise.all(
-        model.fields.map(async (f) => {
-          if (f.apiKey && f.x_hidden !== true) {
-            const apiInfo = loadDatas[f.apiKey];
-            if (apiInfo) {
-              await apiInfo
-                .loadData({
-                  id: formData ? formData.id : undefined,
-                  entityName,
-                })
-                .then((dd) => {
-                  if (!f.props) {
-                    f.props = {};
-                  }
-                  f.props.datas = dd.data;
-                  //apiInfo.props componentData里的接口信息与异步获取的数据整合在一起
-                  f.props = { ...f.props, ...apiInfo.props };
-                  return f;
-                });
-            }
-          }
-          return f;
-        })
-      ).then((data) => {
-        setDataModel({ ...model, fields: data });
-      });
-    } else {
-      setDataModel(model);
-    }
-  }, [model]);
+
+  // useEffect(() => {
+  //   if (model && model.fields) {
+  //     Promise.all(
+  //       //所有不需要级联的异步操作，同步执行完成一次返回出去
+  //       model.fields.map(async (f) => {
+  //         if (f.componentSetting.props && f.x_hidden !== true) {
+  //           const apiInfo = loadDatas[f.apiKey];
+  //           f.loadDatas = apiInfo;
+  //           if (apiInfo) {
+  //             //所有动态加载数据的组件使用的接口都会传name,id,entityName
+  //             const params: componentProps = {
+  //               id: formData ? formData.id : undefined,
+  //               val: formData[f.fieldName],
+  //               entityName,
+  //               modelName: modelName ? modelName : entityName,
+  //               fieldName: f.fieldName,
+  //               fieldEntityType: f.entityType,
+  //             };
+  //             if (!f.props) {
+  //               f.props = {};
+  //             }
+  //             f.props = { ...f.props, ...apiInfo.props };
+  //             //不是动态级联的则在page页面去拉取数据
+  //             if (apiInfo.dynamic === undefined) {
+  //               await apiInfo.loadData(params).then((dd) => {
+  //                 f.props.datas = dd.data;
+  //                 //apiInfo.props componentData里的接口信息与异步获取的数据整合在一起
+  //                 return f;
+  //               });
+  //             }
+  //           }
+  //         }
+  //         return f;
+  //       })
+  //     ).then((data) => {
+  //       //处理后的字段信息放入模型信息
+  //       setDataModel({ ...model, fields: data });
+  //     });
+  //   } else {
+  //     setDataModel(model);
+  //   }
+  // }, [model, reload]);
 
   /**
    * 模型里的字典数组
@@ -117,7 +142,7 @@ const FormPage = ({
       if (s) distCodes.push(s);
     });
     return distCodes;
-  }, [model]);
+  }, [model, reload]);
 
   /**
    * 外键字段信息
@@ -153,7 +178,7 @@ const FormPage = ({
         // }
       };
     });
-  }, [model, formData]);
+  }, [model, formData, reload]);
 
   useEffect(() => {
     //step2 找到字段里有字典的数据，并从全局context里得到本次需要的字典数据
@@ -171,21 +196,13 @@ const FormPage = ({
         });
       }
     });
-  }, [fkInfos]);
+  }, [fkInfos, reload]);
 
-  /**
-   * 未启用
-   */
-  const [history, setHistory] = useState<any>(formData); //表单变化上一次的数据
-  const [fdata, setFData] = useState<any>(formData); //表单最新数据
-  // 数据变化，查询需要监听的字段，判断上次与本次之间是否有变化，有变化则触发数据请求（待补充完善）
-  useEffect(() => {
-    setHistory({ ...fdata }); //更新上一次数据
-  }, [fdata]);
-
-  if (!dataModel) {
+  if (!model) {
     return (
       <>
+        {/* {JSON.stringify(modelInfo)} */}
+        "loading..."
         {/* 加入连接跳转到设计页面里
         错误提示，每次都会在页面先渲染不好
         <div>{modelName}模型在后端应用中不存在，请按照规范进行配置</div>
@@ -197,14 +214,14 @@ const FormPage = ({
       <>
         <VlifeForm
           entityName={entityName}
-          modelInfo={dataModel}
+          reload={reload}
+          modelInfo={model}
           dicts={getDict({
             emptyLabel: type === "req" ? "全部" : "请选择",
             codes: [...modelDicts],
           })}
           fkMap={fkMap}
           onDataChange={(data) => {
-            setFData(data);
             if (onDataChange) {
               onDataChange(data);
             }
@@ -216,4 +233,5 @@ const FormPage = ({
     );
   }
 };
+// };
 export default FormPage;

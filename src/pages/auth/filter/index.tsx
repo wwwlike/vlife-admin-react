@@ -24,8 +24,7 @@ export default () => {
           {
             <FormPage
               type="req"
-              formData={formData}
-              onDataChange={setFormData} //相应事件。
+              onDataChange={(data) => setFormData({ ...data })} //相应事件。
               entityName={entityName}
               modelName="sysFilterDetailPageReq"
             />

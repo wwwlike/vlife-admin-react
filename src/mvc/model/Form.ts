@@ -36,6 +36,11 @@ export interface FormVo extends VoBean {
   groups: FormGroup[];
 }
 
+export interface SelectCompVo extends VoBean {
+  id: string;
+  name: string;
+  detailList: { id: string; label: string }[];
+}
 /**
  * 未编辑的模型信息
  */
@@ -54,11 +59,11 @@ export const model = (params: {
 };
 
 /**
- * 已发布的模型(编辑)
+ * 已发布的所有实体模型
  * @returns
  */
-export const published = (): Promise<Result<FormVo[]>> => {
-  return apiClient.get(`/form/published`);
+export const entityModels = (): Promise<Result<FormVo[]>> => {
+  return apiClient.get(`/form/entityModels`);
 };
 
 /**
@@ -66,4 +71,26 @@ export const published = (): Promise<Result<FormVo[]>> => {
  */
 export const saveFormDto = (dto: Partial<FormDto>): Promise<Result<FormVo>> => {
   return apiClient.post(`/form/save/formDto`, dto);
+};
+
+/**
+ * 根据id查询表单详情
+ */
+export const detailFormVo = ({
+  formId,
+}: {
+  formId: string;
+}): Promise<Result<FormVo>> => {
+  return apiClient.get(`/form/detail/formVo/${formId}`);
+};
+
+/**
+ * 统计项选择组件数据请求
+ */
+export const formReportItemAll = (): Promise<Result<SelectCompVo[]>> => {
+  return apiClient.get(`/form/formReportItemAll`);
+};
+
+export const formReportKpiAll = (): Promise<Result<SelectCompVo[]>> => {
+  return apiClient.get(`/form/formReportKpiAll`);
 };

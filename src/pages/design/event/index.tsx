@@ -113,8 +113,8 @@ export default ({ currModel, onChange }: eventPageProp) => {
             key: "formEvent:save:formEventDto",
           },
           {
-            click: (btn, datas) => {
-              getDetail(datas.id, "formEventDto").then((data) => {
+            click: (btn, index, lineData) => {
+              getDetail(lineData.id, "formEventDto").then((data) => {
                 setData(data.data);
                 setModelState(true);
               });

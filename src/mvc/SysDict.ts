@@ -23,6 +23,15 @@ export const page = (req: SysDictPageReq): Promise<Result<PageVo<SysDict>>> => {
 export const all = (): Promise<Result<SysDict[]>> => {
   return apiClient.get(`/sysDict/all`);
 };
+
+export const listByCode = ({
+  code,
+}: {
+  code: string;
+}): Promise<Result<SysDict[]>> => {
+  return apiClient.get(`/sysDict/listByCode?code=${code}`);
+};
+
 /**
  * 保存字典表;
  * @param dto 字典表;

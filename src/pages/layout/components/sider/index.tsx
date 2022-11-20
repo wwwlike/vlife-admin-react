@@ -210,7 +210,7 @@ const Index: FC = () => {
           if (subs) {
             filterSubItems = subs.filter((sub) => {
               if (sub.code) {
-                console.log(e, user?.menus?.includes(sub.code));
+                // console.log(e, user?.menus?.includes(sub.code));
                 return user?.menus?.includes(sub.code);
               }
               return true;

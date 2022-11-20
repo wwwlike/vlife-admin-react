@@ -1,5 +1,5 @@
 import { Input, TagInput } from "@douyinfe/semi-ui";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNiceModal } from "@src/store";
 import { observer, useField, useForm } from "@formily/react";
 import { useSelector } from "react-redux";

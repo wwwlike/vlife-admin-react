@@ -1,10 +1,10 @@
-import { IconSearch } from '@douyinfe/semi-icons';
-import { Input } from '@douyinfe/semi-ui';
-import { useUrlQueryParam } from '@src/utils/lib';
-import { useDebounce, useDebounceEffect } from 'ahooks';
-import React, { useCallback, useEffect, useState } from 'react';
-
-
+import { IconSearch } from "@douyinfe/semi-icons";
+import { Input } from "@douyinfe/semi-ui";
+import { InputProps } from "@douyinfe/semi-ui/lib/es/input";
+import { useUrlQueryParam } from "@src/utils/lib";
+import { useDebounceEffect } from "ahooks";
+import React, { useEffect, useState } from "react";
+import { VfBaseProps } from "..";
 
 /**
  * 搜索的时候分页要初始化
@@ -21,26 +21,53 @@ import React, { useCallback, useEffect, useState } from 'react';
  * 4. 搜索时候又分页则清空分页参数
  */
 
-interface SearchProps{
-  paramName:string,
-  placeholder?:string,
-  // pageInit?:string, //传值则搜索的时候page回到第一页
-  params:any, //搜索的其他入参
-  setParams:(val:any)=>void; //参数回传
+interface SearchProps extends VfBaseProps<string, null> {
+  /** 延迟毫秒数 */
+  seconds: number;
+  title: string;
 }
 
-export default ({placeholder="请输入",params,paramName,setParams}:SearchProps)=>{
-  const [value, setValue] = useState<string>(params[paramName]);
-  useDebounceEffect(()=>{
-     let newParams:any={... params}
-     //判断语句解决首次就会触发params变动的问题
-     if(value||newParams[paramName]){ 
-        newParams[paramName]=value?value:undefined;
-        setParams(newParams)
-      }
-  },[value],{wait:500})
+/**
+ * 可从url里去<fieldName>作为初始值
+ * 搜索延迟，传参出去，并改变url
+ * 该url最终要一直道form里去，req的form则能改
+ */
+export default ({
+  seconds = 500,
+  onDataChange,
+  value,
+  title,
+  ...props
+}: SearchProps & InputProps) => {
+  const [urlParam, setUrlParam] = useUrlQueryParam([props.fieldName]);
+
+  const [searchValue, setSearchValue] = useState(
+    urlParam[props.fieldName] ? urlParam[props.fieldName] : value
+  );
+
+  useDebounceEffect(
+    () => {
+      setUrlParam({ [props.fieldName]: searchValue });
+      if (onDataChange) onDataChange(searchValue);
+    },
+    [searchValue],
+    {
+      wait: 400,
+    }
+  );
   return (
-      <Input placeholder={placeholder} value={value} onChange={(e) => setValue(e)} prefix={<IconSearch />} showClear ></Input>
-    )
-}
-
+    <>
+      <Input
+        placeholder={
+          props.placeholder ? props.placeholder : "支持：" + title + "查询"
+        }
+        prefix={<IconSearch />}
+        value={searchValue}
+        onChange={(v) => {
+          setSearchValue(v);
+        }}
+        showClear
+      ></Input>
+    </>
+  );
+};

@@ -70,8 +70,12 @@ export const roleAllResources = (params: {
 /**
  * 全量的资源数据
  */
-export const listAll = (): Promise<Result<SysResources[]>> => {
-  return apiClient.get(`/sysResources/list/all`);
+export const listAll = ({
+  menuCode,
+}: {
+  menuCode: string;
+}): Promise<Result<SysResources[]>> => {
+  return apiClient.get(`/sysResources/list/all?menuCode=${menuCode}`);
 };
 
 /**

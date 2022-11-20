@@ -1,8 +1,6 @@
 import { Card } from "@douyinfe/semi-ui";
 import { BtnMemoProp, VfButton } from "@src/components/table";
 import { useAuth } from "@src/context/auth-context";
-import { listAll as orgList } from "@src/mvc/SysOrg";
-import { listAll as deptList } from "@src/mvc/SysDept";
 import { SysUserPageReq } from "@src/mvc/SysUser";
 import FormPage from "@src/pages/common/formPage";
 import TablePage from "@src/pages/common/tablePage";
@@ -16,7 +14,6 @@ import React, { useMemo, useState } from "react";
  * 3. voName
  */
 export default () => {
-  const { user } = useAuth();
   //2页面模块需要共享的查询条件状态
   const [formData, setFormData] = useState<Partial<SysUserPageReq>>({});
   const stateCheck = (...objs: any): BtnMemoProp => {
@@ -58,8 +55,9 @@ export default () => {
         >
           <FormPage
             type="req"
-            formData={formData}
-            onDataChange={setFormData}
+            onDataChange={(data) => {
+              setFormData({ ...data });
+            }}
             entityName="sysUser"
             modelName="sysUserPageReq"
           />

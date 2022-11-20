@@ -1,8 +1,11 @@
 /**
  * 使用formliy + semi联合打造的动态表单
  * 考虑使用reactQuery,从后台取得表单信息，然后缓存起来。
+ *
+ * https://zhuanlan.zhihu.com/p/577439561
+ * 组件化
  */
-import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   registerValidateLocale,
   createForm,
@@ -11,26 +14,157 @@ import {
   onFormInit,
   onFormMount,
   onFormValuesChange,
+  Field,
 } from "@formily/core";
-import { createSchemaField, FormProvider } from "@formily/react";
+import {
+  FormProvider,
+  mapReadPretty,
+  connect,
+  createSchemaField,
+  FormConsumer,
+  useForm,
+} from "@formily/react";
+
 import {
   FormItem,
-  Input,
+  PreviewText,
   FormGrid,
   GridColumn,
   Select,
   ArrayItems,
   ArrayTable,
   Checkbox,
-  DatePicker,
   FormTab,
+  InputNumber,
 } from "@formily/semi";
-import { fieldInfo, TranDict } from "@src/mvc/base";
+import { Result, TranDict } from "@src/mvc/base";
 import RelationInput from "@src/components/form/comp/RelationInput";
 import RoleResourcesSelect from "@src/pages/auth/role/RoleResourcesSelect/formily";
 import TabSelect from "@src/components/form/comp/TabSelect";
 import PageSelect from "@src/components/form/comp/PageSelect";
 import TreeSelect from "@src/components/form/comp/TreeSelect";
+import {
+  DatePicker as SemiDatePicker,
+  Input as SemiInput,
+  TextArea as SemiTextArea,
+} from "@douyinfe/semi-ui";
+import { FormVo } from "@src/mvc/model/Form";
+import { eventReaction, loadDeps } from "./reactions";
+import VlifeSelect from "./comp/VlifeSelect";
+import VfRelationSelect from "../select/RelationSelect";
+import FormTable from "../table/FormTable";
+import { FormFieldVo, loadData } from "@src/mvc/model/FormField";
+import TreeQuery from "../tree/TreeQuery";
+import QueryBuilder from "../queryBuilder";
+import { action } from "@formily/reactive";
+import { ApiInfo } from "@src/pages/design/fieldSetting/apiData";
+import SelectTag from "../vlifeComponent/SelectTag";
+import { useAuth } from "@src/context/auth-context";
+import DictSelectTag from "../select/DictSelectTag";
+import VfSelect from "../vlifeComponent/VfSelect";
+import SearchInput from "../vlifeComponent/SearchInput";
+import RelationTagInput from "../vlifeComponent/RelationTagInput";
+import {
+  ComponentInfo,
+  ComponentSetting,
+} from "@src/pages/design/fieldSetting/componentData";
+import VfTree from "../vlifeComponent/VfTreeSelect";
+import VfTreeSelect from "../vlifeComponent/VfTreeSelect";
+import VfTreeInput from "../vlifeComponent/VfTreeInput";
+import ResourcesSelect from "../vlifeComponent/ResourcesSelect";
+import GroupSelect from "../vlifeComponent/GroupSelect";
+import VfEditor from "../vlifeComponent/VfEditor";
+import VfImage from "../vlifeComponent/VfImage";
+
+const Input = connect(SemiInput, mapReadPretty(PreviewText.Input));
+const TextArea = connect(SemiTextArea, mapReadPretty(PreviewText.Input));
+const DatePicker = connect(SemiDatePicker, mapReadPretty(PreviewText.Input));
+const RelationSelect = connect(
+  VfRelationSelect,
+  mapReadPretty(PreviewText.Input)
+);
+
+const useAsyncDataSource = (service) => (field: FormFieldVo) => {
+  field.loading = true;
+  service(field).then(
+    action.bound((data: Result<FormVo>) => {
+      field.componentProps.datas = data.data;
+      // alert(field.componentProps.datas.length);
+      field.loading = false;
+    })
+  );
+};
+
+const useAsyncDataSource1 = (load) => (field: Field) => {
+  console.log("field", field);
+  field.loading = true;
+  load(field).then(
+    (data) => {}
+    // action.bound((data: Result<any>) => {
+    //   field.componentProps[vvv.prop] = data.data;
+    //   field.loading = false;
+    // })
+  );
+};
+
+const load1 = async (field: Field) => {
+  const componentSetting: ComponentSetting =
+    field.componentProps.componentSetting;
+  if (componentSetting) {
+    const props = Object.keys(componentSetting);
+    //对组件的属性进行遍历
+    props.map((oneProp) => {
+      const sourceType = componentSetting[oneProp].sourceType;
+      const apiModel = ApiInfo[componentSetting[oneProp].api];
+      //只要固定有值，不管选择的是不是固定的
+      if (componentSetting[oneProp].fixed) {
+        //给字段级组件指定prop传固定值
+        field.componentProps[oneProp] = componentSetting[oneProp].fixed;
+      } else if (sourceType.startsWith("api") && apiModel && apiModel.api) {
+        //接口是否有入参判断，有则要取值
+        const params = apiModel.params;
+        const argument = {};
+        let mustFlag = true;
+        if (params) {
+          Object.keys(params).forEach((k) => {
+            //当前接口的一个参数
+            const currParam = componentSetting[oneProp].apiParams
+              ? componentSetting[oneProp].apiParams[k]
+              : undefined;
+            if (currParam) {
+              if (
+                currParam.fixed &&
+                (currParam.sourceType === "fixed" ||
+                  currParam.sourceType === undefined)
+              ) {
+                argument[k] = currParam.fixed;
+              } else if (
+                currParam.sourceType === "field" &&
+                field.query(currParam.field).get("value")
+              ) {
+                argument[k] = field.query(currParam.field).get("value");
+              }
+            }
+            //应该有值，但是没有值
+            if (params[k].must === true && (!currParam || !argument[k])) {
+              mustFlag = false;
+            }
+          });
+        }
+        // return { prop: oneProp, service: apiModel.api(argument) };
+        //必填的字段must有值，那么就去调用接口
+        if (mustFlag) {
+          // 所有动态加载数据的组件使用的接口都会传name, id, entityName;
+          apiModel
+            .api({ ...argument, ...field.componentProps.apiCommonParams })
+            .then((data) => {
+              field.componentProps[oneProp] = data.data;
+            });
+        }
+      }
+    });
+  }
+};
 
 /**
  * 表单布局展示，需要固定写在函数式组件之外
@@ -38,42 +172,50 @@ import TreeSelect from "@src/components/form/comp/TreeSelect";
  */
 const SchemaField = createSchemaField({
   components: {
+    InputNumber,
     Input,
+    TextArea,
+    PreviewText,
     FormItem,
     FormGrid,
+    DatePicker,
     GridColumn,
     Select,
     ArrayItems,
     FormTab,
     ArrayTable,
     Checkbox,
-    DatePicker,
     RelationInput, //封装关系选择formily组件。特定组件支持特定业务
+    RelationSelect,
     RoleResourcesSelect, // 特定的业务型组件 占2列；自定义组件，根据传参来处理
     TabSelect, //tab方式的过滤，权限选择上级权限时使用在，应该会被TreeSelect取代
     PageSelect, //平铺选择组件（查询条件过滤使用在）
     TreeSelect,
     VlifeSelect,
-    SearchInput,
-    DictSelectTag,
+    FormTable, //列表组件
+    QueryBuilder, // 查询组件
     TreeQuery,
+    DictSelectTag,
+    //------------------------ new
+    SearchInput,
+    SelectTag,
+    VfSelect,
+    RelationTagInput,
+    VfTreeSelect,
+    VfTreeInput,
+    ResourcesSelect,
+    GroupSelect,
+    VfEditor,
+    VfImage,
   },
 });
 
-import { FormVo } from "@src/mvc/model/Form";
-import { eventReaction } from "./reactions";
-import VlifeSelect from "./comp/VlifeSelect";
-import SearchInput from "./comp/SearchInput";
-import DictSelectTag from "./comp/DictSelectTag";
-import TreeQuery from "./comp/TreeQuery";
-import { FormGroup } from "@src/mvc/FormGroup";
-
 // reaction
 //https://react.formilyjs.org/zh-CN/api/shared/schema#schemareactions
-
 //表信息
 export interface FormProps {
   entityName: string; //预留字段
+  reload?: boolean; //重新加载
   modelInfo: FormVo; //模型信息
   formData?: any; // form初始数据
   highlight?: string; //高亮字段(设计器使用)
@@ -98,10 +240,12 @@ registerValidateLocale({
 });
 
 export default ({
+  entityName,
   dicts,
   formData,
   onDataChange,
   onForm,
+  reload,
   read,
   fkMap,
   modelInfo,
@@ -109,6 +253,42 @@ export default ({
   highlight,
   fieldMode,
 }: FormProps) => {
+  const { getDict } = useAuth();
+
+  const getDictByCode = (code: string): { val: string; title: string }[] => {
+    const currDict: TranDict = getDict({ codes: [code] })[0];
+    return currDict.sysDict.map((d) => {
+      return {
+        val: d.val,
+        title: d.title,
+      };
+    });
+  };
+
+  /**
+   * 将数据与模型对应的数值取出来当入参数传入到loaddata里
+   */
+  const load = async (field) => {
+    // alert(JSON.stringify(field.componentProps));
+    if (field.componentProps && field.componentProps.loadDatas) {
+      const loadDatas: loadData = field.componentProps.loadDatas;
+      const deptField = loadDeps(
+        loadDatas.dynamic, //复杂了
+        entityName
+      );
+      const pp: any = {};
+      Object.keys(deptField).forEach((key) => {
+        pp[key] = field.query(deptField[key]).get("value");
+      });
+      return loadDatas.loadData({
+        ...loadDatas.props,
+        ...pp,
+      });
+    }
+  };
+
+  //
+
   /**
    * 动态表单数据初始化
    * 使用参考：https://core.formilyjs.org/zh-CN/api/models/form
@@ -121,6 +301,7 @@ export default ({
         initialValues: {
           ...formData,
         },
+        //表单的生命周期
         effects() {
           onFormMount((form) => {
             if (onForm != undefined) {
@@ -132,16 +313,18 @@ export default ({
               if (form.errors.length > 0 && onError !== undefined) {
                 setTimeout(() => onError(form.errors), 200);
               }
+              //表单数据传输出去
               if (onDataChange !== undefined) {
                 onDataChange(form.values);
               }
+              //表达formily信息传输出去
               if (onForm != undefined) {
                 onForm(form);
               }
             });
         },
       }),
-    [modelInfo, fkMap, formData]
+    [modelInfo, fkMap, formData, read, reload]
   );
 
   /**
@@ -168,7 +351,7 @@ export default ({
       }
       return dictEnum;
     },
-    [dicts]
+    [dicts, reload]
   );
 
   /**
@@ -197,23 +380,19 @@ export default ({
 
   /**
    * 动态表单formily
-   * 讲后端fieldInfo信息转换成schema信息
+   * 后端FormField转换成schema信息
    */
   const schema = useMemo(() => {
     const pp: any = {};
-
     if (modelInfo) {
-      if (modelInfo.groups) {
-        // alert("有页签");
-      }
       let fields = modelInfo.fields;
       if (fieldMode) {
         fields = modelInfo.fields.filter((f) => f.fieldName === fieldMode);
       }
 
-      fields.forEach((f) => {
+      fields.forEach((f: FormFieldVo) => {
         pp[f.fieldName] = { ...f };
-        const prop: fieldInfo = pp[f.fieldName];
+        const prop: any = pp[f.fieldName];
         // java属性不能包含“-”是"_",故进行转换，并批量赋值
         Object.keys(prop)
           .filter((key) => key.startsWith("x_"))
@@ -245,6 +424,7 @@ export default ({
               }
             }
           });
+
         prop["x-decorator"] = "FormItem";
         // 高亮字段(表单设计器)；设计器还缺少对tab页签的切换高亮
         if (f.fieldName === highlight) {
@@ -253,17 +433,25 @@ export default ({
             style: { backgroundColor: "#e5ffff" },
           };
         }
+        // 添加级联响应
         if (f.events) {
           prop["x-reactions"] = eventReaction(f.events, modelInfo.fields);
         }
-        //自定义组件里需要的值通过这里传输，待从页面取
-        if (f.props) {
-          prop["x-component-props"] = {
-            ...prop["x-component-props"],
-            [f.fieldName]: f.props, //写属性名则知道去取需要的 可写死
-            props: f.props,
-          };
-        }
+
+        //组件需要异步加载数据 老方式
+
+        // const apiInfo = loadDatas[f.apiKey];
+        // if (apiInfo && apiInfo.dynamic) {
+        //   if (prop["x-reactions"]) {
+        //     prop["x-reactions"] = [
+        //       ...prop["x-reactions"],
+        //       "{{useAsyncDataSource(load)}}",
+        //     ];
+        //   } else {
+        //     prop["x-reactions"] = ["{{useAsyncDataSource(load)}}"];
+        //   }
+        // }
+
         //组件关联属性附加(待移除,也需要从页面添加)
         if (
           (f.x_component === "Select" || f.x_component === "DictSelectTag") &&
@@ -306,12 +494,97 @@ export default ({
             message: f.vlife_message ? f.vlife_message : "校验不通过",
           };
         }
-        //把字段信息放入组件里
         if (prop["x-component-props"] === undefined) {
           prop["x-component-props"] = {};
         }
-        // field字段上放 formFieldVo信息
-        prop["x-component-props"]["field"] = f;
+
+        /**
+         * 自定义组件渲染，需要的属性准备
+         * 一. 组件的属性的可以来源于1. fixed固定设置的值，2.api接口获取的数据值
+         * 二. 请求接口如果也需要传参，那么也有2处来源 1. 固定的参数值，2从关联字段去取
+         * 注意：这里如果请求数据是异步的：有什么影响没
+         */
+
+        // if (f.componentType === "business") {
+        prop["x-component-props"] = {
+          ...prop["x-component-props"],
+          onDataChange: (data: any) => {
+            if (
+              typeof data === "string" &&
+              (data === "undefined" ||
+                data === "null" ||
+                data === undefined ||
+                data === null)
+            ) {
+              //字段属性去除
+              form.deleteValuesIn(f.fieldName);
+            } else if (f.fieldType === "basic" && data instanceof Array) {
+              form.setValuesIn(f.fieldName, data[0]);
+            } else {
+              form.setValuesIn(f.fieldName, data);
+            }
+          },
+          //把字段信息全放入
+          fieldInfo: {
+            ...f,
+          },
+          //组件设置信息
+          componentSetting: f.componentSetting,
+          //组件prop组件接口取值通用参数，不一定使用但是每次必定传，固需要用则参数名称应该和下面一致
+          apiCommonParams: {
+            entityName, //当前业务模型名称
+            id: formData.id, //当前业务记录id,
+            fieldName: f.fieldName, //当前字段
+            val: formData[f.fieldName], //当前字段的值
+            //               fieldEntityType: f.entityType,
+          },
+          read: read, //预览状态
+        };
+        // 组件固定属性值 从 ComponentData.conponentConf里提取
+        const propInfo = ComponentInfo[f.x_component]?.propInfo;
+        if (propInfo) {
+          const keys = Object.keys(propInfo);
+          keys.forEach((k) => {
+            if (typeof propInfo[k] === "string") {
+              prop["x-component-props"] = {
+                ...prop["x-component-props"],
+                [k]: propInfo[k],
+              };
+            }
+          });
+        }
+        // 组件动态属性从componentSetiting里提取
+        if (f.componentSetting && f.componentSetting !== null) {
+          if (prop["x-reactions"]) {
+            prop["x-reactions"] = [...prop["x-reactions"], "{{load1}}"];
+          } else {
+            prop["x-reactions"] = ["{{load1}}"];
+          }
+        }
+        // }
+
+        //业务组件
+        // if (f.componentType === "business") {
+        //   prop["x-component-props"]["field"] = f;
+        //   // 组件的datas会是动态的，这时如何处理
+        //   prop["x-component-props"] = {
+        //     ...prop["x-component-props"],
+        //     [f.fieldName]: f.props, //写属性名则知道去取需要的，固定写法,待模型规范处理后去除
+        //     ...f, //FormFieldVo里的所有字段打平进来
+        //     props: f.props, // 直顶名称写死 待模型规范处理后去除
+        //     ...f.props, // 模型信息固定入参 loadData.ts里的prop固定入参
+        //     form: modelInfo, //模型信息传入自定义组件
+        //     onDataChange: (data: any) => {
+        //       // 自定义组件值回传
+        //       if (f.fieldType === "basic" && data instanceof Array) {
+        //         form.setValuesIn(f.fieldName, data[0]);
+        //       } else {
+        //         form.setValuesIn(f.fieldName, data);
+        //       }
+        //     },
+        //     read: read, //预览状态
+        //   };
+        // }
         //作用?
         prop.type = "string";
       });
@@ -354,34 +627,6 @@ export default ({
               content: {
                 ...grid,
                 properties: filterProperties(pp, group.code, index),
-                // index === 0
-                //   ? {
-                //       source: {
-                //         type: "string",
-                //         "x-component": "Input",
-                //         "x-reactions": {
-                //           target: "target",
-                //           when: "{{$self.value === '123'}}",
-                //           fulfill: {
-                //             state: {
-                //               visible: false,
-                //             },
-                //           },
-                //           otherwise: {
-                //             state: {
-                //               visible: true,
-                //             },
-                //           },
-                //         },
-                //       },
-                //       target: {
-                //         type: "string",
-                //         "x-component": "Input",
-                //       },
-                //     }
-                //   : {},
-
-                // filterProperties(pp, group.code, index),
               },
             },
           };
@@ -398,208 +643,29 @@ export default ({
       }
     }
     return {};
-  }, [modelInfo, fkMap, formData]);
+  }, [modelInfo, fkMap, formData, read, reload]);
 
-  const schema2 = {
-    type: "object",
-    properties: {
-      collapse: {
-        type: "void",
-        "x-component": "FormTab",
-        properties: {
-          tab2: {
-            type: "void",
-            "x-component": "FormTab.TabPane",
-            "x-component-props": {
-              tab: "tab2",
-            },
-            properties: {
-              grid: {
-                type: "void",
-                "x-component": "FormGrid",
-                "x-component-props": {
-                  maxColumns: [6, 6, 6], //固定6列
-                  minColumns: [6, 6, 6],
-                },
-                properties: {
-                  source: {
-                    type: "string",
-                    "x-component": "Input",
-                    "x-reactions": {
-                      target: "target",
-                      when: "{{$self.value === '123'}}",
-                      fulfill: {
-                        state: {
-                          visible: false,
-                        },
-                      },
-                      otherwise: {
-                        state: {
-                          visible: true,
-                        },
-                      },
-                    },
-                  },
-                  target: {
-                    type: "string",
-                    "x-component": "Input",
-                  },
-                },
-              },
-            },
-          },
-          tab3: {
-            type: "void",
-            "x-component": "FormTab.TabPane",
-            "x-component-props": {
-              tab: "tab3",
-            },
-            properties: {
-              source1: {
-                type: "string",
-                "x-component": "Input",
-                "x-reactions": {
-                  target: "target1",
-                  when: "{{$self.value === '1234'}}",
-                  fulfill: {
-                    state: {
-                      visible: false,
-                    },
-                  },
-                  otherwise: {
-                    state: {
-                      visible: true,
-                    },
-                  },
-                },
-              },
-              target1: {
-                type: "string",
-                "x-component": "Input",
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-  const schema1 = {
-    type: "object",
-    properties: {
-      collapse: {
-        type: "void",
-        "x-component": "FormTab",
-        properties: {
-          tab1: {
-            type: "void",
-            "x-component": "FormTab.TabPane",
-            "x-component-props": {
-              tab: "tab1",
-            },
-            properties: {
-              grid: {
-                type: "void",
-                "x-component": "FormGrid",
-                "x-component-props": {
-                  maxColumns: [6, 6, 6], //固定6列
-                  minColumns: [6, 6, 6],
-                },
-                properties: {
-                  source: {
-                    type: "string",
-                    "x-component": "Input",
-                    "x-reactions": {
-                      target: "target",
-                      when: "{{$self.value === '123'}}",
-                      fulfill: {
-                        state: {
-                          visible: false,
-                        },
-                      },
-                      otherwise: {
-                        state: {
-                          visible: true,
-                        },
-                      },
-                    },
-                  },
-                  target: {
-                    type: "string",
-                    "x-component": "Input",
-                  },
-                },
-              },
-            },
-          },
-          tab2: {
-            type: "void",
-            "x-component": "FormTab.TabPane",
-            "x-component-props": {
-              tab: "tab2",
-            },
-            properties: {
-              bbb: {
-                type: "string",
-                title: "BBB",
-                "x-decorator": "FormItem",
-                required: true,
-                "x-component": "Input",
-              },
-            },
-          },
-          tab3: {
-            type: "void",
-            "x-component": "FormTab.TabPane",
-            "x-component-props": {
-              tab: "tab3",
-            },
-            properties: {
-              ccc: {
-                type: "string",
-                title: "CCC",
-                "x-decorator": "FormItem",
-                required: true,
-                "x-component": "Input",
-              },
-            },
-          },
-        },
-      },
-    },
-  };
+  // useEffect(() => {
+  //   alert(form);
+  // }, [form, schema]);
   return (
-    <div>
-      {/* <FormProvider form={form}>
-          <Field name="input" component={[Input]} />
-          <FormConsumer>{(form) => form.values.input}</FormConsumer>
-      </FormProvider> */}
-      {/* {JSON.stringify(schema)} */}
-      <FormProvider form={form}>
-        {/* <FormConsumer>
-          {(form) => JSON.stringify(form.values.name)}
-        </FormConsumer> */}
-        {/* <SchemaField schema={schema1} scope={{ formTab }}></SchemaField> */}
-        <SchemaField schema={schema} scope={{ formTab }}></SchemaField>
-        {/* <FormConsumer>  {(form) => JSON.stringify(form.values.name)}
-           </FormConsumer> */}
-        {/* <Observer>{() => <div>{obs.value}</div>}</Observer>
-           <Observer>
-            {() => (
-              <input
-                style={{
-                  height: 28,
-                  padding: '0 8px',
-                  border: '2px solid #888',
-                  borderRadius: 3,
-                }}
-                value={obs.value}
-                onChange={(e) => {
-                  obs.value = e.target.value
-                }}
-              />
-            )}
-          </Observer> */}
-      </FormProvider>
-    </div>
+    <>
+      {/* {JSON.stringify(modelInfo.fields[2].componentSetting)} */}
+      <PreviewText.Placeholder value="-">
+        <FormProvider form={form}>
+          {/* <FormConsumer>{(form) => JSON.stringify(schema)}</FormConsumer> */}
+          <SchemaField
+            schema={schema}
+            scope={{
+              formTab,
+              // load,
+              // useAsyncDataSource,
+              load1,
+              // useAsyncDataSource1,
+            }}
+          ></SchemaField>
+        </FormProvider>
+      </PreviewText.Placeholder>
+    </>
   );
 };

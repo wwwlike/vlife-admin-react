@@ -1,13 +1,9 @@
 // 根据FormReaction信息返回对应的 formReaction对象
 
 import { SchemaReaction } from "@formily/react";
-import { FormEventDto, FormEventVo } from "@src/mvc/model/FormEvent";
+import { FormEventVo } from "@src/mvc/model/FormEvent";
 import { FormReactionVo } from "@src/mvc/model/FormReaction";
-import { isStringObject } from "util/types";
-import { IGeneralFieldState } from "@formily/core";
-import { stringify } from "querystring";
 import { FormFieldVo } from "@src/mvc/model/FormField";
-import { FormVo } from "@src/mvc/model/Form";
 import { attrs } from "@src/pages/design/event/event";
 
 /**
@@ -36,16 +32,14 @@ const reactionName = (prop: string): string => {
  */
 const reactionVal = (prop: string, val: any): any => {
   const $index = prop.indexOf("$");
-  // if ($index !== -1) {
-  //   if(isStringObject(val)){
-  //   }
-
-  //   return { prop.substring(1,2): '' }
-  // } else {
-  //   return { prop: `{{${val}}}` }
-  // }
 };
 
+/**
+ * 满足条件时，目标对象属性变化
+ * @param prop 属性
+ * @param val 属性值
+ * @returns
+ */
 const fulfillObj = (prop: string, val: any): any => {
   // const stringObj = isStringObject(val)
   const len = val.length;
@@ -58,11 +52,6 @@ const fulfillObj = (prop: string, val: any): any => {
   if (!isObj) {
     //简单对象
     if (prop.startsWith("x-")) {
-      console.log("aaaa", {
-        schema: {
-          [prop]: val,
-        },
-      });
       return {
         schema: {
           [prop]: val,
@@ -87,7 +76,6 @@ const fulfillObj = (prop: string, val: any): any => {
 };
 //1. Boolean类型，取反;
 const otherwiseObj = (prop: string, val: any, field: FormFieldVo): any => {
-  console.log("attrs[prop].type ", attrs[prop].type);
   if (attrs[prop].type === "boolean") {
     return fulfillObj(prop, val === "false" ? true : false);
   }
@@ -101,6 +89,10 @@ const whenEl = (prop: string, eventType: string, val: any): string => {
     return `{{$self.${prop}==="${val}"}}`;
   } else if (eventType === "ne") {
     return `{{$self.${prop}!=="${val}"}}`;
+  } else if (eventType === "null") {
+    return `{{$self.${prop}===null||$self.${prop}===undefined}}`;
+  } else if (eventType === "notNull") {
+    return `{{$self.${prop}}}`;
   }
   return "";
 };
@@ -135,64 +127,28 @@ export const eventReaction = (
             reaction.reactionValue,
             fields.filter((f) => f.fieldName === reaction.fieldName)[0]
           ),
-          //'{{($self.value.startsWith("/")?$self.value.substring(1):$self.value).split("/").join(":")}}'
-          // fulfill: {
-          //   schema: {
-          //     ['disabled']: true,
-          //   },
-          // },
-          // state: {
-          //   decoratorProps: {
-          //     gridSpan: 2,
-          //   },
-          // },
-          // state: '{{344433}}',
-          // schema: reactionVal(reaction.reactionAttr, reaction.reactionValue),
-          // schema: {
-          //   properties: {
-          //     input: {
-          //       'x-component': 'Select',
-          //     },
-          //   },
-          // },
-          //不满足时，有默认值的或者是boolean类型的，不满足则可以实现
-          // otherwise: {
-          //   schema: {
-          //     [reactionName(reaction.reactionAttr)]: '{{false}}',
-          //   },
-          // },
         };
       }),
     ];
   });
-  console.log("obj", obj);
   return obj;
 };
-/**
- * 被动形式
- */
-// export const reaction = (reactions: FormReactionVo[]): SchemaReaction[] => {
-//   return reactions.map((reactionVo) => {
-//     // r.depsFieldName
-//     return {
-//       //依赖的字段
-//       dependencies: ['.' + reactionVo.depsFieldName],
-//       // target: 'name',reactionVo.depsFieldName
-//       //触发事件
-//       // when: when(reactionVo),
-//       when: '{{$deps[0].required===true}}',
-//       //满足时
-//       fulfill: {
-//         schema: {
-//           required: '{{true}}',
-//         },
-//       },
-//       //不满足时
-//       otherwise: {
-//         schema: {
-//           required: '{{false}}',
-//         },
-//       },
-//     }
-//   })
-// }
+function hehe(s: any): string {
+  return s;
+}
+
+// dynamic: {
+//   modelName: { formItem: "entityName" },
+//  返回配对关系 ： {modelName:entityName}
+// },
+export const loadDeps = (dynamic: any, entityType: String): any => {
+  const mapping = {};
+  let keys: string[] = Object.keys(dynamic);
+  keys.forEach((key) => {
+    mapping[key] =
+      dynamic[key][
+        Object.keys(dynamic[key]).filter((m) => m === entityType)[0]
+      ];
+  });
+  return mapping;
+};

@@ -18,10 +18,14 @@ const TemplatePage = lazy(() => import("../pages/template"));
 const DashboardWorkbeach = lazy(() => import("../pages/dashboard/workbeach"));
 const Quickstart = lazy(() => import("../pages/guide/quickstartMp4"));
 const AreaPage = lazy(() => import("../pages/sys/area"));
+const ReportPage = lazy(() => import("../pages/common/ReportPage"));
 const UserPage = lazy(() => import("../pages/sys/user"));
 const OrgPage = lazy(() => import("../pages/sys/org"));
 const DeptPage = lazy(() => import("../pages/sys/dept"));
 const DictPage = lazy(() => import("../pages/sys/dict"));
+const FormConditionPage = lazy(() => import("../pages/conf/form/condition"));
+const ReportItemPage = lazy(() => import("../pages/conf/report/item"));
+const ReportDesignPage = lazy(() => import("../pages/report"));
 const ResourcesPage = lazy(() => import("../pages/auth/resources"));
 const FilterPage = lazy(() => import("../pages/auth/filter"));
 const RolePage = lazy(() => import("@src/pages/auth/role"));
@@ -59,9 +63,36 @@ const routeList: RouteObject[] = [
         ),
       },
       {
-        path: "conf/*",
+        path: "conf/design",
         element: (
           <WrapperRouteComponent element={<DesignPage />} titleId="表单设计" />
+        ),
+      },
+      {
+        path: "conf/report",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportDesignPage />}
+            titleId="报表设计"
+          />
+        ),
+      },
+      {
+        path: "conf/formCondition",
+        element: (
+          <WrapperRouteComponent
+            element={<FormConditionPage />}
+            titleId="查询过滤条件"
+          />
+        ),
+      },
+      {
+        path: "conf/reportItem",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportItemPage />}
+            titleId="报表项维护"
+          />
         ),
       },
       {
@@ -80,6 +111,16 @@ const routeList: RouteObject[] = [
           <WrapperRouteComponent
             element={<RolePage />}
             titleId="角色管理"
+            auth
+          />
+        ),
+      },
+      {
+        path: "report",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportPage />}
+            titleId="统计分析"
             auth
           />
         ),

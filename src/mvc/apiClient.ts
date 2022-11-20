@@ -27,7 +27,7 @@ const instance = axios.create({
   timeout: 30000,
 });
 
-const whiteList = ["/login"];
+const whiteList = ["/login", "/gitee/callback"];
 
 const CancelToken = axios.CancelToken;
 let source = CancelToken.source();
@@ -51,12 +51,14 @@ instance.interceptors.request.use(
       source = CancelToken.source(); //终止cancel;否则全部请求都会取消
     }
     const token = window.localStorage.getItem(localStorageKey);
-
-    if (token === null && config.url?.indexOf("/login") === -1) {
+    if (
+      token === null &&
+      config.url?.indexOf("/login") === -1 &&
+      config.url?.indexOf("callback") === -1
+    ) {
       source.cancel("请先登录"); //取消请求
       source = CancelToken.source(); //终止cancel;否则全部请求都会取消
     }
-
     if (
       config.url &&
       !whiteList.includes(config.url) &&
@@ -72,7 +74,7 @@ instance.interceptors.request.use(
   }
 );
 
-// 听过 axios 定义拦截器预处理所有请求
+//  axios 定义拦截器预处理所有请求
 instance.interceptors.response.use(
   (res) => {
     if (res.status !== 200) {
@@ -84,6 +86,11 @@ instance.interceptors.response.use(
       Notification.error({
         content: `${res.data.msg}`,
       });
+    }
+
+    if (res.data.code === 9999) {
+      //超时删除token 系统异常也是9999（排查）
+      // window.localStorage.removeItem(localStorageKey);
     }
 
     if (res.config.method === "post") {
@@ -103,9 +110,10 @@ instance.interceptors.response.use(
       });
     } else if (err.code === "ERR_CANCELED") {
       //请求取消
-      Notification.error({
-        content: `${err.message}`,
-      });
+      if (window.location.href.indexOf("login") === -1)
+        Notification.error({
+          content: `${err.message}`,
+        });
     } else if (err.response.status === 403) {
       Notification.error({
         content: `没有权限`,

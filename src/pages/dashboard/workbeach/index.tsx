@@ -3,6 +3,7 @@ import { Card } from "@douyinfe/semi-ui";
 import { useRequest } from "ahooks";
 import { Notification } from "@douyinfe/semi-ui";
 import { useSelector } from "react-redux";
+import Cms from "@src/components/cms";
 
 //ahook 模拟请求 hooks示例
 
@@ -33,6 +34,7 @@ export default () => {
 
   return (
     <div>
+      <Cms></Cms>
       <Card
         className="text-xl"
         title="vlife-admin是基于vlife前后端组件封装能力打造的权限管理的脚手架应用"
@@ -91,7 +93,7 @@ export default () => {
       <br></br>
       <Card className="text-xl" title="讨论&帮助">
         <img
-          src="http://admin.vlife.cc/image/linkme.png"
+          src="https://wwwlike.gitee.io/vlife-img/linkme.png"
           style={{ width: 950, height: 260, top: 10 }}
         />
         {/* <Steps className='bg-gray-300' current={currNum}  >

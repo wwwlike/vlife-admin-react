@@ -4,8 +4,9 @@ import { useRequest } from "ahooks";
 import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import qs from "qs";
 import apiClient from "@src/mvc/apiClient";
-import { fieldInfo, IdBean, ModelInfo, PageVo, Result } from "@src/mvc/base";
+import { IdBean, ModelInfo, PageVo, Result } from "@src/mvc/base";
 import { Notification } from "@douyinfe/semi-ui";
+import { componentProps } from "@src/mvc/model/FormField";
 
 /**
  * 列表分页参数组装
@@ -76,22 +77,6 @@ export const modelInfo = (
   modelName: string
 ): Promise<Result<ModelInfo>> => {
   return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
-};
-
-/**
- * 模型信息查询
- */
-export const useFindDictColumns = (
-  fields: fieldInfo[]
-): (string | undefined)[] => {
-  return fields
-    .filter((f) => {
-      if (f.dictCode) return true;
-      return false;
-    })
-    .map((f) => {
-      return f.dictCode;
-    });
 };
 
 /**
@@ -198,7 +183,7 @@ export const useDetails = ({
   );
 
 /**
- * 外键信息
+ * 外键信息(查找指定表的指定ID行记录的指定字段的全部值)
  * @param entityName 模块
  * @param ids 主键id
  * @returns
@@ -211,4 +196,19 @@ export const find = (
   return apiClient.get(`/${entityName}/find/${field}?ids=${ids.join(",")}`, {
     params: {},
   });
+};
+
+export const findName = (prop: componentProps): Promise<Result<any[]>> => {
+  if (prop.val === undefined || prop.val === null || prop.val.length === 0) {
+    return new Promise((resolve) => {
+      resolve({ code: "200", msg: "success", data: undefined });
+    });
+  } else {
+    return apiClient.get(
+      `/${prop.fieldEntityType}/findName?${qs.stringify(prop, {
+        allowDots: true, //多级对象转str中间加点
+        arrayFormat: "comma", //数组采用逗号分隔 ,这里转换不通用，get查询都需要这样转换
+      })}`
+    );
+  }
 };

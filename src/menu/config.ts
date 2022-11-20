@@ -119,6 +119,7 @@ const MENU_CONFIG: MenuItem[] = [
         code: "form",
         path: "/conf/design",
       },
+
       {
         itemKey: "1-11",
         text: "权限资源",
@@ -135,6 +136,41 @@ const MENU_CONFIG: MenuItem[] = [
       },
     ],
   },
+  {
+    itemKey: "111",
+    text: "报表配置",
+    icon: IconEdit,
+    items: [
+      {
+        itemKey: "1-14",
+        text: "数据筛选",
+        icon: IconTickCircle,
+        // code: "formItem",
+        path: "/conf/formCondition",
+      },
+      // {
+      //   itemKey: "1-15",
+      //   text: "报表项目",
+      //   icon: IconTickCircle,
+      //   // code: "formItem",
+      //   path: "/conf/reportItem",
+      // },
+      {
+        itemKey: "1-18",
+        text: "报表设计",
+        icon: IconTickCircle,
+        // code: "form",
+        path: "/conf/report",
+      },
+      {
+        itemKey: "8-3",
+        text: "报表展示",
+        // code: "project", // 与菜单编码对应
+        path: "/report",
+      },
+    ],
+  },
+
   {
     itemKey: "8",
     text: "演示模块",

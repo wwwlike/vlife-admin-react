@@ -10,16 +10,17 @@ import {
 import Table, { BtnMemoProp, ListProps, VfButton } from "@src/components/table";
 import { useAuth } from "@src/context/auth-context";
 import { useLocation } from "react-router-dom";
-import { fieldInfo, ModelInfo, PageQuery, PageVo, Result } from "@src/mvc/base";
-import { customRequestArgs } from "@douyinfe/semi-ui/lib/es/upload";
+import { PageQuery, PageVo, Result } from "@src/mvc/base";
 import { Input } from "@douyinfe/semi-ui";
+import { FormVo } from "@src/mvc/model/Form";
+import { FormFieldVo } from "@src/mvc/model/FormField";
 
 /**
  * 待写个文档
  */
 export type modelProps = {
   name: string;
-  fieldsCover?: (Partial<fieldInfo> & { fieldName: string })[];
+  fieldsCover?: (Partial<FormFieldVo> & { fieldName: string })[];
   // 下面的字段应该要整合到fieldsCover里成为各个字段的属性
 };
 
@@ -52,6 +53,7 @@ export interface tablePageProps extends ListProps {
   btnEnable: Partial<btnList>; //页面自带按钮进行开关
   customBtns: VfButton[]; //页面传入的个性化按钮
   onGetData: (datas: any[]) => void; //列表数据加载完成事件,把数据传出去
+  datas: any[]; //外部传入的数据，如果传入，则本页不做任何分页和数据加载
   // onEditCallBack?:(id:string)=>Promise<any>,//编辑之前取得其他非表单外键之外需要传入的数据
   // onAddCallBack?:()=>Promise<any>,//新增之前取得传入表单的数据
 }
@@ -78,6 +80,7 @@ export const TablePage = ({
   reload,
   initData,
   customBtns,
+  datas, //外部传入数据
   btnEnable = {
     disable: false,
     edit: true,
@@ -90,20 +93,25 @@ export const TablePage = ({
 }: Partial<tablePageProps> & { entityName: string }) => {
   // 当前列表数据
   const [tableData, setTableData] = useState<any>();
+
+  useEffect(() => {
+    if (datas) setTableData({ data: { result: datas } });
+  }, [datas]);
+
   //加载弹出表单modal
   const formModal = useNiceModal("formModal");
   // 弹出提醒modal
   const confirmModal = useNiceModal("confirmModal");
-  const { getDict, user, checkBtnPermission, getModelInfo } = useAuth();
+  const { getDict, user, checkBtnPermission, getFormInfo } = useAuth();
   //外键信息
   const [fkMap, setFkMap] = useState<any>({});
   // pcode的name集合
   const [parentMap, setParentMap] = useState<any>({});
   // 模型信息(待转成formVO)
-  const [modelInfo, setModelInfo] = useState<ModelInfo | undefined>();
+  const [modelInfo, setModelInfo] = useState<FormVo>();
   //加载模型数据
   useEffect(() => {
-    getModelInfo(entityName, listModel).then((data) => {
+    getFormInfo(listModel, "save").then((data) => {
       setModelInfo(data);
     });
   }, [entityName, listModel]);
@@ -194,7 +202,9 @@ export const TablePage = ({
   useEffect(() => {
     // console.log('req-> search组件会引起req搜索两次，第一次search空，第二次 undefiend，需要解决',req);
     // 弹出table目前没有做搜索条件,故无req入参]
-    page({ ...req });
+    if (datas === undefined) {
+      page({ ...req });
+    }
   }, [req, reload]);
 
   /**
@@ -203,11 +213,12 @@ export const TablePage = ({
   const fkInfos = useMemo(() => {
     //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
     if (modelInfo && listModel && entityName && listModel === entityName) {
-      return modelInfo?.fields.filter((f) => {
+      return modelInfo?.fields.filter((f: FormFieldVo) => {
         return (
+          (f.x_hidden === undefined || f.x_hidden === false) &&
           f.entityFieldName === "id" &&
-          entityName !== f.entityType &&
-          !props.hideColumns?.includes(f.fieldName)
+          entityName !== f.entityType
+          // !props.hideColumns?.includes(f.fieldName)
         );
       });
     }
@@ -217,7 +228,7 @@ export const TablePage = ({
   /**
    * 上级的code
    */
-  const pcodeField = useMemo((): fieldInfo | undefined => {
+  const pcodeField = useMemo((): FormFieldVo | undefined => {
     //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
     if (modelInfo) {
       return modelInfo?.fields.find((f) => {
@@ -245,9 +256,6 @@ export const TablePage = ({
     });
   }, [fkInfos, tableData]);
 
-  /**
-   * 获得本页外键字段的id,name的键值集合
-   */
   useEffect(() => {
     if (pcodeField) {
       const codes: string[] =
@@ -368,7 +376,7 @@ export const TablePage = ({
    * @param btn 按钮信息
    * @param record 按钮所在行数据或者复选框选择的所有数据
    */
-  const btnClick = (btn: VfButton, ...record: any) => {
+  const btnClick = (btn: VfButton, line: number, ...record: any) => {
     if (btn.model) {
       const isView = btn.readView === undefined ? false : btn.readView;
       showDiv(btn.model, isView, record ? record[0] : undefined, btn.okFun);
@@ -528,7 +536,7 @@ export const TablePage = ({
 
   return (
     <>
-      {/*简单搜索  */}
+      {/* 简单搜索条件，待优化 */}
       {props.simpleSearchField ? (
         <Input
           onChange={(v) => {
@@ -538,30 +546,20 @@ export const TablePage = ({
       ) : (
         ""
       )}
-      <Table
-        columns={modelInfo?.fields.map((f) => {
-          return { ...f, dataIndex: f.fieldName };
-        })}
-        hideColumns={[
-          "createDate",
-          "modifyDate",
-          "status",
-          "id",
-          "createId",
-          "modifyId",
-          "code",
-          "sysAreaId",
-          "sysOrgId",
-          "sysDeptId",
-        ]}
-        sysDict={getDict({ emptyLabel: "-", codes: [...dictKeys] })}
-        dataSource={tableData?.data?.result}
-        tableBtn={tableBtn}
-        fkMap={fkMap}
-        parentMap={parentMap}
-        {...pagination}
-        {...props}
-      ></Table>
+      {modelInfo ? (
+        <Table
+          model={modelInfo}
+          sysDict={getDict({ emptyLabel: "-", codes: [...dictKeys] })}
+          dataSource={datas ? datas : tableData?.data?.result}
+          tableBtn={tableBtn}
+          fkMap={fkMap}
+          parentMap={parentMap}
+          {...pagination}
+          {...props}
+        ></Table>
+      ) : (
+        ""
+      )}
     </>
   );
 };

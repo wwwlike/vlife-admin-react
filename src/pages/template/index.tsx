@@ -45,8 +45,7 @@ export default () => {
           >
             <FormPage
               type="req"
-              formData={formData}
-              onDataChange={setFormData}
+              onDataChange={(data) => setFormData({ ...data })}
               entityName={entityName || ""}
               modelName={entityName + "PageReq"}
             />
@@ -64,6 +63,8 @@ export default () => {
             <TablePage
               req={formData}
               entityName={entityName || ""}
+              editModel="projectDto"
+              viewModel="projectDto"
               select_more={true}
             />
           </Card>

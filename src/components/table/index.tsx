@@ -1,19 +1,11 @@
-import {
-  Button,
-  Popover,
-  Space,
-  Table,
-  Tag,
-  TagInput,
-  Tooltip,
-} from "@douyinfe/semi-ui";
+import { Button, Popover, Space, Table, Tag, Tooltip } from "@douyinfe/semi-ui";
 import {
   ColumnProps,
   RowSelection,
   TableProps,
 } from "@douyinfe/semi-ui/lib/es/table";
 import { TranDict } from "@src/mvc/base";
-import { modelProps } from "@src/pages/common/tablePage";
+import { FormVo } from "@src/mvc/model/Form";
 import React, { useEffect, useMemo, useState } from "react";
 import Icon from "../icon";
 
@@ -50,10 +42,11 @@ export interface VfButton {
   model?: string; //按钮触发调用的视图弹出层名称或者对象,说明需要弹框
   readView?: boolean; //预览模式
   okFun?: (...record: any) => void; //最后确认回调方法
-  click?: (btn: VfButton, ...record: any) => void; //按钮点击事件
+  click?: (btn: VfButton, line: number, ...record: any) => void; //按钮点击事件
 }
 
 export interface ListProps extends TableProps {
+  model: FormVo; //模型信息
   lineClick?: (obj: any) => void;
   hideColumns?: string[];
   showColumns?: string[]; //显示的字段，优先级高于hideColumns
@@ -67,15 +60,16 @@ export interface ListProps extends TableProps {
   onSelected?: (selecteds: selectType[]) => void;
   selected?: any[]; //进入之前选中的数据信息
 }
-type selectType = { id: string | number; name?: string };
+type selectType = { id: string; name: string };
 export default ({
   lineClick,
+  model,
   tableBtn,
   hideColumns,
   showColumns,
   sysDict,
   dataSource,
-  columns,
+  // columns,
   fkMap,
   parentMap,
   select_more,
@@ -86,7 +80,6 @@ export default ({
   children,
   ...props
 }: ListProps) => {
-  //state赋值不支持ifelse,所以写成函数式
   const [selectedRow, setSelectedRow] = useState<selectType[]>(
     selected ? [...selected] : []
   );
@@ -124,40 +117,45 @@ export default ({
 
   //列信息
   const memoColumns = useMemo((): ColumnProps<any>[] => {
-    if (columns) {
-      let columnshow = [...columns]; //拷贝一份传来的数据
+    if (model && model.fields) {
+      const columnshow: ColumnProps[] = model.fields
+        .filter((f) => f.x_hidden !== true && f.listShow !== false)
+        .map((f) => {
+          return { ...f, dataIndex: f.fieldName };
+        });
+      // let columnshow = [...columns]; //拷贝一份传来的数据
       //过滤不显示的字段
-      columnshow = columnshow?.filter((currentValue, index, arr) => {
-        // step1 不需要的就隐藏掉
-        // hideColumns?.push('id');//id必须不展示
-        if (showColumns) {
-          const size: number =
-            showColumns?.find((name) => {
-              return name === currentValue.fieldName;
-            })?.length || 0;
-          if (size > 0) {
-            return true;
-          }
-          return false;
-        } else {
-          const size: number =
-            hideColumns?.find((name) => {
-              return (
-                name === currentValue.fieldName ||
-                currentValue.fieldName === "password"
-              );
-            })?.length || 0;
-          if (size > 0) {
-            return false;
-          }
-        }
-        if (currentValue.fieldName === "id") {
-          return false;
-        }
-        return true;
-      });
+      // columnshow = columnshow?.filter((currentValue, index) => {
+      //   // step1 不需要的就隐藏掉
+      //   // hideColumns?.push('id');//id必须不展示
+      //   if (showColumns) {
+      //     const size: number =
+      //       showColumns?.find((name) => {
+      //         return name === currentValue.fieldName;
+      //       })?.length || 0;
+      //     if (size > 0) {
+      //       return true;
+      //     }
+      //     return false;
+      //   } else {
+      //     const size: number =
+      //       hideColumns?.find((name) => {
+      //         return (
+      //           name === currentValue.fieldName ||
+      //           currentValue.fieldName === "password"
+      //         );
+      //       })?.length || 0;
+      //     if (size > 0) {
+      //       return false;
+      //     }
+      //   }
+      //   if (currentValue.fieldName === "id") {
+      //     return false;
+      //   }
+      //   return true;
+      // });
       // step2 字典转换
-      columnshow?.forEach((m) => {
+      columnshow?.forEach((m: ColumnProps) => {
         sysDict?.forEach((d) => {
           if (m.dictCode?.toLowerCase() === d.column.toLowerCase()) {
             m["render"] = (text, record, index) => {
@@ -209,7 +207,7 @@ export default ({
                       theme="borderless"
                       type="primary"
                       onClick={() => {
-                        item.click && item.click(item, record);
+                        item.click && item.click(item, index, record);
                       }}
                     >
                       {item.title}
@@ -237,7 +235,7 @@ export default ({
       return columnshow;
     }
     return [];
-  }, [columns, lineMemoBtns, hideColumns, sysDict]);
+  }, [model, lineMemoBtns, sysDict]);
 
   const onRow = useMemo(
     () => (record: any, index: any) => {
@@ -309,7 +307,7 @@ export default ({
             key={item.entityName + "_" + item.model + "_" + item.key}
             onClick={() => {
               if (item.click) {
-                item.click(item, ...selectedRow);
+                item.click(item, null, ...selectedRow);
               }
               setSelectedRow([]);
             }}

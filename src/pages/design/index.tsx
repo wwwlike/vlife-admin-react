@@ -36,6 +36,8 @@ import FieldSetting from "./fieldSetting";
 import { useUrlQueryParam } from "@src/utils/lib";
 import VlifeButton from "@src/components/basic/vlifeButton";
 import FormSetting from "./formSetting";
+import VfInput from "./data/Test";
+import FieldComponent from "./fieldSetting/FieldComponent";
 const { Content, Sider } = Layout;
 const modelType: any = {
   entity: "实体模型",
@@ -55,6 +57,9 @@ const uiTypeObj: any = {
  */
 export default () => {
   const { getDict } = useAuth();
+
+  const [read, setRead] = useState<boolean>(false);
+
   /**
    * 字典大类
    */
@@ -188,14 +193,18 @@ export default () => {
         if (f.dictCode && uiType === "save") {
           f.x_component = "Select";
         } else if (f.dictCode && uiType === "req") {
+          f.componentType = "business";
           f.x_component = "DictSelectTag";
         } else if (f.type === "date") {
+          f.componentType = "basic";
           f.x_component = "DatePicker";
         } else if (f.type === "boolean") {
           f.dictCode = "TF";
           if (uiType === "save") {
+            f.componentType = "basic";
             f.x_component = "Select";
           } else {
+            f.componentType = "business";
             f.x_component = "DictSelectTag";
           }
         } else if (
@@ -207,11 +216,14 @@ export default () => {
         ) {
           f.x_component = "RelationInput";
         } else if (f.type === "boolean") {
+          f.componentType = "basic";
           f.x_component = "Checkbox";
         } else if (f.type === "string") {
           if (uiType === "req") {
+            f.componentType = "business";
             f.x_component = "SearchInput";
           } else {
+            f.componentType = "basic";
             f.x_component = "Input";
           }
         }
@@ -386,6 +398,15 @@ export default () => {
             footer={
               <Space>
                 <Checkbox
+                  defaultChecked={read}
+                  value={true}
+                  onChange={(f) => {
+                    setRead(!read);
+                  }}
+                >
+                  阅览状态
+                </Checkbox>
+                <Checkbox
                   defaultChecked={filterSys === true ? false : true}
                   value={true}
                   onChange={(f) => {
@@ -411,7 +432,7 @@ export default () => {
                     }
                   }}
                 >
-                  系统级{filterSys}
+                  系统级
                 </Checkbox>
                 {/* 增加页签的时候写页签名，字选择字段，分组同理 */}
                 {uiType === "save" ? (
@@ -573,6 +594,7 @@ export default () => {
               (uiType === "save" || uiType === "req") ? (
                 <TabPane tab="实时预览" itemKey={"AA"}>
                   <FormPage
+                    read={read}
                     type={uiType}
                     highlight={currField?.fieldName}
                     entityName={currModel.entityType}
@@ -685,8 +707,8 @@ export default () => {
             style={{
               padding: "10px",
               backgroundColor: "var(--semi-color-bg-1)",
-              minWidth: "280px",
-              maxWidth: "280px",
+              minWidth: "320px",
+              maxWidth: "320px",
             }}
           >
             {currField && currModel ? (

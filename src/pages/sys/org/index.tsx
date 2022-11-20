@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { Card } from "@douyinfe/semi-ui";
 import FormPage from "@src/pages/common/formPage";
 import TablePage from "@src/pages/common/tablePage";
-import { listAll as areaListAll } from "@src/mvc/SysArea";
-import { listAll } from "@src/mvc/SysOrg";
 export default () => {
   const [formData, setFormData] = useState<any>();
   return (
@@ -18,8 +16,7 @@ export default () => {
         >
           <FormPage
             type="req" //查询form
-            formData={formData} //数据data
-            onDataChange={setFormData}
+            onDataChange={(data) => setFormData({ ...data })}
             entityName="sysOrg"
             modelName="sysOrgPageReq"
           />

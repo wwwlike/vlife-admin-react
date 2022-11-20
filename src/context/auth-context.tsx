@@ -13,8 +13,9 @@ import { UserDetailVo } from "@src/mvc/SysUser";
 import { modelInfo } from "@src/provider/baseProvider";
 import { addAbortSignal } from "stream";
 import { FormVo, model } from "@src/mvc/model/Form";
+import dict from "@src/pages/sys/dict";
 
-const localStorageKey = "__auth_provider_token__";
+export const localStorageKey = "__auth_provider_token__";
 //全局状态类型定义，初始化为undefiend ,注意这里返回的是Pomise函数
 const AuthContext = React.createContext<
   | {
@@ -36,6 +37,12 @@ const AuthContext = React.createContext<
       loginOut: () => void;
       //获得字典信息,如果codes不传，则返回一级字典
       getDict: (obj: { emptyLabel?: string; codes?: string[] }) => TranDict[];
+      dicts: {
+        [key: string]: {
+          data: { value: string; label: string }[];
+          label: string;
+        };
+      };
       //按钮权限认证
       checkBtnPermission: (code: string) => boolean; //检查按钮权限
       error: string | null | undefined;
@@ -54,6 +61,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // 要缓存最后计算的信息
   const [models, setModels] = useState<any>({});
   const [dicts, setDicts] = useState<SysDict[]>([]);
+  /** 全量字典信息 */
+  const [dictObj, setDictObj] = useState<{
+    [key: string]: { data: { value: string; label: string }[]; label: string };
+  }>();
   const [error, setError] = useState<string | null>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,6 +80,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       runAsync().then((res) => {
         if (res.data) {
           setDicts(res.data);
+          const obj = {};
+          res.data.forEach((d) => {
+            if (obj[d.code] === undefined) {
+              if (d.val === null) {
+                obj[d.code] = { label: d.title, data: [] };
+              } else {
+                obj[d.code] = {
+                  label: "",
+                  data: [{ label: d.title, value: d.val }],
+                };
+              }
+            } else {
+              if (d.val === null) {
+                obj[d.code].label = d.title;
+              } else {
+                obj[d.code].data.push({ label: d.title, value: d.val });
+              }
+            }
+          });
+          // alert(JSON.stringify(obj));
+          setDictObj(obj);
         }
       });
     });
@@ -100,8 +132,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (models[modelName + uiType] === undefined) {
       //简写
       let form = await (await model({ uiType, modelName })).data;
-      setModels({ ...models, [modelName + uiType]: form });
-      return form;
+      //组件设置json转对象
+      const fields = form.fields.map((f) => {
+        return {
+          ...f,
+          componentSetting: f.componentSettingJson
+            ? JSON.parse(f.componentSettingJson)
+            : {},
+        };
+      });
+      setModels({ ...models, [modelName + uiType]: { ...form, fields } });
+      return { ...form, fields };
     } else {
       return models[modelName + uiType];
     }
@@ -187,7 +228,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    */
   const checkBtnPermission = useCallback(
     (code: string): boolean => {
-      console.log("code", code);
       // if (user?.username === "manage") {
       //   return true;
       // }
@@ -214,6 +254,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         error,
         loginOut,
+        dicts: dictObj,
         getDict,
         checkBtnPermission,
         getModelInfo,

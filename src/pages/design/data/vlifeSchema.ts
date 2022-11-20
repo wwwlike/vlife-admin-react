@@ -1,19 +1,21 @@
 //显示的依赖定义
-type deps = {
+export type deps = {
   field: string; //依赖的属性
   value: string[]; //依赖的值 满足其中之一即可
 };
 export interface designProp {
   name: string;
-  type: "select" | "input" | "switch";
-  tag: "basic" | "rule" | "layout";
+  type: "select" | "input" | "switch"; // 设置组件得类型
+  tag: "basic" | "rule" | "layout"; //所在分组标签
   uiType?: "req" | "save"; //使用场景
-  deps?: deps; //字段显示依赖
+  deps?: deps | deps[]; //字段显示依赖,如果是数组都需要满足
+  group?: { label: string; value: string }[]; //二级分类 如果有该二级分类，则先经过二级分类在选择items
   items?: {
     label: string;
     value: string | number; //嵌套一个，尤它进行值得选择
     uiType?: "req" | "save";
-    deps?: deps;
+    groupKey?: string; //所在分组
+    deps?: deps | deps[]; // 满足得一项，或者多项都满足
   }[]; //子项显示依赖
 }
 
@@ -32,75 +34,6 @@ const schemaDef: SchemaClz = {
     name: "标题",
     type: "input",
     tag: "basic",
-  },
-  x_component: {
-    name: "组件",
-    type: "select",
-    tag: "basic",
-    items: [
-      {
-        value: "SearchInput",
-        label: "搜索Input",
-        uiType: "req",
-        deps: {
-          field: "type",
-          value: ["string"],
-        },
-      },
-      {
-        value: "DictSelectTag",
-        label: "字典tag",
-        uiType: "req",
-        deps: {
-          field: "type",
-          value: ["string", "boolean"],
-        },
-      },
-
-      {
-        value: "Input",
-        label: "字符输入",
-      },
-      {
-        value: "Select",
-        label: "下拉选择(字典)",
-      },
-      {
-        value: "VlifeSelect",
-        label: "下拉选择(异步)",
-      },
-      {
-        value: "DatePicker",
-        label: "日期选择",
-      },
-      {
-        value: "RelationInput",
-        label: "外键选择(弹出层)",
-      },
-      {
-        value: "RoleResourcesSelect",
-        label: "角色资源(特定)",
-      },
-      {
-        value: "TabSelect",
-        label: "Tab下拉选择(异步)",
-      },
-      {
-        value: "TreeSelect",
-        label: "树形选择(select)",
-        uiType: "save",
-      },
-      {
-        value: "TreeQuery",
-        label: "树形查询组件",
-        uiType: "req",
-      },
-      {
-        value: "PageSelect",
-        label: "页面多级选择组件",
-        uiType: "save",
-      },
-    ],
   },
   initialValues: {
     name: "默认值",
@@ -130,108 +63,17 @@ const schemaDef: SchemaClz = {
     type: "switch",
     tag: "layout",
   },
-  apiKey: {
-    // 对应loadDatas value=> key
-    name: "数据接口",
-    type: "select",
-    tag: "basic",
-    items: [
-      {
-        value: "sysFilterSelect",
-        label: "查询权限设置",
-        deps: {
-          field: "x_component",
-          value: ["PageSelect"],
-        },
-      },
-      {
-        value: "roleAllResources",
-        label: "角色资源",
-        deps: {
-          field: "x_component",
-          value: ["RoleResourcesSelect"],
-        },
-      },
-      {
-        value: "resourcesApiAll",
-        label: "上级资源选择",
-        deps: {
-          field: "x_component",
-          value: ["TabSelect"],
-        },
-      },
-      {
-        value: "listMenu",
-        label: "菜单选择",
-        deps: {
-          field: "x_component",
-          value: ["VlifeSelect"],
-        },
-      },
-      {
-        value: "listUser",
-        label: "用户选择",
-        deps: {
-          field: "x_component",
-          value: ["VlifeSelect"],
-        },
-      },
-      {
-        value: "orgTree",
-        label: "机构树",
-        deps: {
-          field: "x_component",
-          value: ["TreeQuery"],
-        },
-      },
-      {
-        value: "areaTree",
-        label: "地区树",
-        deps: {
-          field: "x_component",
-          value: ["TreeQuery"],
-        },
-      },
-      {
-        value: "deptTree",
-        label: "部门树",
-        deps: {
-          field: "x_component",
-          value: ["TreeQuery"],
-        },
-      },
-
-      {
-        value: "orgSelect",
-        label: "机构树选择",
-        deps: {
-          field: "x_component",
-          value: ["TreeSelect"],
-        },
-      },
-      {
-        value: "areaSelect",
-        label: "地区树选择",
-        deps: {
-          field: "x_component",
-          value: ["TreeSelect"],
-        },
-      },
-      {
-        value: "deptTree",
-        label: "部门树选择",
-        deps: {
-          field: "x_component",
-          value: ["TreeSelect"],
-        },
-      },
-    ],
+  listShow: {
+    name: "列表",
+    type: "switch",
+    tag: "layout",
+    uiType: "save",
   },
   x_validator: {
     name: "校验方式",
     type: "select",
     tag: "rule",
-    deps: { field: "x_component", value: ["Input"] },
+    deps: { field: "x_component", value: ["Input", "Input.TextArea"] },
     items: [
       { label: "email", value: "email" },
       { label: "phone", value: "phone" },
@@ -289,7 +131,6 @@ const schemaDef: SchemaClz = {
       },
     ],
   },
-
   formGroupCode: {
     name: "所在页签",
     type: "select",
@@ -315,10 +156,18 @@ const schemaDef: SchemaClz = {
         label: "3列",
         value: 3,
       },
-      // {
-      //   label: "4列",
-      //   value: 4,
-      // },
+      {
+        label: "4列",
+        value: 4,
+      },
+      {
+        label: "5列",
+        value: 5,
+      },
+      {
+        label: "6列",
+        value: 6,
+      },
     ],
   },
 };
