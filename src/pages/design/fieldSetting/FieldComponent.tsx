@@ -106,7 +106,7 @@ export default ({
   }, [currField.type]);
 
   /** 选择的组件的需要设置的属性计算 */
-  const currProps = useMemo((): PropDef => {
+  const currProps = useMemo((): PropDef | undefined => {
     if (
       componentData &&
       componentData.x_component &&
@@ -309,9 +309,10 @@ export default ({
                                         k1 // 相等或者包含
                                       ) =>
                                         ApiInfo[k1].dataType === pop.dataType ||
-                                        pop.dataType.includes(
-                                          ApiInfo[k1].dataType
-                                        )
+                                        (pop.dataType instanceof Array &&
+                                          pop.dataType.includes(
+                                            ApiInfo[k1].dataType
+                                          ))
                                     )
                                     .map((k) => {
                                       return {

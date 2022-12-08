@@ -8,7 +8,10 @@ import {
 import LayoutPage from "../pages/layout";
 import Empty from "@src/components/empty";
 import LoginPage from "@src/pages/login";
+
 import { AppProviders } from "@src/context";
+import CmsPage from "@src/components/cms";
+
 /**
  * 这里是路由配置页面
  * menu\config.ts 是菜单内容的配置信息
@@ -16,6 +19,8 @@ import { AppProviders } from "@src/context";
 
 const TemplatePage = lazy(() => import("../pages/template"));
 const DashboardWorkbeach = lazy(() => import("../pages/dashboard/workbeach"));
+const IndexPage = lazy(() => import("../pages/dashboard"));
+
 const Quickstart = lazy(() => import("../pages/guide/quickstartMp4"));
 const AreaPage = lazy(() => import("../pages/sys/area"));
 const ReportPage = lazy(() => import("../pages/common/ReportPage"));
@@ -25,6 +30,7 @@ const DeptPage = lazy(() => import("../pages/sys/dept"));
 const DictPage = lazy(() => import("../pages/sys/dict"));
 const FormConditionPage = lazy(() => import("../pages/conf/form/condition"));
 const ReportItemPage = lazy(() => import("../pages/conf/report/item"));
+const ReportKpiPage = lazy(() => import("../pages/conf/report/kpi"));
 const ReportDesignPage = lazy(() => import("../pages/report"));
 const ResourcesPage = lazy(() => import("../pages/auth/resources"));
 const FilterPage = lazy(() => import("../pages/auth/filter"));
@@ -37,6 +43,7 @@ const TsCode = lazy(() => import("@src/pages/tsCode"));
 const MP4 = lazy(() => import("@src/pages/guide"));
 const DesignPage = lazy(() => import("@src/pages/design"));
 const ProjectPage = lazy(() => import("@src/pages/bus/project"));
+const LayOutPage = lazy(() => import("@src/components/layout"));
 const routeList: RouteObject[] = [
   {
     path: "/",
@@ -96,6 +103,15 @@ const routeList: RouteObject[] = [
         ),
       },
       {
+        path: "conf/reportKpi",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportKpiPage />}
+            titleId="报表指标维护"
+          />
+        ),
+      },
+      {
         path: "conf/resources",
         element: (
           <WrapperRouteComponent
@@ -120,6 +136,16 @@ const routeList: RouteObject[] = [
         element: (
           <WrapperRouteComponent
             element={<ReportPage />}
+            titleId="统计分析"
+            auth
+          />
+        ),
+      },
+      {
+        path: "conf/layout",
+        element: (
+          <WrapperRouteComponent
+            element={<LayOutPage />}
             titleId="统计分析"
             auth
           />
@@ -199,7 +225,7 @@ const routeList: RouteObject[] = [
         path: "dashboard/workbeach",
         element: (
           <WrapperRouteComponent
-            element={<DashboardWorkbeach />}
+            element={<IndexPage />}
             titleId="工作台"
             auth
           />
@@ -241,6 +267,15 @@ const routeList: RouteObject[] = [
       <WrapperRouteWithOutLayoutComponent
         element={<LoginPage />}
         titleId="VLIFE快速开发平台"
+      />
+    ),
+  },
+  {
+    path: "cms",
+    element: (
+      <WrapperRouteWithOutLayoutComponent
+        element={<CmsPage />}
+        titleId="网页端"
       />
     ),
   },

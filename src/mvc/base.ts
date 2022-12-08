@@ -3,18 +3,18 @@ import { SysDict } from "./SysDict";
 
 // 数据传输dto
 export interface IdBean {
-  id: string;
+  id?: string;
 }
 //数据逻辑状态
 export interface IStatus {
-  status: string;
+  status?: string;
 }
 //数据库实体
 export interface DbEntity extends IdBean, IStatus {
-  createId: string; //创建人
-  modifyId: string; //修订人
-  createDate: Date; //创建日期
-  modifyDate: Date; // 修订日期
+  createId?: string; //创建人
+  modifyId?: string; //修订人
+  createDate?: Date; //创建日期
+  modifyDate?: Date; // 修订日期
 }
 // 后端返回数据封装
 export interface Result<D> {

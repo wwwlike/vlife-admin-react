@@ -50,18 +50,7 @@ export default () => {
             key={"queryPage"}
             req={typeReq}
             entityName={entityName}
-            hideColumns={[
-              "createDate",
-              "modifyDate",
-              "id",
-              "status",
-              "sys",
-              "edit",
-              "val",
-              "code",
-              "createId",
-              "modifyId",
-            ]}
+            column={["code", "title"]}
             btnEnable={{ disable: true }} //自带按钮全部禁用
             reload={reload}
             onGetData={(data) => {
@@ -88,14 +77,6 @@ export default () => {
             entityName={entityName}
             editModel={entityName}
             customBtns={customBtns}
-            hideColumns={[
-              "createDate",
-              "modifyDate",
-              "id",
-              "status",
-              "createId",
-              "modifyId",
-            ]}
             select_more={true}
           />
         </Card>

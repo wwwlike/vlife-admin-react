@@ -21,17 +21,30 @@ import {
   listAll as reportListAll,
   saveReportTableSaveDto,
   remove,
-  report,
   ReportTableDto,
 } from "@src/mvc/model/ReportTable";
+import {
+  IconMaximize,
+  IconEyeOpened,
+  IconEyeClosedSolid,
+  IconTick,
+  IconArrowUp,
+  IconArrowDown,
+  IconReply,
+  IconSave,
+  IconOrderedList,
+  IconKanban,
+} from "@douyinfe/semi-icons";
 import { ReportTableItem } from "@src/mvc/model/ReportTableItem";
 import { useNiceModal } from "@src/store";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FormPage from "../common/formPage";
+import { useUpdateEffect } from "ahooks";
+import ReportTable from "@src/components/report";
 
 /**
  * vlife报表设计器
- * 1. form传输和保存时2种dto对象
+ * 1. form传输和保存是2种dto结构对象，本模块需要对他们进行转换
  */
 export default () => {
   const formModal = useNiceModal("formModal");
@@ -42,7 +55,7 @@ export default () => {
    */
   const [pageState, setPageState] = useState("edit");
   /**
-   * 全量报表
+   * 所有配置的报表
    */
   const [allReportDto, setAllReportDto] = useState<ReportTableSaveDto[]>([]);
   /**
@@ -50,46 +63,45 @@ export default () => {
    */
   const [allReportItem, setAllReportItem] = useState<ReportItem[]>([]);
   /**
-   * 存储多组分组方式
-   */
-  const [group, setGroup] = useState<string[]>([]);
-
-  /**
    * 全量指标项
    */
   const [allReportKpi, setAllReportKpi] = useState<ReportKpi[]>([]);
 
-  const [reportData, setReportData] = useState<any[]>([]);
-
   /**
-   * 当前报表配置(保存的)
+   * 当前编辑的报表配置
    */
   const [currReportTable, setCurrReportTable] = useState<
     Partial<ReportTableSaveDto>
   >({ items: [] });
 
+  const [reportTableDto, setReportTableDto] = useState<ReportTableDto>();
+
+  /**
+   * 表单数据生成
+   * ReportTableSaveDto => 转 ReportTableDto
+   */
   const formData = useMemo((): Partial<ReportTableDto> => {
     if (currReportTable) {
-      const formData = {
+      const formData: Partial<ReportTableDto> = {
         ...currReportTable,
         id: currReportTable.id,
-        itemIds: currReportTable.items
-          ? currReportTable.items
-              .filter((f) => f.reportItemId)
-              .map((ff) => ff.reportItemId)
-          : [],
+        itemIds:
+          currReportTable.items && currReportTable.items.length > 0
+            ? currReportTable.items
+                .filter((f) => f.reportItemId) //是统计项
+                .map((ff) => ff.reportItemId)
+            : [],
         kpiIds: currReportTable.items
-          ? currReportTable.items
+          ? currReportTable.items //是指标项
               .filter((f) => f.reportKpiId)
               .map((ff) => ff.reportKpiId)
           : [],
       };
-
       return formData;
     } else {
       return {};
     }
-  }, [currReportTable]);
+  }, [currReportTable.id]);
 
   /**
    * 查找统计项
@@ -100,7 +112,9 @@ export default () => {
     },
     [allReportItem]
   );
-
+  /**
+   * 查找指标项
+   */
   const findKpi = useCallback(
     (id: string): ReportKpi => {
       return allReportKpi.filter((kpi) => kpi.id === id)[0];
@@ -108,119 +122,158 @@ export default () => {
     [allReportKpi]
   );
 
-  const loadData = useCallback(() => {
-    const groupStr =
-      currReportTable.groupColumn +
-      (currReportTable.func ? "_" + currReportTable.func : "");
-    setGroup([groupStr]); //影响列表
-    report({
-      reportCode: currReportTable.code,
-      groups: [groupStr],
-    }).then((data) => {
-      if (data.data) {
-        setReportData(data.data);
-      }
-    });
-  }, [currReportTable]);
-
-  const column = useMemo((): { dataIndex: string; title: string }[] => {
-    if (currReportTable && currReportTable.items) {
-      return [
-        ...group.map((m) => {
-          return { title: m, dataIndex: m };
-        }),
-        ...currReportTable.items.map((i) => {
-          return {
-            title: i.title,
-            dataIndex: i.reportItemId
-              ? findItem(i.reportItemId).code
-              : findKpi(i.reportKpiId).code,
-          };
-        }),
-      ];
-    } else {
-      return [];
-    }
-  }, [currReportTable, group]);
-
   /**
-   * 初始化数据
+   * load统计项，指标项
    */
   const initData = useCallback(() => {
+    reportListAll().then((data) => {
+      setAllReportDto(data.data);
+    });
     listAll(null).then((data) => {
       setAllReportItem([...data.data]);
     });
     kpiListAll().then((data) => {
       setAllReportKpi([...data.data]);
     });
-    reportListAll().then((data) => {
-      setAllReportDto(data.data);
-    });
   }, []);
 
+  /**
+   * 初次加载所有报表和项目
+   */
   useEffect(() => {
     initData();
   }, []);
 
-  //选中的统计项发生变化，影响currReporbtItem内容
-  const reportTableItems = useCallback(
-    (
-      selectedItemIds: string[], //选择的统计项
-      selectKipIds: string[] //选择的指标项
-    ): Partial<ReportTableItem>[] => {
-      if (currReportTable) {
-        let items: Partial<ReportTableItem>[] = currReportTable.items;
-        //删除配置表单里移除的items并调整排序号
-        if (items.length > 0) {
-          items = items
-            .filter(
-              //不再最新选中selectedItemIds里就过滤掉
-              (i) =>
-                selectedItemIds.filter((s) => s === i.reportItemId).length >
-                  0 ||
-                selectKipIds.filter((s) => s === i.reportItemId).length > 0
-            )
-            .map((m, index) => {
-              m.sort = index;
-              return m;
-            });
-        }
-        // 从allReportItems找到新的item添加进来，加入title字段
-        if (selectKipIds) {
-          selectKipIds
-            .filter(
-              //过滤处新增的kpi
-              (s) => items.filter((i) => s === i.reportKpiId).length === 0
-            ) //创建reportTableItem
-            .forEach((kpiId) => {
-              items.push({
-                reportKpiId: kpiId,
-                sort: items.length,
-                title: findKpi(kpiId).name,
-              });
-            });
-        }
+  // const reportTableItems = useCallback(
+  //   (
+  //     selectedItemIds: string[], //选择的统计项
+  //     selectKipIds: string[] //选择的指标项
+  //   ): Partial<ReportTableItem>[] => {
+  //     //之前选择的
+  //     let beforeItems: Partial<ReportTableItem>[] = currReportTable.items;
+  //     console.log("begin" + beforeItems.length);
 
-        if (selectedItemIds) {
-          selectedItemIds
-            .filter(
-              (s) => items.filter((i) => s === i.reportItemId).length === 0
-            )
-            .forEach((itemId) => {
-              items.push({
-                reportItemId: itemId,
-                sort: items.length,
-                title: findItem(itemId).name,
-              });
-            });
-        }
+  //     //step1 不在之前选中的里面的，默认添加到最后面
+  //     if (selectedItemIds) {
+  //       selectedItemIds.forEach((itemId) => {
+  //         if (!beforeItems.map((d) => d.reportItemId).includes(itemId)) {
+  //           beforeItems.push({
+  //             reportItemId: itemId,
+  //             sort: beforeItems.length,
+  //             title: findItem(itemId).name,
+  //           });
+  //         }
+  //       });
+  //     }
+  //     if (selectKipIds) {
+  //       selectKipIds.forEach((kpiId) => {
+  //         if (!beforeItems.map((d) => d.reportKpiId).includes(kpiId)) {
+  //           beforeItems.push({
+  //             reportKpiId: kpiId,
+  //             sort: beforeItems.length,
+  //             title: findKpi(kpiId).name,
+  //           });
+  //         }
+  //       });
+  //     }
 
-        return items;
+  //     //step2 去掉本次没有选中的/然后sort重新排序后赋值
+  //     beforeItems = beforeItems
+  //       .filter((d) => {
+  //         if (
+  //           (d.reportKpiId &&
+  //             selectKipIds &&
+  //             !selectKipIds.includes(d.reportKpiId)) ||
+  //           (d.reportKpiId && !selectKipIds)
+  //         ) {
+  //           return false;
+  //         } else if (
+  //           (d.reportItemId &&
+  //             selectedItemIds &&
+  //             !selectedItemIds.includes(d.reportItemId)) ||
+  //           (d.reportItemId && !selectedItemIds)
+  //         ) {
+  //           return false;
+  //         }
+  //         return true;
+  //       })
+  //       .sort((a, b) => a.sort - b.sort)
+  //       .map((d, index) => {
+  //         return { ...d, sort: index };
+  //       });
+
+  //     console.log("end" + beforeItems.length);
+  //     return beforeItems;
+  //   },
+  //   [currReportTable]
+  // );
+
+  /**
+   * 当前报表项 (统计项指标项的id,索引就是sort)
+   */
+  const [items, setItems] = useState<string[]>();
+
+  const beforeSelects = useRef<string[]>();
+
+  /**
+   * 页面form选择的ids
+   */
+  const [selects, setSelects] = useState<string[]>([]);
+
+  /**
+   * items 与选择项目同步
+   */
+  useUpdateEffect(() => {
+    let curr: string[] = [];
+    if (selects.length > beforeSelects.current?.length) {
+      selects.forEach((n) => {
+        if (!beforeSelects.current?.includes(n)) {
+          curr = [...beforeSelects.current, n];
+        }
+      });
+    } else {
+      //删除
+      curr = beforeSelects.current?.filter((i) => selects.includes(i));
+    }
+
+    setItems(curr);
+    beforeSelects.current = curr;
+  }, [selects]);
+
+  /**
+   * 切换报表，更新左侧项目
+   */
+  useEffect(() => {
+    const i = currReportTable.items
+      ?.sort((a, b) => a.sort - b.sort)
+      .map((f) => f.reportItemId || f.reportKpiId);
+    setItems(i);
+    beforeSelects.current = i;
+  }, [currReportTable.code, JSON.stringify(currReportTable.items)]);
+
+  const saveReport = useCallback(() => {
+    let saveItems: Partial<ReportTableItem>[] = [];
+    const dbItems: ReportTableItem[] = currReportTable.items || [];
+    items?.forEach((id, index) => {
+      let exist = false;
+      dbItems?.forEach((f) => {
+        if (f.reportKpiId === id || f.reportKpiId === id) {
+          saveItems.push({ ...f, sort: index });
+          exist = true;
+        }
+      });
+
+      if (exist === false) {
+        saveItems.push({
+          reportKpiId: findKpi(id) ? id : undefined,
+          reportItemId: findItem(id) ? id : undefined,
+          sort: index,
+          title: findKpi(id) ? findKpi(id).name : findItem(id).name,
+        });
       }
-      return [];
-    },
-    [currReportTable && currReportTable.code, allReportItem, allReportKpi]
-  );
+    });
+    saveReportTableSaveDto({ ...reportTableDto, items: saveItems });
+  }, [JSON.stringify(items), currReportTable, reportTableDto]);
 
   return (
     <div>
@@ -241,6 +294,7 @@ export default () => {
                       allReportDto.forEach((dto) => {
                         if (dto.id === d) {
                           setCurrReportTable(dto);
+                          setReload(!reload);
                         }
                       });
                     }}
@@ -257,6 +311,7 @@ export default () => {
                     onClick={() => {
                       setPageState("add");
                       setCurrReportTable({ items: [], code: "" });
+                      setReload(!reload);
                     }}
                   >
                     +新报表
@@ -286,7 +341,6 @@ export default () => {
                       .then((saveData) => {
                         setReload(!reload);
                         initData();
-                        // pageRefresh();
                       });
                   }}
                 >
@@ -307,7 +361,6 @@ export default () => {
                       .then((saveData) => {
                         setReload(!reload);
                         initData();
-                        // pageRefresh();
                       });
                   }}
                 >
@@ -327,34 +380,9 @@ export default () => {
                     <Button
                       onClick={() => {
                         if (currReportTable) {
-                          saveReportTableSaveDto(currReportTable);
-                          setPageState("edit");
-                          initData();
-                        }
-                      }}
-                    >
-                      保存
-                    </Button>
-                  </>
-                ) : (
-                  ""
-                )}
-                {currReportTable.id !== undefined ? (
-                  <>
-                    <Button
-                      onClick={() => {
-                        remove(currReportTable.id).then((data) => {
-                          setCurrReportTable({});
-                          initData();
-                        });
-                      }}
-                    >
-                      删除
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        if (currReportTable) {
-                          saveReportTableSaveDto(currReportTable);
+                          //更新currReportTableItem;
+                          //saveReportTableSaveDto(currReportTable);
+                          saveReport();
                           setPageState("edit");
                           initData();
                         }
@@ -369,7 +397,27 @@ export default () => {
 
                 {currReportTable && currReportTable.id ? (
                   <>
-                    <Button onClick={loadData}>提取数据</Button>
+                    <Button
+                      onClick={() => {
+                        remove(currReportTable.id).then((data) => {
+                          setCurrReportTable({});
+                          initData();
+                        });
+                      }}
+                    >
+                      删除
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (currReportTable) {
+                          saveReport();
+                          setPageState("edit");
+                          initData();
+                        }
+                      }}
+                    >
+                      保存
+                    </Button>
                   </>
                 ) : (
                   ""
@@ -385,53 +433,56 @@ export default () => {
               minWidth: "210px",
             }}
           >
-            {currReportTable && currReportTable.items
-              ? currReportTable.items.map((m) => {
-                  return (
-                    <div style={{ padding: "8px" }} key={m.id}>
-                      <Space>
-                        <Tag
-                          style={{ width: "80px" }}
-                          size="large"
-                          color="blue"
-                          type={"ghost"}
-                          //   currField && field.fieldName === currField.fieldName
-                          //     ? "solid"
-                          //     : "ghost"
-                          // }
-                        >
-                          {m.title}
-                        </Tag>
-                      </Space>
-                    </div>
-                  );
-                })
-              : ""}
+            {items?.map((m, index) => {
+              return (
+                <div style={{ padding: "8px" }} key={"div_" + m}>
+                  <Space key={"Space_" + m}>
+                    <Tag key={m}>
+                      {findItem(m) ? findItem(m).name : ""}
+                      {findKpi(m) ? findKpi(m).name : ""}
+                    </Tag>
+                  </Space>
+                </div>
+              );
+            })}
           </Sider>
           <Layout.Content className="layout-content">
             <Tabs>
               {currReportTable.id ? (
                 <TabPane tab="实时预览" itemKey={"AA"}>
-                  {/* {JSON.stringify(currReportTable)} */}
-                  <Table columns={column} dataSource={reportData}></Table>
+                  <ReportTable
+                    allReportItem={allReportItem}
+                    allReportKpi={allReportKpi}
+                    currReportTable={currReportTable}
+                  ></ReportTable>
                 </TabPane>
               ) : (
                 ""
               )}
               <TabPane tab="报表配置" itemKey="eventTab">
+                {JSON.stringify(items)}
                 {(currReportTable && currReportTable.id) ||
                 pageState === "add" ? (
                   <>
                     <FormPage
-                      entityName="ReportTableDto"
+                      entityName="reportTable"
+                      modelName="reportTableDto"
                       type="save"
                       reload={reload}
                       formData={formData}
-                      onDataChange={(data) => {
-                        setCurrReportTable({
-                          ...data,
-                          items: reportTableItems(data.itemIds, data.kpiIds),
-                        });
+                      onDataChange={(data: ReportTableDto) => {
+                        let selects: string[];
+                        if (data.itemIds && data.kpiIds) {
+                          selects = [...data.itemIds, ...data.kpiIds];
+                        } else if (data.itemIds) {
+                          selects = [...data.itemIds];
+                        } else if (data.kpiIds) {
+                          selects = [...data.kpiIds];
+                        } else {
+                          selects = [];
+                        }
+                        setSelects(selects);
+                        setReportTableDto({ ...data });
                       }}
                     ></FormPage>
                   </>

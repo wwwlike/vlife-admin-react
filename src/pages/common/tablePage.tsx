@@ -14,6 +14,7 @@ import { PageQuery, PageVo, Result } from "@src/mvc/base";
 import { Input } from "@douyinfe/semi-ui";
 import { FormVo } from "@src/mvc/model/Form";
 import { FormFieldVo } from "@src/mvc/model/FormField";
+import { SysFile } from "@src/mvc/SysFile";
 
 /**
  * 待写个文档
@@ -102,7 +103,7 @@ export const TablePage = ({
   const formModal = useNiceModal("formModal");
   // 弹出提醒modal
   const confirmModal = useNiceModal("confirmModal");
-  const { getDict, user, checkBtnPermission, getFormInfo } = useAuth();
+  const { getDict, user, getIcon, checkBtnPermission, getFormInfo } = useAuth();
   //外键信息
   const [fkMap, setFkMap] = useState<any>({});
   // pcode的name集合
@@ -196,7 +197,8 @@ export const TablePage = ({
   const { runAsync: baseSave } = useSave({});
   //获得数据明细的方法，??xxDetail如何传参
   const { runAsync: getDetail } = useDetail({ entityName });
-  //数据删除方法
+  //
+
   const { runAsync: rm } = useRemove({ entityName });
   //监听组件外部查询条件的变化
   useEffect(() => {
@@ -471,18 +473,13 @@ export const TablePage = ({
     // 当前add 和 save 是一个权限
     const fromTmp = local.pathname.includes("/template/");
     if (btnEnable.disable === undefined || btnEnable.disable === false) {
-      if (
-        btnEnable.add &&
-        (fromTmp ||
-          checkBtnPermission(
-            addDefBtn.entityName +
-              ":" +
-              addDefBtn.key +
-              (addDefBtn.entityName === addDefBtn.model
-                ? ""
-                : ":" + addDefBtn.model)
-          ))
-      ) {
+      const resourcesKey =
+        addDefBtn.entityName +
+        ":" +
+        addDefBtn.key +
+        (addDefBtn.entityName === addDefBtn.model ? "" : ":" + addDefBtn.model);
+      if (btnEnable.add && (fromTmp || checkBtnPermission(resourcesKey))) {
+        addDefBtn.icon = getIcon(resourcesKey);
         memoBtns.push(addDefBtn);
       }
       if (
@@ -492,6 +489,12 @@ export const TablePage = ({
             batchRmDefBtn.entityName + ":" + batchRmDefBtn.key
           ))
       ) {
+        rmDefBtn.icon = getIcon(
+          batchRmDefBtn.entityName + ":" + batchRmDefBtn.key
+        );
+        batchRmDefBtn.icon = getIcon(
+          batchRmDefBtn.entityName + ":" + batchRmDefBtn.key
+        );
         memoBtns.push(rmDefBtn, batchRmDefBtn);
       }
       if (

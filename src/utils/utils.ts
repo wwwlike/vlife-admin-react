@@ -63,3 +63,10 @@ export const subset = <
   );
   return Object.fromEntries(filteredEntries) as Pick<O, K>;
 };
+
+export const isBasic=(obj:any):boolean=>{
+  if(obj===String||obj===Number||obj==="string"||obj==="number"||obj===Boolean||obj==="boolean"||obj==="Icon"){
+    return true
+  }
+  return false;
+}

@@ -198,7 +198,27 @@ const FormPage = ({
     });
   }, [fkInfos, reload]);
 
-  if (!model) {
+  if (model && formData) {
+    return (
+      <VlifeForm
+        entityName={entityName}
+        reload={reload}
+        modelInfo={model}
+        dicts={getDict({
+          emptyLabel: type === "req" ? "全部" : "请选择",
+          codes: [...modelDicts],
+        })}
+        fkMap={fkMap}
+        onDataChange={(data) => {
+          if (onDataChange) {
+            onDataChange(data);
+          }
+        }}
+        {...props}
+        formData={formData}
+      ></VlifeForm>
+    );
+  } else {
     return (
       <>
         {/* {JSON.stringify(modelInfo)} */}
@@ -207,28 +227,6 @@ const FormPage = ({
         错误提示，每次都会在页面先渲染不好
         <div>{modelName}模型在后端应用中不存在，请按照规范进行配置</div>
         规范：列表查询模型的命名,应该以模型名称开头，pageReq结尾 */}
-      </>
-    );
-  } else {
-    return (
-      <>
-        <VlifeForm
-          entityName={entityName}
-          reload={reload}
-          modelInfo={model}
-          dicts={getDict({
-            emptyLabel: type === "req" ? "全部" : "请选择",
-            codes: [...modelDicts],
-          })}
-          fkMap={fkMap}
-          onDataChange={(data) => {
-            if (onDataChange) {
-              onDataChange(data);
-            }
-          }}
-          {...props}
-          formData={formData}
-        ></VlifeForm>
       </>
     );
   }

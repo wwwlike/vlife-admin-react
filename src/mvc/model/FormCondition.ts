@@ -43,6 +43,17 @@ export const remove = (id: string): Promise<Result<number>> => {
  */
 export const page = (
   req: FormConditionPageReq
-): Promise<Result<PageVo<FormItem>>> => {
+): Promise<Result<PageVo<FormCondition>>> => {
   return apiClient.get(`/formCondition/page`, { params: req });
+};
+
+
+/**
+ * 指定模块字段全量查询
+ * 后期支持查询指定字段类型
+ */
+ export const listAll = (params: {
+  formId: string;
+}): Promise<Result<FormCondition>> => {
+  return apiClient.get(`/formCondition/list/all?formId=${params.formId}`);
 };

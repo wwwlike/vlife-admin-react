@@ -4,16 +4,7 @@ import MENU_CONFIG, { MenuItem } from "@src/menu/config";
 import { useLocation, useNavigate } from "react-router";
 import "../../index.scss";
 import { useAuth } from "@src/context/auth-context";
-import {
-  IconHome,
-  IconEdit,
-  IconMember,
-  IconGridRectangle,
-  IconApps,
-  IconTickCircle,
-  IconAlertTriangle,
-  IconUser,
-} from "@douyinfe/semi-icons";
+import SelectIcon from "@src/components/vlifeComponent/SelectIcon";
 const { Sider } = Layout;
 function renderIcon(icon: any) {
   if (!icon) {
@@ -42,145 +33,10 @@ const Index: FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [allMenuList, setMenuList] = useState<MenuItem[]>(MENU_CONFIG);
-  const [allMenuList1, setMenuList1] = useState<MenuItem[]>([
-    {
-      itemKey: "4",
-      text: "使用指南",
-      icon: IconApps,
-      items: [
-        {
-          itemKey: "1-2",
-          text: "平台介绍",
-          icon: IconHome,
-          path: "/dashboard/workbeach",
-        },
-        {
-          itemKey: "1-4",
-          text: "视频教程",
-          icon: IconHome,
-          path: "/help",
-        },
-        {
-          itemKey: "1-3",
-          text: "生成代码",
-          icon: IconHome,
-          path: "/ts/code",
-        },
-      ],
-    },
-    {
-      itemKey: "1",
-      text: "权限管理",
-      icon: IconHome,
-      items: [
-        {
-          itemKey: "1-1",
-          text: "角色管理",
-          icon: IconEdit,
-          code: "sysRole",
-          path: "/auth/role",
-        },
-        {
-          itemKey: "1-10",
-          text: "权限组",
-          icon: IconAlertTriangle,
-          code: "sysGroup",
-          path: "/auth/group",
-        },
-      ],
-    },
-    {
-      itemKey: "3",
-      text: "系统管理",
-      icon: IconGridRectangle,
-      items: [
-        {
-          itemKey: "1-0",
-          text: "用户管理",
-          icon: IconUser,
-          code: "sysUser",
-          path: "/sys/user",
-        },
-        {
-          itemKey: "2-1",
-          text: "地区管理",
-          code: "sysArea",
-          path: "/sys/sysArea",
-        },
-
-        {
-          itemKey: "2-2",
-          text: "机构管理",
-          code: "sysOrg",
-          path: "/sys/sysOrg",
-        },
-        {
-          itemKey: "2-3",
-          icon: IconMember,
-          text: "部门管理",
-          code: "sysDept",
-          path: "/sys/sysDept",
-        },
-
-        {
-          itemKey: "3-1",
-          text: "参数字典",
-          code: "sysDict",
-          path: "/sys/dict",
-        },
-      ],
-    },
-    {
-      itemKey: "9",
-      text: "系统配置",
-      icon: IconEdit,
-      items: [
-        {
-          itemKey: "1-13",
-          text: "表单设计",
-          icon: IconTickCircle,
-          // code: "formDesign",
-          path: "/conf/design",
-        },
-        {
-          itemKey: "1-11",
-          text: "权限资源",
-          icon: IconTickCircle,
-          // code: "sysResources",//菜单编码
-          path: "/conf/resources",
-        },
-        {
-          itemKey: "1-12",
-          text: "查询配置",
-          icon: IconTickCircle,
-          code: "sysFilterDetail",
-          path: "/conf/filter",
-        },
-      ],
-    },
-    {
-      itemKey: "8",
-      text: "演示模块",
-      icon: IconEdit,
-      items: [
-        {
-          itemKey: "8-1",
-          text: "项目管理(模板组件)",
-          path: "/template/project",
-        },
-        {
-          itemKey: "8-2",
-          text: "项目管理(编写页面)",
-          path: "/oa/project",
-        },
-      ],
-    },
-  ]);
-  // const { formatMessage } = useLocale()
   const [openKeys, setOpenKeys] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   // const locale = useStore((state) => state.locale)
-  const { user } = useAuth();
+  const { user, getIcon } = useAuth();
   const navList = useMemo(() => {
     let mList: MenuItem[] = [];
     if (user) {
@@ -227,11 +83,22 @@ const Index: FC = () => {
           icon: e?.icon ? renderIcon(e.icon) : null,
           items: e?.items
             ? e.items.map((m) => {
-                return {
-                  ...m,
-                  text: m.text,
-                  icon: m.icon ? renderIcon(m.icon) : null,
-                };
+                let icon = m.icon;
+                if (m.code && getIcon(m.code)) {
+                  return {
+                    ...m,
+                    text: m.text,
+                    icon: (
+                      <SelectIcon read size="default" value={getIcon(m.code)} />
+                    ),
+                  };
+                } else {
+                  return {
+                    ...m,
+                    text: m.text,
+                    icon: m.icon ? renderIcon(m.icon) : null,
+                  };
+                }
               })
             : [],
         };

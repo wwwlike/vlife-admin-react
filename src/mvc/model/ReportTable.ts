@@ -37,7 +37,7 @@ export interface ReportTableSaveDto extends SaveBean {
   name: string;
   groupColumn: string;
   func: string;
-  items: Partial<ReportTableItem>[];
+  items: ReportTableItem[];
 }
 /**
  * 保存报表;
@@ -85,5 +85,17 @@ export const report = (params: {
       allowDots: true,
       arrayFormat: "comma",
     })}`
+  );
+};
+
+
+/**
+ * 单个指标值查询
+ */
+ export const total = (params: {
+  code: string; //报表code
+}): Promise<Result<number>> => {
+  return apiClient.get(
+    `/reportTable/total/${params.code}`
   );
 };

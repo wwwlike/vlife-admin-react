@@ -22,7 +22,6 @@ import {
   connect,
   createSchemaField,
   FormConsumer,
-  useForm,
 } from "@formily/react";
 
 import {
@@ -75,6 +74,7 @@ import ResourcesSelect from "../vlifeComponent/ResourcesSelect";
 import GroupSelect from "../vlifeComponent/GroupSelect";
 import VfEditor from "../vlifeComponent/VfEditor";
 import VfImage from "../vlifeComponent/VfImage";
+import SelectIcon from "../vlifeComponent/SelectIcon";
 
 const Input = connect(SemiInput, mapReadPretty(PreviewText.Input));
 const TextArea = connect(SemiTextArea, mapReadPretty(PreviewText.Input));
@@ -207,6 +207,7 @@ const SchemaField = createSchemaField({
     GroupSelect,
     VfEditor,
     VfImage,
+    SelectIcon,
   },
 });
 
@@ -310,6 +311,7 @@ export default ({
           }),
             onFormInit((form) => {}),
             onFormValuesChange((form) => {
+              console.log("formformform", form);
               if (form.errors.length > 0 && onError !== undefined) {
                 setTimeout(() => onError(form.errors), 200);
               }
@@ -329,6 +331,8 @@ export default ({
 
   /**
    * 字典数据提取
+   *
+   *
    */
   const fieldEnum = useCallback(
     (dictCode: string, fieldType: string) => {
@@ -378,6 +382,7 @@ export default ({
     return tmp;
   };
 
+  const sysComponents = ["Input"];
   /**
    * 动态表单formily
    * 后端FormField转换成schema信息
@@ -505,41 +510,46 @@ export default ({
          * 注意：这里如果请求数据是异步的：有什么影响没
          */
 
-        // if (f.componentType === "business") {
-        prop["x-component-props"] = {
-          ...prop["x-component-props"],
-          onDataChange: (data: any) => {
-            if (
-              typeof data === "string" &&
-              (data === "undefined" ||
-                data === "null" ||
-                data === undefined ||
-                data === null)
-            ) {
-              //字段属性去除
-              form.deleteValuesIn(f.fieldName);
-            } else if (f.fieldType === "basic" && data instanceof Array) {
-              form.setValuesIn(f.fieldName, data[0]);
-            } else {
-              form.setValuesIn(f.fieldName, data);
-            }
-          },
-          //把字段信息全放入
-          fieldInfo: {
-            ...f,
-          },
-          //组件设置信息
-          componentSetting: f.componentSetting,
-          //组件prop组件接口取值通用参数，不一定使用但是每次必定传，固需要用则参数名称应该和下面一致
-          apiCommonParams: {
-            entityName, //当前业务模型名称
-            id: formData.id, //当前业务记录id,
-            fieldName: f.fieldName, //当前字段
-            val: formData[f.fieldName], //当前字段的值
-            //               fieldEntityType: f.entityType,
-          },
-          read: read, //预览状态
-        };
+        if (!sysComponents.includes(f.x_component)) {
+          prop["x-component-props"] = {
+            ...prop["x-component-props"],
+            onDataChange: (data: any) => {
+              if (
+                (typeof data === "string" &&
+                  (data === "undefined" ||
+                    data === "null" ||
+                    data === undefined ||
+                    data === null)) ||
+                (data instanceof Array && data.length === 0)
+              ) {
+                console.log("fieldDataChange", data);
+                //字段属性去除
+                form.deleteValuesIn(f.fieldName);
+              } else if (f.fieldType === "basic" && data instanceof Array) {
+                console.log("fieldDataChange", data);
+
+                form.setValuesIn(f.fieldName, data[0]);
+              } else {
+                form.setValuesIn(f.fieldName, data);
+              }
+            },
+            //把字段信息全放入
+            fieldInfo: {
+              ...f,
+            },
+            //组件设置信息
+            componentSetting: f.componentSetting,
+            //组件prop组件接口取值通用参数，不一定使用但是每次必定传，固需要用则参数名称应该和下面一致
+            apiCommonParams: {
+              entityName, //当前业务模型名称
+              id: formData.id, //当前业务记录id,
+              fieldName: f.fieldName, //当前字段
+              val: formData[f.fieldName], //当前字段的值
+              //               fieldEntityType: f.entityType,
+            },
+            read: read, //预览状态
+          };
+        }
         // 组件固定属性值 从 ComponentData.conponentConf里提取
         const propInfo = ComponentInfo[f.x_component]?.propInfo;
         if (propInfo) {
@@ -634,6 +644,7 @@ export default ({
         return schemaObj;
       } else {
         //无分组直接返回
+        // alert("222");
         return {
           type: "object",
           properties: {
@@ -643,17 +654,32 @@ export default ({
       }
     }
     return {};
-  }, [modelInfo, fkMap, formData, read, reload]);
+  }, [modelInfo, fkMap, read, reload, formData]);
+
+  // const normalSchema = {
+  //   type: "object",
+  //   properties: {
+  //     username: {
+  //       type: "string",
+  //       title: "用户名",
+  //       required: true,
+  //       "x-decorator": "FormItem",
+  //       "x-component": "VVV",
+  //       "x-component-props": { name: "1", id: "2" },
+  //     },
+  //   },
+  // };
 
   // useEffect(() => {
-  //   alert(form);
-  // }, [form, schema]);
-  return (
+  // alert(“1”)
+  // }, [form]);
+
+  return schema ? (
     <>
       {/* {JSON.stringify(modelInfo.fields[2].componentSetting)} */}
       <PreviewText.Placeholder value="-">
         <FormProvider form={form}>
-          {/* <FormConsumer>{(form) => JSON.stringify(schema)}</FormConsumer> */}
+          {/* {<FormConsumer>{(form) => JSON.stringify(form.values)}</FormConsumer>} */}
           <SchemaField
             schema={schema}
             scope={{
@@ -667,5 +693,7 @@ export default ({
         </FormProvider>
       </PreviewText.Placeholder>
     </>
+  ) : (
+    <></>
   );
 };

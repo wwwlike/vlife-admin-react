@@ -8,6 +8,8 @@ import { listAll as orgList } from "@src/mvc/SysOrg";
 import { listAll as deptList } from "@src/mvc/SysDept";
 import { listAll as areaList } from "@src/mvc/SysArea";
 
+import { listAll as conditionList } from "@src/mvc/model/FormCondition";
+
 import {
   entityModels,
   detailFormVo,
@@ -18,6 +20,8 @@ import { listByCode } from "@src/mvc/SysDict";
 import { dataType } from "./componentData";
 import { findName } from "@src/provider/baseProvider";
 import { listSysFilterVo } from "@src/mvc/SysGroup";
+import { details, SysFile, test, test1, test2 } from '@src/mvc/SysFile';
+import { total } from '@src/mvc/model/ReportTable';
 
 /**
  * 接口参数定义
@@ -26,22 +30,23 @@ export interface ParamDef {
   [key: string]: {
     label: string; // 参数名称
     must?: boolean; // 是否必须
-    dataType: dataType; //参数类型
+    dataType: any; //参数类型
   };
   // | string; //直接给值，固定传参，不用端设置
 }
+export interface ApiProp{
+  label: string; //名称
+  dataType: any; //出参数据类型
+  remark?: string; //说明备注信息
+  codeDemo?: string; //返回代码示例
+  api:  (params?: any) =>  Promise<Result<any>>; // 接口
+  params?: ParamDef; //接口定义信息
+};
 /**
  * 接口定义
  */
 export interface ApiDef {
-  [key: string]: {
-    label: string; //名称
-    dataType: dataType; //出参数据类型
-    remark?: string; //说明备注信息
-    codeDemo?: string; //返回代码示例
-    api: (params?: any) => Promise<Result<any>>; // 接口
-    params?: ParamDef; //接口定义信息
-  };
+  [key: string]: ApiProp;
 }
 
 export const ApiInfo: ApiDef = {
@@ -54,6 +59,14 @@ export const ApiInfo: ApiDef = {
     label: "模型字段信息",
     dataType: dataType.id_name_list,
     api: formFieldListAll,
+    params: {
+      formId: { must: true, label: "模型id", dataType: dataType.string },
+    },
+  },
+  formConditionListAll: {
+    label: "查询条件",
+    dataType: dataType.id_name_list,
+    api: conditionList,
     params: {
       formId: { must: true, label: "模型id", dataType: dataType.string },
     },
@@ -123,6 +136,46 @@ export const ApiInfo: ApiDef = {
       },
     },
   },
+
+  sysFileDetails:{
+    label:"文件列表",
+    dataType:Array<SysFile>,
+    api:details,
+    params:{
+      ids:{
+        must:true,
+        dataType:Array<string>,
+        label:"文件id列表"
+      }
+    }
+  },
+  total:{
+    label:"数据统计",
+    dataType:Number,
+    api:total,
+    params:{
+      code:{
+        label:"统计项编码",
+        dataType:String,
+      }
+    }
+  },
+  test:{
+    label:"测试返回string",
+    dataType:String,
+    api:test
+  },
+  test1:{
+    label:"测试对象返回",
+    dataType:"aaaa",
+    api:test1
+  },
+  test2:{
+    label:"测试数组对象",
+    dataType:"bbbb",
+    api:test2
+  },
+
   roleAllResources: {
     label: "角色资源",
     dataType: dataType.resources_list,

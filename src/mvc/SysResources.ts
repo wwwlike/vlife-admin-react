@@ -3,6 +3,8 @@ import { RoleDto } from "./SysRole";
 import { SysRoleGroup } from "./SysRoleGroup";
 import { PageVo, DbEntity, SaveBean, PageQuery, VoBean, Result } from "./base";
 import qs from "qs";
+import { Options } from 'ahooks/lib/useRequest/src/types';
+import { useRequest } from 'ahooks';
 // 权限资源
 export interface SysResources extends DbEntity {
   resourcesCode: string; // 资源编码
@@ -73,11 +75,18 @@ export const roleAllResources = (params: {
 export const listAll = ({
   menuCode,
 }: {
-  menuCode: string;
+  menuCode?: string;
 }): Promise<Result<SysResources[]>> => {
-  return apiClient.get(`/sysResources/list/all?menuCode=${menuCode}`);
+  return apiClient.get(`/sysResources/list/all?${menuCode?'menuCode='+menuCode:''}`);
 };
 
+
+/**
+ * 请求全部资源
+ */
+ export const useAllResources = (
+  options: Options<Result<SysResources[]>, any> = { manual: true }
+) => useRequest(listAll, options);
 /**
  * 全量的菜单资源
  */

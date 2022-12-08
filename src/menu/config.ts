@@ -109,7 +109,7 @@ const MENU_CONFIG: MenuItem[] = [
   },
   {
     itemKey: "9",
-    text: "系统配置",
+    text: "运维配置",
     icon: IconEdit,
     items: [
       {
@@ -134,6 +134,12 @@ const MENU_CONFIG: MenuItem[] = [
         code: "sysFilterDetail",
         path: "/conf/filter",
       },
+      {
+        itemKey: "9-18",
+        text: "首页布局",
+        icon: IconTickCircle,
+        path: "/conf/layout",
+      },
     ],
   },
   {
@@ -148,13 +154,20 @@ const MENU_CONFIG: MenuItem[] = [
         // code: "formItem",
         path: "/conf/formCondition",
       },
-      // {
-      //   itemKey: "1-15",
-      //   text: "报表项目",
-      //   icon: IconTickCircle,
-      //   // code: "formItem",
-      //   path: "/conf/reportItem",
-      // },
+      {
+        itemKey: "1-15",
+        text: "统计项目",
+        icon: IconTickCircle,
+        // code: "formItem",
+        path: "/conf/reportItem",
+      },
+      {
+        itemKey: "1-20",
+        text: "指标项目",
+        icon: IconTickCircle,
+        // code: "formItem",
+        path: "/conf/reportKpi",
+      },
       {
         itemKey: "1-18",
         text: "报表设计",

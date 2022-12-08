@@ -6,8 +6,11 @@ import {
 } from "@douyinfe/semi-ui/lib/es/table";
 import { TranDict } from "@src/mvc/base";
 import { FormVo } from "@src/mvc/model/Form";
+import { FormFieldVo } from "@src/mvc/model/FormField";
+import { SysFile } from "@src/mvc/SysFile";
 import React, { useEffect, useMemo, useState } from "react";
-import Icon from "../icon";
+import SelectIcon from "../vlifeComponent/SelectIcon";
+import VfImage from "../vlifeComponent/VfImage";
 
 /**
  * > 目前使用semi的组件进行vlife的table的二次封装、
@@ -46,37 +49,43 @@ export interface VfButton {
 }
 
 export interface ListProps extends TableProps {
-  model: FormVo; //模型信息
+  //模型信息
+  model: FormVo;
+  //行点击
   lineClick?: (obj: any) => void;
-  hideColumns?: string[];
-  showColumns?: string[]; //显示的字段，优先级高于hideColumns
-  tableBtn?: VfButton[]; //列表业务按钮补充
-  sysDict?: TranDict[]; //列转换的
+  //按钮信息
+  tableBtn?: VfButton[];
+  // 手工传入要显示的列,配置设置的无效
+  column?: string[];
+  //字典字段
+  sysDict?: TranDict[];
+  //外键数据
   fkMap?: any; //外键数据的键值对
   parentMap?: any; //上级单位的键值对
+  // 能否选择多选
   select_more?: boolean; // undefined|false|true ->无勾选框|单选|多选
+  // 选中后下方现实的列
   select_show_field?: string; //选中时进行展示的字段，不传则不展示
-  doubleClick?: (obj: any) => void; //双击的事件
+  //选中后的回调事件
   onSelected?: (selecteds: selectType[]) => void;
+  // 已经选中的数据
   selected?: any[]; //进入之前选中的数据信息
 }
+
 type selectType = { id: string; name: string };
 export default ({
   lineClick,
   model,
   tableBtn,
-  hideColumns,
-  showColumns,
   sysDict,
   dataSource,
-  // columns,
   fkMap,
+  column,
   parentMap,
-  select_more,
+  select_more = true,
   select_show_field,
   onSelected,
   selected,
-  doubleClick,
   children,
   ...props
 }: ListProps) => {
@@ -117,43 +126,35 @@ export default ({
 
   //列信息
   const memoColumns = useMemo((): ColumnProps<any>[] => {
+    // step1 过滤要展示的列
+    const columnshow: Partial<ColumnProps & FormFieldVo>[] = [];
     if (model && model.fields) {
-      const columnshow: ColumnProps[] = model.fields
-        .filter((f) => f.x_hidden !== true && f.listShow !== false)
-        .map((f) => {
-          return { ...f, dataIndex: f.fieldName };
-        });
-      // let columnshow = [...columns]; //拷贝一份传来的数据
-      //过滤不显示的字段
-      // columnshow = columnshow?.filter((currentValue, index) => {
-      //   // step1 不需要的就隐藏掉
-      //   // hideColumns?.push('id');//id必须不展示
-      //   if (showColumns) {
-      //     const size: number =
-      //       showColumns?.find((name) => {
-      //         return name === currentValue.fieldName;
-      //       })?.length || 0;
-      //     if (size > 0) {
-      //       return true;
-      //     }
-      //     return false;
-      //   } else {
-      //     const size: number =
-      //       hideColumns?.find((name) => {
-      //         return (
-      //           name === currentValue.fieldName ||
-      //           currentValue.fieldName === "password"
-      //         );
-      //       })?.length || 0;
-      //     if (size > 0) {
-      //       return false;
-      //     }
-      //   }
-      //   if (currentValue.fieldName === "id") {
-      //     return false;
-      //   }
-      //   return true;
-      // });
+      let temp: ColumnProps & FormFieldVo[] = [];
+      //column->手工指定展示的列
+      if (column) {
+        model.fields
+          .filter((f) => column.includes(f.fieldName))
+          .forEach((d) => {
+            temp.push({ ...d, dataIndex: d.fieldName });
+          });
+        columnshow.push(
+          ...temp.sort(function (a: ColumnProps, b: ColumnProps) {
+            return column.indexOf(a.dataIndex) - column.indexOf(b.dataIndex);
+          })
+        );
+      } else {
+        model.fields // 根据配置展示需要的列 是editor组件类型的列不展示
+          .filter(
+            (f) =>
+              f.x_hidden !== true &&
+              f.listShow !== false &&
+              f.x_component !== "VfEditor"
+          )
+          .forEach((f) => {
+            columnshow.push({ ...f, dataIndex: f.fieldName });
+          });
+      }
+
       // step2 字典转换
       columnshow?.forEach((m: ColumnProps) => {
         sysDict?.forEach((d) => {
@@ -169,8 +170,8 @@ export default ({
         });
       });
 
-      //Boolean类型数据处理
-      columnshow?.forEach((m) => {
+      //Boolean,外键，Pcode翻译处理
+      columnshow?.forEach((m: ColumnProps) => {
         if (m.type === "boolean") {
           m["render"] = (text, record, index) => {
             return text === null ? "-" : text ? "是" : "否";
@@ -182,6 +183,20 @@ export default ({
         } else if (m.entityFieldName === "pcode") {
           m["render"] = (text, record, index) => {
             return parentMap[text];
+          };
+        }
+      });
+
+      //图标组件转换
+      //图像组件转换
+      columnshow?.forEach((m) => {
+        if (m.x_component === "VfImage") {
+          m["render"] = (text, record, index) => {
+            return <VfImage size="small" value={text} read={true} />;
+          };
+        } else if (m.x_component === "SelectIcon") {
+          m["render"] = (text, record, index) => {
+            return <SelectIcon value={text} read={true} />;
           };
         }
       });
@@ -235,7 +250,7 @@ export default ({
       return columnshow;
     }
     return [];
-  }, [model, lineMemoBtns, sysDict]);
+  }, [model, lineMemoBtns, sysDict, column]);
 
   const onRow = useMemo(
     () => (record: any, index: any) => {
@@ -302,7 +317,7 @@ export default ({
         }
         const button = (
           <Button
-            icon={<Icon name={item.icon || ""} />}
+            icon={<SelectIcon size="default" value={item.icon} read />}
             loading={item.loading}
             key={item.entityName + "_" + item.model + "_" + item.key}
             onClick={() => {
@@ -313,6 +328,7 @@ export default ({
             }}
             disabled={prop?.disable}
           >
+            {/* {JSON.stringify(item)} */}
             {!prop.disable && prop.title ? prop.title : item.title}
           </Button>
         );

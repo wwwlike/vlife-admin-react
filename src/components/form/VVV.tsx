@@ -7,7 +7,9 @@ export interface vvvProps {
 
 export default (data: vvvProps) => {
   useEffect(() => {
+    console.log("tttttttttt", data);
+    // alert(data);
     // alert(JSON.stringify(data.id));
   }, [data]);
-  return <div>{JSON.stringify(data.id)}</div>;
+  return <div>333{JSON.stringify(data.name)}</div>;
 };

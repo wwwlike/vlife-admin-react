@@ -4,16 +4,15 @@
 import { AuthForm, useCurrUser, useLogin } from "@src/provider/userProvider";
 import { useAllDict } from "@src/provider/dictProvider";
 import { ModelInfo, Result, TranDict } from "@src/mvc/base";
+import { useAllResources } from "@src/mvc/SysResources";
 import { useMount } from "ahooks";
-import React, { ReactNode, useCallback, useState } from "react";
+import React, { ReactNode, useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { VfButton } from "@src/components/table";
 import { SysDict } from "@src/mvc/SysDict";
 import { UserDetailVo } from "@src/mvc/SysUser";
 import { modelInfo } from "@src/provider/baseProvider";
-import { addAbortSignal } from "stream";
 import { FormVo, model } from "@src/mvc/model/Form";
-import dict from "@src/pages/sys/dict";
+import { SysResources } from "@src/mvc/SysResources";
 
 export const localStorageKey = "__auth_provider_token__";
 //全局状态类型定义，初始化为undefiend ,注意这里返回的是Pomise函数
@@ -33,6 +32,7 @@ const AuthContext = React.createContext<
       user: UserDetailVo | undefined;
       //所有模型
       models: any;
+      getIcon: (key: string) => string;
       login: (form: AuthForm) => void;
       loginOut: () => void;
       //获得字典信息,如果codes不传，则返回一级字典
@@ -56,7 +56,13 @@ AuthContext.displayName = "AuthContext";
  * 把 authContext需要的数据注入了进来
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  /** 当前用户信息 */
   const [user, setUser] = useState<UserDetailVo>();
+  /**
+   * 权限权限资源信息
+   */
+  const [allResources, setAllResources] = useState<SysResources[]>();
+
   //存模型信息的对象，key是modelName, modelInfoProps
   // 要缓存最后计算的信息
   const [models, setModels] = useState<any>({});
@@ -70,11 +76,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const { pathname } = location;
   const { data: currUser, runAsync: runCurruser } = useCurrUser();
+  const { runAsync: asyncResources } = useAllResources();
+
   const { runAsync: userLogin } = useLogin();
   const { data: allDict, runAsync } = useAllDict();
   //不刷新则只加载一次
   useMount(() => {
-    //拉取用户信息的同时拉取字典信息
+    //拉取用户信息的同步拉拉取字典信息
     runCurruser().then((res) => {
       setUser(res.data);
       runAsync().then((res) => {
@@ -104,7 +112,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
     });
+    //同步拉取全量资源信息
+    asyncResources({}).then((d) => {
+      setAllResources(d.data);
+    });
   });
+
+  const getIcon = useCallback(
+    (key: string): string => {
+      if (allResources) {
+        const icons = allResources?.filter((r) => r.resourcesCode === key);
+        if (icons && icons.length > 0) {
+          return icons[0].icon;
+        }
+      }
+      return "";
+    },
+    [allResources]
+  );
 
   async function getModelInfo(
     entityName: string,
@@ -254,6 +279,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         error,
         loginOut,
+        getIcon,
         dicts: dictObj,
         getDict,
         checkBtnPermission,

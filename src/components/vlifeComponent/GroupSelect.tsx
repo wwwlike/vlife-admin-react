@@ -1,5 +1,6 @@
 import { CheckboxGroup, Divider } from "@douyinfe/semi-ui";
-import React from "react";
+import { useUpdateEffect } from "ahooks";
+import React, { useCallback, useEffect, useState } from "react";
 import { VfBaseProps } from "..";
 /**
  实现效果如下
@@ -46,11 +47,29 @@ const GroupSelect = ({
   onDataChange,
   selectType = "typeOne",
 }: GroupSelectProps) => {
+  const handleChange = useCallback(
+    (index: number, checked: string[]) => {
+      if (onDataChange && datas) {
+        //先取消datas里index该分类里的suoyou7选项，添加checked里选择的选项
+
+        if (value === undefined || value.length === 0) {
+          onDataChange(checked);
+        } else {
+          const clearIds = datas[index].detailList.map((d) => d.value);
+          let returnIds = value.filter((d) => !clearIds.includes(d));
+          returnIds.push(...checked);
+          onDataChange(returnIds);
+        }
+      }
+    },
+    [value, onDataChange, datas]
+  );
+
   return (
     <>
-      {/* {JSON.stringify(datas)} */}
+      {JSON.stringify(value)}
       {datas
-        ? datas.map((d) => {
+        ? datas.map((d, index) => {
             return d.detailList && d.detailList.length > 0 ? (
               <div key={"div_" + d.name}>
                 <h3 style={{ marginTop: "20px" }}>
@@ -60,21 +79,7 @@ const GroupSelect = ({
                 <CheckboxGroup
                   value={value}
                   onChange={(checkeds) => {
-                    if (selectType === "typeOne") {
-                      const rules = d.detailList.map((f) => {
-                        return f.value;
-                      });
-                      const modelRules = checkeds.filter(
-                        (checked) =>
-                          rules.filter((rule) => rule === checked).length > 0
-                      );
-                      if (modelRules.length === 2) {
-                        checkeds = checkeds.filter(
-                          (checked) => checked !== modelRules[0]
-                        );
-                      }
-                    }
-                    onDataChange(checkeds);
+                    handleChange(index, checkeds);
                   }}
                   options={d.detailList}
                   direction="horizontal"

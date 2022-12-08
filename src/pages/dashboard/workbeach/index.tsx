@@ -3,7 +3,6 @@ import { Card } from "@douyinfe/semi-ui";
 import { useRequest } from "ahooks";
 import { Notification } from "@douyinfe/semi-ui";
 import { useSelector } from "react-redux";
-import Cms from "@src/components/cms";
 
 //ahook 模拟请求 hooks示例
 
@@ -34,7 +33,6 @@ export default () => {
 
   return (
     <div>
-      <Cms></Cms>
       <Card
         className="text-xl"
         title="vlife-admin是基于vlife前后端组件封装能力打造的权限管理的脚手架应用"

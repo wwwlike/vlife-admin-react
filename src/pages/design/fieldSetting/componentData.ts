@@ -1,4 +1,8 @@
+import VVV from '@src/components/form/VVV';
 import { Form } from "@src/mvc/model/Form";
+import { SysArea } from '@src/mvc/SysArea';
+import { SysFile } from '@src/mvc/SysFile';
+import { ReactNode } from 'react';
 import { Interface } from "readline";
 
 /**
@@ -19,20 +23,25 @@ export enum dataType {
   formVo = "formVo", //单个表单信息
 }
 
+
+export interface  ComponentInfo  {
+  label?: string; //组件名称
+  //组件分类 dict=> 要求字段dictcode有值；可以直接让组件和字典匹配，其他的都不用选择了 ； relation要求字段id结尾，
+  type?: "relation" | "dict";
+  icon?:any,//组件图标表示
+  w?: number,//组件grid布局宽度
+  h?: number,//组件grid布局高度
+  component?:any,
+  //用于和字段 field.type进行匹配，在范围里则可以使用组件
+  dataChangeValueType?: any | any[];
+  //组件说明
+  remark?: string;
+  //组件属性对象信息
+  propInfo?: PropDef;
+};
 export interface ComponentDef {
   //组件编码code
-  [key: string]: {
-    label?: string; //组件名称
-    //组件分类 dict=> 要求字段dictcode有值；可以直接让组件和字典匹配，其他的都不用选择了 ； relation要求字段id结尾，
-    type?: "relation" | "dict";
-    //用于和字段 field.type进行匹配，在范围里则可以使用组件
-    dataChangeValueType: dataType | dataType[];
-    ttt?: "string" | "integer" | any;
-    //组件说明
-    remark?: string;
-    //组件属性对象信息
-    propInfo?: PropDef;
-  };
+  [key: string]:ComponentInfo
 }
 
 /**
@@ -59,19 +68,36 @@ export interface ComponentSetting {
   };
 }
 
+interface T<S>{
+  t:S;
+}
+
+export interface  PropInfo{
+    label?: string; //属性名称，没有则默认等于key
+    dataType?: any | any[]|Number|String; //属性字段类型，这里决定组件可以用什么类型的接口，因为组件属性支持多种类型
+    dataSub?:PropDef //下一级数据的定义信息  这样就试吃嵌套了
+    must?: boolean; //是否必填,默认不是必须的
+    dict?: { [key: string]: string }; //字典类型设置，在前端以下拉框形式展示
+}
 /**
  * 属性定义
  */
 export interface PropDef {
   //属性编码,datas树型
-  [key: string]:
-    | {
-        label?: string; //属性名称，没有则默认等于key
-        dataType?: dataType | dataType[]; //属性字段类型，这里决定组件可以用什么类型的接口，因为组件属性支持多种类型
-        must?: boolean; //是否必填,默认不是必须的
-        dict?: { [key: string]: string }; //字典类型设置，在前端以下拉框形式展示
-      }
-    | string; //字符串就是写死的树型值
+  [key: string]: PropInfo| string; //字符串就是写死的树型值
+}
+
+
+export const getDataType=(def:ComponentInfo,propName:string,subName?:string):any=>{
+  if(def.propInfo){
+  const propObj:PropInfo=def.propInfo[propName] as PropInfo
+  if(subName && propObj.dataSub){
+   return  (propObj.dataSub[subName] as PropInfo).dataType
+  }else{
+  return   propObj.dataType
+  }
+}
+  return null;
 }
 /**
  * 组件信息
@@ -235,15 +261,12 @@ export const ComponentInfo: ComponentDef = {
     propInfo: {
       datas: {
         label: "已上传图片信息",
+        dataType: [Array<SysFile>]
       },
     },
   },
+  SelectIcon:{
+    dataChangeValueType:dataType.string,
+    label: "图标选择",
+  }
 };
-
-interface a {
-  dataType: Interface;
-}
-
-// const b: a = {
-//   dataType: Array<r>,
-// };
