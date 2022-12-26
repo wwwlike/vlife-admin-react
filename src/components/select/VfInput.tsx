@@ -2,6 +2,7 @@ import React from "react";
 import { useNiceModal } from "@src/store";
 import { useSelector } from "react-redux";
 import { VfBaseProps } from "..";
+import { TagInput } from "@douyinfe/semi-ui";
 
 interface RelationDatas {
   id: string;
@@ -29,7 +30,6 @@ interface RelationSelectProps extends VfBaseProps<string, RelationDatas[]> {
 const RelationSelect: React.FC<RelationSelectProps> = ({
   selectMore,
   onDataChange,
-  field,
   datas,
   ...prop
 }) => {

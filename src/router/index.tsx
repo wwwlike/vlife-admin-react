@@ -44,6 +44,7 @@ const MP4 = lazy(() => import("@src/pages/guide"));
 const DesignPage = lazy(() => import("@src/pages/design"));
 const ProjectPage = lazy(() => import("@src/pages/bus/project"));
 const LayOutPage = lazy(() => import("@src/components/layout"));
+const TwLayout = lazy(() => import("@src/pages/tailwind/TwLayout"));
 const routeList: RouteObject[] = [
   {
     path: "/",
@@ -231,9 +232,16 @@ const routeList: RouteObject[] = [
           />
         ),
       },
+
       {
         path: "help",
         element: <WrapperRouteComponent element={<MP4 />} titleId="视频介绍" />,
+      },
+      {
+        path: "tailwind",
+        element: (
+          <WrapperRouteComponent element={<TwLayout />} titleId="tailwind" />
+        ),
       },
       {
         path: "abnormal/403",

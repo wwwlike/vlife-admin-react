@@ -139,7 +139,11 @@ export default ({
           });
         columnshow.push(
           ...temp.sort(function (a: ColumnProps, b: ColumnProps) {
-            return column.indexOf(a.dataIndex) - column.indexOf(b.dataIndex);
+            if (a.dataIndex && b.dataIndex)
+              return column.indexOf(a.dataIndex) - column.indexOf(b.dataIndex);
+            else {
+              return 0;
+            }
           })
         );
       } else {
@@ -192,7 +196,15 @@ export default ({
       columnshow?.forEach((m) => {
         if (m.x_component === "VfImage") {
           m["render"] = (text, record, index) => {
-            return <VfImage size="small" value={text} read={true} />;
+            return (
+              <VfImage
+                size="small"
+                value={text}
+                read={true}
+                onDataChange={() => {}}
+                fieldName={""}
+              />
+            );
           };
         } else if (m.x_component === "SelectIcon") {
           m["render"] = (text, record, index) => {
@@ -322,7 +334,8 @@ export default ({
             key={item.entityName + "_" + item.model + "_" + item.key}
             onClick={() => {
               if (item.click) {
-                item.click(item, null, ...selectedRow);
+                //-1 表示全局表的按钮
+                item.click(item, -1, ...selectedRow);
               }
               setSelectedRow([]);
             }}

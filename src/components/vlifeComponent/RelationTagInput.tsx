@@ -33,7 +33,7 @@ const RelationTagInput = ({
   const [tableSelectData, setTableSelectData] = useState<VfRelation[]>();
 
   useUpdateEffect(() => {
-    onDataChange(tagData ? tagData.map((d) => d.id) : null);
+    onDataChange(tagData.map((d) => d.id));
   }, [tagData]);
 
   const [modalState, setModalState] = useState(false);
@@ -51,7 +51,7 @@ const RelationTagInput = ({
         visible={modalState}
         onOk={() => {
           setModalState(false);
-          setTagData([...tableSelectData]);
+          setTagData([...(tableSelectData ? tableSelectData : [])]);
           // onDataChange(tagData.map((d) => d.id));
         }}
         centered

@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   /** 全量字典信息 */
   const [dictObj, setDictObj] = useState<{
     [key: string]: { data: { value: string; label: string }[]; label: string };
-  }>();
+  }>({});
   const [error, setError] = useState<string | null>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -88,7 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       runAsync().then((res) => {
         if (res.data) {
           setDicts(res.data);
-          const obj = {};
+          const obj: any = {};
+
           res.data.forEach((d) => {
             if (obj[d.code] === undefined) {
               if (d.val === null) {
@@ -107,7 +108,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               }
             }
           });
-          // alert(JSON.stringify(obj));
+
+          obj["vlife"] = {
+            lable: "字典类目",
+            data: res.data
+              .filter((d) => d.val === null)
+              .map((d) => {
+                return { value: d.code, label: d.title };
+              }),
+          };
           setDictObj(obj);
         }
       });
@@ -157,17 +166,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (models[modelName + uiType] === undefined) {
       //简写
       let form = await (await model({ uiType, modelName })).data;
+      setModels({ ...models, [modelName + uiType]: { ...form } });
+      return form;
       //组件设置json转对象
-      const fields = form.fields.map((f) => {
-        return {
-          ...f,
-          componentSetting: f.componentSettingJson
-            ? JSON.parse(f.componentSettingJson)
-            : {},
-        };
-      });
-      setModels({ ...models, [modelName + uiType]: { ...form, fields } });
-      return { ...form, fields };
+      // const fields = form?.fields.map((f) => {
+      //   return {
+      //     ...f,
+      //     componentSetting: f.componentSettingJson
+      //       ? JSON.parse(f.componentSettingJson)
+      //       : {},
+      //   };
+      // });
+      // setModels({ ...models, [modelName + uiType]: { ...form, fields } });
+      // return { ...form, fields };
     } else {
       return models[modelName + uiType];
     }

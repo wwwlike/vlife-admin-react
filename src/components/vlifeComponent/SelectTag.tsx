@@ -19,9 +19,8 @@ const SelectTag = ({
   selectMore,
   //组件信息
   fieldInfo,
-  //能否多选
-  ...props
-}: DictSelectTagProps) => {
+}: //能否多选
+DictSelectTagProps) => {
   /**
    * 选中的项val,并数据初始化
    */
@@ -30,7 +29,7 @@ const SelectTag = ({
    * 能否多选根据入参判断，无入参无，根据字段的属性判断
    */
   const [more, setMore] = useState<boolean>(
-    selectMore ? selectMore : fieldInfo.fieldType === "list" ? true : false
+    fieldInfo?.fieldType === "list" ? true : false
   );
   /**
    * 点击事件
@@ -52,7 +51,12 @@ const SelectTag = ({
   );
 
   useUpdateEffect(() => {
-    if (fieldInfo.fieldType === "basic" && selects && selects.length > 0) {
+    if (
+      fieldInfo &&
+      fieldInfo.fieldType === "basic" &&
+      selects &&
+      selects.length > 0
+    ) {
       onDataChange(selects[0]);
     } else {
       onDataChange(selects);

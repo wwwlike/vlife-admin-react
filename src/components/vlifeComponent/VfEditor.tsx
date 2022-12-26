@@ -30,12 +30,16 @@ function VfEditor({ value, onDataChange, read }: VfEditorProps) {
     // const editorConfig = {                         // JS 语法
     placeholder: "请输入内容...",
 
-    MENU_CONF: {},
+    MENU_CONF: {
+      uploadImage: {
+        server: "http://localhost:8288/oa/sysFile/upload",
+      },
+    },
   };
 
-  editorConfig.MENU_CONF["uploadImage"] = {
-    server: "http://localhost:8288/oa/sysFile/upload",
-  };
+  // editorConfig.MENU_CONF["uploadImage"] = {
+  //   server: "http://localhost:8288/oa/sysFile/upload",
+  // };
 
   // 及时销毁 editor ，重要！
   useEffect(() => {

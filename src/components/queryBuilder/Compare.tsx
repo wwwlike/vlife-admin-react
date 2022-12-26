@@ -17,19 +17,14 @@ interface CompareProps {
  * 对比组件
  * 传入数据类型，返回比对方式，比对值，转换等信息出去
  */
-export default ({
-  data,
-  form,
-  onDataChange,
-  ...props
-}: Partial<CompareProps>) => {
+export default ({ data, form, onDataChange }: CompareProps) => {
   const { dicts } = useAuth();
   const [reData, setReData] = useState(data);
   useEffect(() => {
     onDataChange({ ...reData });
   }, [reData]);
 
-  const currField = useMemo((): FormFieldVo => {
+  const currField = useMemo((): FormFieldVo | undefined => {
     if (reData.fieldName) {
       return form.fields.filter((f) => f.fieldName === reData.fieldName)[0];
     }
@@ -46,8 +41,8 @@ export default ({
             return { label: d.title, value: d.fieldName };
           }),
         ]}
-        onChange={(data: string) => {
-          setReData({ ...reData, fieldName: data, value: undefined });
+        onChange={(data) => {
+          setReData({ ...reData, fieldName: data as string, value: undefined });
         }}
       />
       <Select
@@ -62,8 +57,8 @@ export default ({
             };
           }),
         ]}
-        onChange={(data: string) => {
-          setReData({ ...reData, opt: data });
+        onChange={(data) => {
+          setReData({ ...reData, opt: data as string });
         }}
       />
       {/* 值：动态值;固定值；多个值；组件不同，都需要考虑 */}
@@ -80,16 +75,16 @@ export default ({
               };
             }),
           ]}
-          onChange={(data: string) => {
-            setReData({ ...reData, fixCode: data });
+          onChange={(data) => {
+            setReData({ ...reData, fixCode: data as string });
           }}
         />
       ) : reData.opt === "eq" && currField && currField.dictCode !== null ? ( // 字典类型
         <Select
           style={{ width: "130px" }}
           value={reData.value ? reData.value[0] : undefined}
-          onChange={(data: string) => {
-            setReData({ ...reData, value: [data] });
+          onChange={(data) => {
+            setReData({ ...reData, value: [data as string] });
           }}
           optionList={dicts[currField.dictCode].data}
         ></Select>

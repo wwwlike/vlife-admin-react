@@ -48,6 +48,7 @@ const SelectIcon = ({
   size = "default",
   onDataChange,
   read,
+  ...props
 }: Partial<SelectIconProps>) => {
   const [selected, setSelected] = useState(value);
 
@@ -90,17 +91,18 @@ const SelectIcon = ({
   }, [selected]);
 
   return read ? (
-    <div>{icons[value] ? icons[value] : ""}</div>
+    <div>{value && icons[value] ? icons[value] : ""}</div>
   ) : (
     <Dropdown
       trigger={"click"} //点击触发
       clickToHide={true}
-      className=" border-2  items-center justify-center"
+      className={`${props.className} border-2  items-center justify-center`}
       render={
         <ul className=" w60 h60 bg-slate-100 p-4  grid grid-cols-8 space-x-2 space-y-2">
           {Object.keys(icons).map((key) => {
             return (
               <li
+                key={key}
                 className=" hover:text-blue-500"
                 onClick={() => {
                   setSelected(key);
@@ -113,7 +115,7 @@ const SelectIcon = ({
         </ul>
       }
     >
-      {icons[selected] ? (
+      {selected && icons[selected] ? (
         icons[selected]
       ) : (
         <Button icon={<SelectIcon value="IconSearch" />}>选择{value}</Button>

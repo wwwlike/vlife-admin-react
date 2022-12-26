@@ -19,17 +19,17 @@ export default ({ ...props }: groupPorps) => {
       <Select
         placeholder="统计项字段"
         style={{ width: "130px" }}
-        onChange={(data: string) => {}}
+        onChange={(data) => {}}
       />
       <Select
         placeholder="聚合方式"
         style={{ width: "130px" }}
-        onChange={(data: string) => {}}
+        onChange={(data) => {}}
       />
       <Select
         placeholder="分组字段(多选，可以无)"
         style={{ width: "130px" }}
-        onChange={(data: string) => {}}
+        onChange={(data) => {}}
       />
     </>
   );

@@ -7,7 +7,7 @@ import { Select } from "@douyinfe/semi-ui";
 /**
  * 匹配方式
  */
-export const OPT = {
+export const OPT:any = {
   eq: { label: "等于", fieldType: ["string", "number"] },
   in: { label: "范围", fieldType: ["string", "date", "number"] },
   gt: { label: "大于", fieldType: ["date", "number"] },
@@ -24,7 +24,7 @@ export const OPT = {
     public String codeArea;//地区编号
     和当前用户security相关得字段
  */
-export const fixedVal = {
+export const fixedVal:any = {
   id: { label: "当前用户" },
   deptId: { label: "当前部门" },
   areaId: { label: "当前地区" },

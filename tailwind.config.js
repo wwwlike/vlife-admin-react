@@ -10,6 +10,7 @@ module.exports = {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],
       },
     },
+   
     minWidth: {
       0: "0",
       "1/4": "25%",

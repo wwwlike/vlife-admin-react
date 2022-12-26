@@ -38,17 +38,18 @@ export interface VfCode {
  */
 export interface VfBaseProps<T, D> {
   //字段名
-  fieldName?: string;
+  fieldName: string;
   //字段初始值
-  value?: T;
+  value: T;
   //数据传出来事件
-  onDataChange?: (data: T | undefined) => void;
+  onDataChange: (data: T | undefined) => void;
   //组件渲染需要得异步数据
   datas?: D;
   // 表态只读状态
-  read?: boolean;
+  read: boolean;
   //组件字段信息
-  fieldInfo?: FormFieldVo;
+  fieldInfo: FormFieldVo;
+  className?:string;
 }
 
 export interface VfBaseViewProps<D>{

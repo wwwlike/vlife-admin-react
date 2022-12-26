@@ -5,6 +5,7 @@ import { PageApiParam } from './PageApiParam';
 // 组件属性
 export interface PageComponentProp extends DbEntity{
   pageComponentId: string;  // 所属组件
+  formFieldId:string;//所在字段
   sourceType: string;  // 属性值来源
   propVal: string;  // 属性值
   propName: string;  // 属性名称
@@ -16,13 +17,14 @@ export interface PageComponentProp extends DbEntity{
 
 export interface PageComponentPropDto extends SaveBean{
   pageComponentId: string;  // 所属组件
+  formFieldId:string;//所在字段
   sourceType: string;  // 属性值来源
   propVal: string;  // 属性值
   propName: string;  // 属性名称
   listNo:number; //排序号
   subName:string;//子属性
   apiMethod:string;//数据转换方法
-  params:PageApiParam[]; 
+  params?:Partial<PageApiParam>[]; //属性外键表参数设置
   
 }
 

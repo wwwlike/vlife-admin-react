@@ -1,7 +1,7 @@
 import apiClient from "../apiClient";
 import { DbEntity, Result, SaveBean, VoBean } from "../base";
 import { FormGroup } from "../FormGroup";
-import { FormField, FormFieldVo } from "./FormField";
+import { FormField, FormFieldDto, FormFieldVo } from "./FormField";
 
 export interface Form extends DbEntity {
   title: string;
@@ -20,7 +20,7 @@ export interface FormDto extends SaveBean {
   uiType: string;
   gridSpan?: number;
   name?: string;
-  fields?: Partial<FormField>[];
+  fields?: Partial<FormFieldDto>[];
   groups?: FormGroup[];
 }
 

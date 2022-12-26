@@ -11,10 +11,11 @@ export interface PageComponent extends DbEntity{
   name: string;  // 单元名称
   pageKey: string;  // 单元编号
   component: string;  // 单元组件类型
-  pageLayoutId: string;  // 组件单元所在页面
+  pageLayoutId?: string;  // 组件单元所在页面
 }
 
 export interface PageComponentDto extends DbEntity{
+  id?:string;
   h: number;  // 栅格高度
   x: number;  // 栅格横向位置
   y: number;  // 栅格纵坐标位置
@@ -22,7 +23,7 @@ export interface PageComponentDto extends DbEntity{
   name: string;  // 单元命名
   pageKey: string;  // 单元编号/编码
   component: string;  // 单元组件类型
-  pageLayoutId: string;  // 组件单元所在页面
+  pageLayoutId?: string;  // 组件单元所在页面
   props?: Partial<PageComponentPropDto>[];// 组件属性信息集合
 }
 

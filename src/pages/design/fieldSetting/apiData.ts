@@ -17,26 +17,30 @@ import {
   formReportKpiAll,
 } from "@src/mvc/model/Form";
 import { listByCode } from "@src/mvc/SysDict";
-import { dataType } from "./componentData";
+import { dataType, PropInfo } from "./componentData";
 import { findName } from "@src/provider/baseProvider";
 import { listSysFilterVo } from "@src/mvc/SysGroup";
 import { details, SysFile, test, test1, test2 } from '@src/mvc/SysFile';
 import { total } from '@src/mvc/model/ReportTable';
+import { list } from '@src/mvc/SysUser';
+
+
+
 
 /**
  * 接口参数定义
  */
 export interface ParamDef {
-  [key: string]: {
-    label: string; // 参数名称
-    must?: boolean; // 是否必须
-    dataType: any; //参数类型
-  };
+  [key: string]:PropInfo;
   // | string; //直接给值，固定传参，不用端设置
 }
+
+/**
+ * 单个API定义信息
+ */
 export interface ApiProp{
   label: string; //名称
-  dataType: any; //出参数据类型
+  dataType: dataType; //出参数据类型
   remark?: string; //说明备注信息
   codeDemo?: string; //返回代码示例
   api:  (params?: any) =>  Promise<Result<any>>; // 接口
@@ -139,40 +143,48 @@ export const ApiInfo: ApiDef = {
 
   sysFileDetails:{
     label:"文件列表",
-    dataType:Array<SysFile>,
+    dataType:dataType.list,
+    //dataType:Array<SysFile>,
     api:details,
     params:{
       ids:{
         must:true,
-        dataType:Array<string>,
+        dataType:dataType.list,
         label:"文件id列表"
       }
     }
   },
   total:{
     label:"数据统计",
-    dataType:Number,
+    dataType:dataType.number,
     api:total,
     params:{
       code:{
         label:"统计项编码",
-        dataType:String,
+        dataType:dataType.string,
+        sourceType:"fixed",
+        table:{
+          entityName:"reportItem",
+          valField:"code",
+          labelField:"name"
+        }
+      
       }
     }
   },
   test:{
     label:"测试返回string",
-    dataType:String,
+    dataType:dataType.string,
     api:test
   },
   test1:{
     label:"测试对象返回",
-    dataType:"aaaa",
+    dataType:dataType.object,
     api:test1
   },
   test2:{
     label:"测试数组对象",
-    dataType:"bbbb",
+    dataType:dataType.list,
     api:test2
   },
 

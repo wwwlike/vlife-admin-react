@@ -35,7 +35,7 @@ const RoleResourcesSelect = ({
       const resources: SysResources[] = datas.filter(
         (f) => f.menuCode === menuCode
       );
-      return resources.map((r) => {
+      return resources.map((r: any) => {
         return { label: r.name, value: r.id };
       });
     },

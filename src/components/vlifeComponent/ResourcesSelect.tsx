@@ -30,10 +30,10 @@ const ResourcesSelect = ({
    */
   const getResources = useCallback(
     (menuCode: string): { label: string; value: string }[] => {
-      const resources: SysResources[] = datas.filter(
-        (f) => f.menuCode === menuCode
-      );
-      return resources.map((r) => {
+      const resources: SysResources[] = datas
+        ? datas.filter((f) => f.menuCode === menuCode)
+        : [];
+      return resources.map((r: any) => {
         return { label: r.name, value: r.id };
       });
     },

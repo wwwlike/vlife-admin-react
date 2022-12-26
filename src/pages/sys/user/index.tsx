@@ -73,15 +73,15 @@ export default () => {
           <TablePage
             req={{ ...formData, area: removeEnds0(formData.area || "") }} //去除字符串结尾的0
             entityName="sysUser"
-            hideColumns={[
-              "createDate",
-              "password",
-              "modifyDate",
-              "status",
-              "id",
-              "createId",
-              "modifyId",
-            ]}
+            // hideColumns={[
+            //   "createDate",
+            //   "password",
+            //   "modifyDate",
+            //   "status",
+            //   "id",
+            //   "createId",
+            //   "modifyId",
+            // ]}
             // hideColumns={['createDate','modifyDate']}
             select_more={true}
             customBtns={customBtns}

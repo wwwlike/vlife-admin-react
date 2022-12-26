@@ -21,7 +21,7 @@ const navigation = [
   { name: "Reports", href: "#", icon: IconAlarm, current: false },
 ];
 
-function classNames(...classes) {
+function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 

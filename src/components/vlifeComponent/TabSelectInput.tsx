@@ -59,12 +59,14 @@ export default ({
   const [key, setKey] = useState<string>();
   const getSub = (key?: string) => {
     if (!key) return [];
-    const pName = datas.filter((d) => d[codeField] === key)[0][labelField];
+    const pName = datas?.filter((d) => d[codeField] === key)[0][labelField];
     return datas
-      .filter((d) => d[pcodeField] === key)
-      .map((d) => {
-        return { value: d[codeField], label: pName + "/" + d[labelField] };
-      });
+      ? datas
+          .filter((d) => d[pcodeField] === key)
+          .map((d) => {
+            return { value: d[codeField], label: pName + "/" + d[labelField] };
+          })
+      : [];
   };
 
   const [obj, setObj] = useState<{ label: string; value: string }>(); //{ value: 'faq', label: '常见问题' },

@@ -6,11 +6,11 @@ import apiClient from "../apiClient";
 
 // 报表明细
 export interface ReportTableItem extends DbEntity {
-  reportItemId: string; // 统计项
-  reportTableId: string; // 所属报表
-  reportKpiId: string; // 指标项
+  reportItemId?: string; // 统计项
+  reportTableId?: string; // 所属报表
+  reportKpiId?: string; // 指标项
   sort: number; // 排序号
-  title: string;
+  title?: string;
 }
 // 报表明细项视图
 export interface ReportTableItemVo extends VoBean {

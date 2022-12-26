@@ -39,20 +39,22 @@ export default ({ currModel, onChange }: eventPageProp) => {
   }, [currModel.id]);
 
   const getEventgiveOut = useCallback(() => {
-    listFormEventVo(currModel.id).then((data: Result<FormEventVo[]>) => {
-      //先把field的evnet都清除掉，
-      currModel.fields.forEach((f) => {
-        f.events = [];
-      });
-      data.data?.forEach((d: FormEventVo) => {
+    if (currModel && currModel.id) {
+      listFormEventVo(currModel.id).then((data: Result<FormEventVo[]>) => {
+        //先把field的evnet都清除掉，
         currModel.fields.forEach((f) => {
-          if (f.id === d.formFieldId) {
-            f.events.push(d);
-          }
+          f.events = [];
         });
+        data.data?.forEach((d: FormEventVo) => {
+          currModel.fields.forEach((f) => {
+            if (f.id === d.formFieldId) {
+              f.events.push(d);
+            }
+          });
+        });
+        onChange(currModel);
       });
-      onChange(currModel);
-    });
+    }
   }, [currModel]);
   return (
     <div>
@@ -98,7 +100,7 @@ export default ({ currModel, onChange }: eventPageProp) => {
           batchRm: true,
           view: false,
         }} //table的按钮都不要
-        showColumns={["name"]} //只显示的字段,
+        // showColumns={["name"]} //只显示的字段,
         editModel="formEventDto" //编辑的视图
         select_more={true}
         customBtns={[

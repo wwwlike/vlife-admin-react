@@ -1,45 +1,43 @@
 import { ComponentDef, dataType } from '@src/pages/design/fieldSetting/componentData';
 import {
   IconHome,
-  IconCalendar,
   IconUserGroup,
-  IconSearch,
-  IconUserAdd,
-  IconPhone,
-  IconAlertCircle,
+  IconLineChartStroked,
 } from "@douyinfe/semi-icons";
 import Total from '../views/total';
-import { Card, Carousel, Image, Input } from '@douyinfe/semi-ui';
 import VfEntry from '../vlifeComponent/views/VfEntry';
-import VfEchart from '../vlifeComponent/views/VfEchart';
+import ChartPage from '@src/pages/common/ChartPage';
 
 
 export const ViewComponents: ComponentDef = {
   Total: {
     label: "汇总数据展示",
-    icon:IconHome,
+    icon:IconUserGroup,
     w: 5,
     h: 4,
     component:Total,
     propInfo: {
       title:{
         label:"标题",
-        dataType:String,
+        sourceType:"fixed",
+        dataType:dataType.string,
       },  
       info: {
         label: "汇总数据",
-        dataType:Object,
-        dataSub:{title:{label:'标题',dataType:String},total:{label:'数值',dataType:Number}},
-        must: false,
+        dataType:dataType.object,
+        dataSub:{
+          title:{label:'标题',dataType:dataType.string, sourceType:"fixed"},
+          total:{label:'数值',dataType:dataType.number,sourceType:"api"}
+        },
+        must: true,
       },
       infos: {
         label: "汇总数据数组",
-        // dataType:"bbbb",
-        dataType:Array,
+        dataType:dataType.list,
         dataSub:{
-          title:{label:'标题',dataType:String},
-          total:{label:'数值',dataType:Number},
-          icon:{label:'图标',dataType:"Icon"}
+          title:{label:'标题',dataType:dataType.string},
+          total:{label:'数值',dataType:dataType.number,sourceType:"api"},
+          icon:{label:'图标',dataType:dataType.icon}
         },
         must: false,
       },
@@ -55,42 +53,33 @@ export const ViewComponents: ComponentDef = {
   },
   
   Echart : {
-    label: "折线图",
-    icon:IconHome,
+    label: "图表组件",
+    icon:IconLineChartStroked,
     w: 12,
     h: 4,
-    component:VfEchart,
+    component:ChartPage,
+    propInfo: {
+      title:{
+        label:"图表名称",
+        sourceType:"fixed",
+        dataType:dataType.string
+      },
+      codes:{
+        label:"统计项",
+        dataType:dataType.list,
+        sourceType:"fixed",
+        table:{
+          entityName:"reportItem",
+          valField:"code",
+          labelField:"name"
+        }
+      },
+      group:{
+        label:"统计维度",
+        dataType:dataType.string, 
+        sourceType:"fixed", //数据是个固定值
+        dict:{dictCode:"GROUPS"},//从分类groups取值
+      }
+    }
   },
 }
-
-
-// type info = {
-//   /**
-//    * 标题
-//    */
-//   title: string;
-//   /**
-//    * 数量
-//    */
-//   total: number;
-//   /**
-//    * 说明
-//    */
-//   remark?: string;
-//   /**
-//    * 连接路由
-//    */
-//   router?: string;
-// };
-
-
-/* 视图组件 */
-// export const ViewComponents: { [key: string]: Comp } = {
-//   Total: {
-//     component: Total,
-//     title: "汇总组件",
-//     icon: IconHome,
-//     w: 5,
-//     h: 3,
-//   },
-// };

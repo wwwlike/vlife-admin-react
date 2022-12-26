@@ -20,12 +20,12 @@ export interface ReportTableVo extends VoBean {
  */
 export interface ReportTableDto extends SaveBean {
   code: string;
-  id: string;
+  id?: string;
   groupColumn: string;
   func: string;
   name: string;
-  itemIds: string[];
-  kpiIds: string[];
+  itemIds?: string[];
+  kpiIds?: string[];
 }
 
 /**
@@ -77,7 +77,8 @@ export const listAll = (): Promise<Result<ReportTableSaveDto[]>> => {
  * 报表结果查询
  */
 export const report = (params: {
-  reportCode: string; //报表code
+  itemCode?:string[];//统计项目code
+  reportCode?: string; //报表code
   groups: string[]; //分组信息
 }): Promise<Result<any[]>> => {
   return apiClient.get(
@@ -88,6 +89,18 @@ export const report = (params: {
   );
 };
 
+
+/**
+ * 报表结果查询
+ */
+ export const chart = ({codes,group}: {
+  codes: string[]; //报表code
+  group: string; //分组信息
+}): Promise<Result<any[]>> => {
+  return apiClient.get(
+    `/reportTable/chart?code=${codes[0]}&group=${group}`
+  );
+};
 
 /**
  * 单个指标值查询

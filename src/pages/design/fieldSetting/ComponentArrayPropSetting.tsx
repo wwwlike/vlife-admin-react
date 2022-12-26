@@ -2,7 +2,10 @@
  * 数组类型属性设置
  */
 import { Button, TabPane, Tabs } from "@douyinfe/semi-ui";
-import { PageComponentProp } from "@src/mvc/PageComponentProp";
+import {
+  PageComponentProp,
+  PageComponentPropDto,
+} from "@src/mvc/PageComponentProp";
 import { useUpdateEffect } from "ahooks";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { PropInfo } from "./componentData";
@@ -14,30 +17,35 @@ interface ArrayPropSettingProps {
   /** 属性定义信息 */
   data: PropInfo;
   /** 属性录入信息 */
-  value?: PageComponentProp[];
+  value?: PageComponentPropDto[];
   /** 属性值改变 */
-  onDataChange: (propObj: PageComponentProp[]) => void;
+  onDataChange: (propObj: Partial<PageComponentPropDto>[]) => void;
+  /** 所在页面组件key */
+  pageKey: string;
 }
 
 const ComponentArrayPropSetting = ({
   propName,
   data,
   value,
+  pageKey,
   onDataChange,
 }: ArrayPropSettingProps) => {
   /**
    * 数据数据
    */
-  const [array, setArray] = useState<Partial<PageComponentProp[]>>(value);
+  // const [array, setArray] = useState<Partial<PageComponentProp[]>>(value);
   //存放listNo的序号数组
 
   const [num, setNum] = useState<number[]>([]);
 
   const remove = useCallback(() => {
-    const lastNo = num[num.length - 1];
-    setNum([...num.slice(0, num.length - 1)]);
-    setArray(array.filter((a) => a?.listNo !== lastNo));
-  }, [array, num]);
+    if (value) {
+      const lastNo = num[num.length - 1];
+      setNum([...num.slice(0, num.length - 1)]);
+      onDataChange(value.filter((a) => a?.listNo !== lastNo));
+    }
+  }, [value, num]);
 
   useEffect(() => {
     const s: Set<number> = new Set(value?.map((v) => v.listNo));
@@ -46,34 +54,22 @@ const ComponentArrayPropSetting = ({
   }, [value]);
 
   const replace = useCallback(
-    (listNo: number, propsSetting: PageComponentProp[]) => {
+    (listNo: number, propsSetting: Partial<PageComponentPropDto>[]) => {
+      // alert(JSON.stringify(propsSetting));
       //本次之外的属性值
-      const existOther: PageComponentProp[] = array
-        ? array.filter((p) => {
-            const flag = p?.listNo !== listNo;
-            return flag;
-          })
-        : undefined;
-
-      const replaceObj: PageComponentDto[] = [
-        ...(existOther ? existOther : []),
-        ...propsSetting,
-      ];
-
-      setArray(replaceObj);
+      if (value && value.length > 0) {
+        const existOther: PageComponentPropDto[] = value?.filter((p) => {
+          const flag = p?.listNo !== listNo;
+          return flag;
+        });
+        const rt = [...(existOther ? existOther : []), ...propsSetting];
+        onDataChange(rt);
+      } else {
+        onDataChange(propsSetting);
+      }
     },
-    [array]
+    [value]
   );
-
-  useUpdateEffect(() => {
-    if (onDataChange && array) {
-      onDataChange(array);
-    }
-  }, [array]);
-
-  // const add = useCallback(() => {
-  //   array.push;
-  // }, [array]);
 
   return (
     <Tabs
@@ -99,10 +95,12 @@ const ComponentArrayPropSetting = ({
             itemKey={"1" + n}
           >
             <ComponentObjectPropSetting
+              key={propName + "ComponentObjectPropSetting" + n}
               propName={propName}
               propInfo={data}
               listNo={n}
-              propObjs={array?.filter((a) => a?.listNo === n)}
+              pageKey={pageKey}
+              pageComponentPropDtos={value?.filter((a) => a?.listNo === n)}
               onDataChange={(d) => {
                 replace(n, d);
               }}

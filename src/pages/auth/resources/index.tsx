@@ -74,7 +74,7 @@ export default () => {
                   btnEnable: { disable: true },
                 }).then((data: any) => {
                   const saveDatas: SysResources[] = data;
-                  saveDatas.forEach((saveData) => {
+                  saveDatas.forEach((saveData: any) => {
                     saveData.resourcesCode = saveData.id;
                     saveData.id = "";
                     saveImport(saveData).then((data) => {

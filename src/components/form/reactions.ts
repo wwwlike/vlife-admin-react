@@ -142,7 +142,7 @@ function hehe(s: any): string {
 //  返回配对关系 ： {modelName:entityName}
 // },
 export const loadDeps = (dynamic: any, entityType: String): any => {
-  const mapping = {};
+  const mapping:any = {};
   let keys: string[] = Object.keys(dynamic);
   keys.forEach((key) => {
     mapping[key] =

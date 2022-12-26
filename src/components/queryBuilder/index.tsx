@@ -24,16 +24,16 @@ export interface group {
   fieldName: string;
   tran: string;
 }
-
+export type andOr = "and" | "or";
 export interface FormItemCondition {
-  orAnd: "and" | "or";
+  orAnd: andOr;
   where: Partial<where<any>>[];
   conditions: Partial<FormItemCondition>[];
   group?: group;
 }
 
 // 将string 转换成 formItemCondition
-export interface ItemDesignProps extends VfBaseProps<string, FormVo> {
+export interface ItemDesignProps extends Partial<VfBaseProps<string, FormVo>> {
   //模型信息
   pageCondition?: Partial<FormItemCondition>;
   // 是否根节点
@@ -54,17 +54,18 @@ const QueryBuilder = ({
   datas,
   isRoot = true,
   children,
-  ...props
-}: Partial<ItemDesignProps>) => {
+}: ItemDesignProps) => {
   const [conditions, setConditions] = useState<Partial<FormItemCondition>>(
     pageCondition ? pageCondition : value ? JSON.parse(value) : {}
   );
 
   useEffect(() => {
-    if (conditions && conditions !== null) {
-      onDataChange(JSON.stringify(conditions));
-    } else {
-      onDataChange(null);
+    if (onDataChange) {
+      if (conditions && conditions !== null) {
+        onDataChange(JSON.stringify(conditions));
+      } else {
+        onDataChange(undefined);
+      }
     }
   }, [conditions]);
 
@@ -80,7 +81,7 @@ const QueryBuilder = ({
       setConditions({ ...conditions, conditions: undefined });
     }
   }, [conditions]);
-  return (
+  return datas ? (
     <>
       <Design
         root={isRoot}
@@ -92,6 +93,8 @@ const QueryBuilder = ({
         condition={conditions}
       />
     </>
+  ) : (
+    <></>
   );
 };
 

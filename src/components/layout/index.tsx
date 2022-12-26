@@ -1,21 +1,5 @@
-import React, {
-  Component,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  IconHome,
-  IconCalendar,
-  IconUserGroup,
-  IconSearch,
-  IconUserAdd,
-  IconSave,
-  IconPhone,
-  IconAlertCircle,
-} from "@douyinfe/semi-icons";
-import Draggable from "react-draggable";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { IconSave } from "@douyinfe/semi-icons";
 import { savePageConfDto, detail, PageConfDto } from "@src/mvc/PageLayout";
 
 import "react-grid-layout/css/styles.css";
@@ -26,19 +10,15 @@ import {
   Responsive,
   Layout as LayoutDataType,
 } from "react-grid-layout";
-import { PageComponentDto } from "@src/mvc/PageComponent";
 import ComponentSetting from "@src/pages/design/fieldSetting/ComponentSetting";
 import { ViewComponents } from "./ViewComponentsData";
-import {
-  ComponentInfo,
-  PropInfo,
-} from "@src/pages/design/fieldSetting/componentData";
-import { PageComponentProp } from "@src/mvc/PageComponentProp";
-import { ApiInfo } from "@src/pages/design/fieldSetting/apiData";
-import PageComponent from "./Views";
+import { ComponentInfo } from "@src/pages/design/fieldSetting/componentData";
 import Views from "./Views";
-import { Button, Tag } from "@douyinfe/semi-ui";
+import { Button } from "@douyinfe/semi-ui";
 import VfCard from "../vlifeComponent/views/VfCard";
+import Draggable from "react-draggable";
+import { PageComponentDto } from "@src/mvc/PageComponent";
+import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 /**
@@ -52,27 +32,14 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
  * 2. 为容器指定绑定的组件
  * 3. 保存后将json 存储起来
  */
-
-// /* 视图组件 */
-// export const ViewComponents: { [key: string]: Comp } = {
-//   Total: {
-//     component: Total,
-//     title: "汇总组件",
-//     icon: IconHome,
-//     w: 5,
-//     h: 3,
-//   },
-// };
-
 const Layout = () => {
   // const [models, setModels] = useState<PageComponent[]>([]);
 
   const [edit, setEdit] = useState<string>();
-
   /**
    * 页面整体配置
    */
-  const [pageConf, setPageConf] = useState<PageConfDto>();
+  const [pageConf, setPageConf] = useState<Partial<PageConfDto>>();
 
   /**
    * 布局内容
@@ -80,17 +47,24 @@ const Layout = () => {
   const [content, setContent] = useState<LayoutDataType[]>();
 
   /**当前操作的 */
-  const curr = useMemo((): any => {
-    const currDiv = pageConf?.content.filter((f) => f.pageKey === edit);
+  const curr = useMemo(():
+    | {
+        componentInfo: ComponentInfo;
+        pageComponentPropDtos: Partial<PageComponentPropDto>[];
+        pageKey: string;
+      }
+    | undefined => {
+    const currDiv = pageConf?.content?.filter((f) => f.pageKey === edit);
     if (currDiv && currDiv.length > 0) {
       const componentName = currDiv[0].component || "";
       return {
-        componentInfo: ViewComponents[componentName],
-        settings: currDiv[0],
+        componentInfo: ViewComponents[componentName], // 组件定义信息
+        pageComponentPropDtos: currDiv[0].props || [], //数据库设置信息
+        pageKey: currDiv[0].pageKey || "",
       };
     }
     return undefined;
-  }, [edit]);
+  }, [edit, pageConf?.content]);
 
   /**
    * 数据请求
@@ -102,11 +76,10 @@ const Layout = () => {
   }, []);
 
   function classNames(...classes: any) {
-    alert(classes.filter(Boolean).join(" "));
     return classes.filter(Boolean).join(" ");
   }
 
-  const saveData = useMemo((): PageConfDto | undefined => {
+  const saveData = useMemo((): Partial<PageConfDto> | undefined => {
     if (
       content &&
       pageConf &&
@@ -133,8 +106,9 @@ const Layout = () => {
    * 增加div的顶点位置(通过最后一个div的顶点计算)
    */
   const point = useMemo((): { x: number; y: number } => {
-    if (!content || content.length === 0) return { x: 0, y: 0 };
-    else {
+    if (!content || content.length === 0) {
+      return { x: 0, y: 0 };
+    } else {
       const last: LayoutDataType = content[content.length - 1];
       return {
         x: last.x + last.w,
@@ -153,7 +127,8 @@ const Layout = () => {
         setPageConf({
           ...pageConf,
           content: [
-            ...(pageConf.content ? pageConf.content : []),
+            ...(pageConf.content !== undefined ? pageConf.content : []),
+
             {
               pageKey:
                 "comp" + (pageConf.content ? pageConf.content.length : 0),
@@ -171,25 +146,24 @@ const Layout = () => {
                   : point.y,
               w: componentInfo.w || 2,
               h: componentInfo.h || 2,
-              name: componentInfo.label,
-              // props: undefined,
+              name: componentInfo.label || "",
               component: name,
             },
           ],
         });
     },
-    [pageConf, point]
+    [pageConf, point.x, point.y]
   );
-  /**
-   * 删除
-   */
-  const removeModel = useCallback((key: string) => {
-    if (pageConf)
-      setPageConf({
-        ...pageConf,
-        content: pageConf.content.filter((ff) => ff.pageKey !== key),
-      });
-  }, []);
+  // /**
+  //  * 删除
+  //  */
+  // const removeModel = useCallback((key: string) => {
+  //   if (pageConf)
+  //     setPageConf({
+  //       ...pageConf,
+  //       content: pageConf?.content?.filter((ff) => ff.pageKey !== key),
+  //     });
+  // }, []);
   /**
    * 布局改变
    * 数量，大小，位置
@@ -202,20 +176,27 @@ const Layout = () => {
     <div className="h-full flex">
       {/* Static sidebar for desktop */}
       <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-        <div className="flex-1 relative z-0 flex overflow-hidden">
+        <div className="flex-1 relative z-50 flex overflow-hidden">
           <aside className="hidden relative xl:flex xl:flex-col flex-shrink-0 w-96 border-r border-gray-200 overflow-y-auto">
             {/* Start secondary column (hidden on smaller screens) */}
             <div className="absolute inset-0 py-6 px-4 sm:px-6 lg:px-6">
               <div className="h-full border-2  border-blue-900 border-dashed rounded-lg">
-                <section className="px-4 sm:px-6 lg:px-4 xl:px-6 pt-4 pb-4 sm:pb-6 lg:pb-4 xl:pb-6 space-y-4">
+                <section className="px-4 sm:px-6 lg:px-4 xl:px-6 pt-4 pb-4 sm:pb-6 lg:pb-4 xl:pb-6 space-y-4 z-40">
                   <header className="flex items-center justify-between">
                     <h2 className="text-lg leading-6 font-medium text-black">
                       组件选择
                     </h2>
+
+                    {/* {JSON.stringify(
+                      pageConf?.content[pageConf.content.length - 1]
+                    )} */}
                     <Button
                       icon={<IconSave />}
                       onClick={() => {
-                        if (saveData) savePageConfDto(saveData);
+                        if (saveData)
+                          savePageConfDto(saveData).then((d) => {
+                            setPageConf(d.data);
+                          });
                       }}
                       className="hover:bg-light-blue-200 hover:text-light-blue-800 group flex items-center rounded-md bg-light-blue-100 text-light-blue-600 text-sm font-medium px-4 py-2"
                     >
@@ -225,21 +206,27 @@ const Layout = () => {
                 </section>
 
                 {/* grid布局，一行2列，间隔2 */}
-                <div className="grid grid-cols-2 gap-2 p-2">
+                <div className="grid grid-cols-2 gap-2 p-2 z-40">
                   {Object.keys(ViewComponents).map((key) => (
-                    <VfCard
-                      data={{ title: ViewComponents[key].label || "" }}
-                      onClick={() => {
-                        addModel(key, ViewComponents[key]);
-                      }}
-                    />
+                    <Draggable key={"Draggable" + key}>
+                      <VfCard
+                        key={key}
+                        data={{
+                          title: ViewComponents[key].label || "",
+                          icon: ViewComponents[key].icon,
+                        }}
+                        onClick={() => {
+                          addModel(key, ViewComponents[key]);
+                        }}
+                      />
+                    </Draggable>
                   ))}
                 </div>
               </div>
             </div>
             {/* End secondary column */}
           </aside>
-          <main className="flex-1 relative  overflow-y-auto focus:outline-none">
+          <main className="flex-1 relative z-40  overflow-y-auto focus:outline-none">
             {/* Start main area*/}
             <div className="absolute inset-0 py-6 px-4 sm:px-6 lg:px-6">
               <div className="h-full border-2 border-blue-900 border-dashed rounded-lg">
@@ -266,16 +253,19 @@ const Layout = () => {
                           onClick={() => {
                             setPageConf({
                               ...pageConf,
-                              content: pageConf.content.filter(
+                              content: pageConf?.content?.filter(
                                 (ff) => ff.pageKey !== pageComponent.pageKey
                               ),
                             });
                           }}
-                          className=" z-100 btn bg-slate-200 absolute right-0 hidden group-hover:block"
+                          className=" z-30 btn bg-slate-200 absolute right-0 hidden group-hover:block"
                         >
                           删除
                         </button>
-                        <Views pageComponentDto={pageComponent} />
+                        <Views
+                          className=" z-10"
+                          pageComponentDto={pageComponent}
+                        />
                       </div>
                     );
                   })}
@@ -289,18 +279,32 @@ const Layout = () => {
             {/* Start secondary column (hidden on smaller screens) */}
             <div className="absolute inset-0 py-6 px-4 sm:px-6 lg:px-6">
               <div className="h-full border-2  border-blue-900 border-dashed rounded-lg">
+                {/* <Draggable>
+                  <div>111111111111</div>
+                </Draggable> */}
+                {/* <div>{JSON.stringify(curr?.pageComponentDto)}</div> */}
                 {curr ? (
                   <ComponentSetting
-                    {...curr}
-                    onDataChange={(d) => {
+                    componentInfo={curr.componentInfo}
+                    pageKey={curr.pageKey}
+                    pageComponentPropDtos={curr.pageComponentPropDtos}
+                    onDataChange={(
+                      pageComponentPropDtos: Partial<PageComponentPropDto>[]
+                    ) => {
+                      //替换指定组件里的指定属性设置值
                       setPageConf({
                         ...pageConf,
-                        content: pageConf?.content.map((dd) =>
-                          dd.pageKey === d.pageKey ? d : dd
+                        content: pageConf?.content?.map((pageComponentDto) =>
+                          pageComponentDto.pageKey === curr.pageKey
+                            ? {
+                                ...pageComponentDto,
+                                props: pageComponentPropDtos,
+                              }
+                            : { ...pageComponentDto }
                         ),
                       });
                     }}
-                  ></ComponentSetting>
+                  />
                 ) : (
                   ""
                 )}

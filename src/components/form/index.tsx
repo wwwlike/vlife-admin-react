@@ -5,7 +5,7 @@
  * https://zhuanlan.zhihu.com/p/577439561
  * 组件化
  */
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   registerValidateLocale,
   createForm,
@@ -21,7 +21,6 @@ import {
   mapReadPretty,
   connect,
   createSchemaField,
-  FormConsumer,
 } from "@formily/react";
 
 import {
@@ -29,188 +28,99 @@ import {
   PreviewText,
   FormGrid,
   GridColumn,
-  Select,
   ArrayItems,
   ArrayTable,
-  Checkbox,
   FormTab,
-  InputNumber,
 } from "@formily/semi";
 import { Result, TranDict } from "@src/mvc/base";
-import RelationInput from "@src/components/form/comp/RelationInput";
-import RoleResourcesSelect from "@src/pages/auth/role/RoleResourcesSelect/formily";
-import TabSelect from "@src/components/form/comp/TabSelect";
-import PageSelect from "@src/components/form/comp/PageSelect";
-import TreeSelect from "@src/components/form/comp/TreeSelect";
-import {
-  DatePicker as SemiDatePicker,
-  Input as SemiInput,
-  TextArea as SemiTextArea,
-} from "@douyinfe/semi-ui";
 import { FormVo } from "@src/mvc/model/Form";
 import { eventReaction, loadDeps } from "./reactions";
-import VlifeSelect from "./comp/VlifeSelect";
-import VfRelationSelect from "../select/RelationSelect";
 import FormTable from "../table/FormTable";
 import { FormFieldVo, loadData } from "@src/mvc/model/FormField";
-import TreeQuery from "../tree/TreeQuery";
-import QueryBuilder from "../queryBuilder";
 import { action } from "@formily/reactive";
 import { ApiInfo } from "@src/pages/design/fieldSetting/apiData";
-import SelectTag from "../vlifeComponent/SelectTag";
 import { useAuth } from "@src/context/auth-context";
-import DictSelectTag from "../select/DictSelectTag";
-import VfSelect from "../vlifeComponent/VfSelect";
-import SearchInput from "../vlifeComponent/SearchInput";
-import RelationTagInput from "../vlifeComponent/RelationTagInput";
 import {
   ComponentInfo,
   ComponentSetting,
 } from "@src/pages/design/fieldSetting/componentData";
-import VfTree from "../vlifeComponent/VfTreeSelect";
-import VfTreeSelect from "../vlifeComponent/VfTreeSelect";
-import VfTreeInput from "../vlifeComponent/VfTreeInput";
-import ResourcesSelect from "../vlifeComponent/ResourcesSelect";
-import GroupSelect from "../vlifeComponent/GroupSelect";
-import VfEditor from "../vlifeComponent/VfEditor";
-import VfImage from "../vlifeComponent/VfImage";
-import SelectIcon from "../vlifeComponent/SelectIcon";
+import { componentPropCreate } from "../layout/Views";
 
-const Input = connect(SemiInput, mapReadPretty(PreviewText.Input));
-const TextArea = connect(SemiTextArea, mapReadPretty(PreviewText.Input));
-const DatePicker = connect(SemiDatePicker, mapReadPretty(PreviewText.Input));
-const RelationSelect = connect(
-  VfRelationSelect,
-  mapReadPretty(PreviewText.Input)
-);
+// const useAsyncDataSource = (service) => (field: FormFieldVo) => {
+//   field.loading = true;
+//   service(field).then(
+//     action.bound((data: Result<FormVo>) => {
+//       field.componentProps.datas = data.data;
+//       // alert(field.componentProps.datas.length);
+//       field.loading = false;
+//     })
+//   );
+// };
 
-const useAsyncDataSource = (service) => (field: FormFieldVo) => {
-  field.loading = true;
-  service(field).then(
-    action.bound((data: Result<FormVo>) => {
-      field.componentProps.datas = data.data;
-      // alert(field.componentProps.datas.length);
-      field.loading = false;
-    })
-  );
-};
+// const load1 = async (field: Field) => {
+//   const componentSetting: ComponentSetting =
+//     field.componentProps.componentSetting;
+//   if (componentSetting) {
+//     const props = Object.keys(componentSetting);
+//     //对组件的属性进行遍历
+//     props.map((oneProp) => {
+//       const sourceType = componentSetting[oneProp].sourceType;
+//       const apiModel = ApiInfo[componentSetting[oneProp].api];
+//       //只要固定有值，不管选择的是不是固定的
+//       if (componentSetting[oneProp].fixed) {
+//         //给字段级组件指定prop传固定值
+//         field.componentProps[oneProp] = componentSetting[oneProp].fixed;
+//       } else if (sourceType.startsWith("api") && apiModel && apiModel.api) {
+//         //接口是否有入参判断，有则要取值
+//         const params = apiModel.params;
+//         const argument = {};
+//         let mustFlag = true;
+//         if (params) {
+//           Object.keys(params).forEach((k) => {
+//             //当前接口的一个参数
+//             const currParam = componentSetting[oneProp].apiParams
+//               ? componentSetting[oneProp].apiParams[k]
+//               : undefined;
+//             if (currParam) {
+//               if (
+//                 currParam.fixed &&
+//                 (currParam.sourceType === "fixed" ||
+//                   currParam.sourceType === undefined)
+//               ) {
+//                 argument[k] = currParam.fixed;
+//               } else if (
+//                 currParam.sourceType === "field" &&
+//                 field.query(currParam.field).get("value")
+//               ) {
+//                 argument[k] = field.query(currParam.field).get("value");
+//               }
+//             }
+//             //应该有值，但是没有值
+//             if (params[k].must === true && (!currParam || !argument[k])) {
+//               mustFlag = false;
+//             }
+//           });
+//         }
+//         // return { prop: oneProp, service: apiModel.api(argument) };
+//         //必填的字段must有值，那么就去调用接口
+//         if (mustFlag) {
+//           // 所有动态加载数据的组件使用的接口都会传name, id, entityName;
+//           apiModel
+//             .api({ ...argument, ...field.componentProps.apiCommonParams })
+//             .then((data) => {
+//               field.componentProps[oneProp] = data.data;
+//             });
+//         }
+//       }
+//     });
+//   }
+// };
 
-const useAsyncDataSource1 = (load) => (field: Field) => {
-  console.log("field", field);
-  field.loading = true;
-  load(field).then(
-    (data) => {}
-    // action.bound((data: Result<any>) => {
-    //   field.componentProps[vvv.prop] = data.data;
-    //   field.loading = false;
-    // })
-  );
-};
-
+//异步加载数据，联动数据
 const load1 = async (field: Field) => {
   const componentSetting: ComponentSetting =
     field.componentProps.componentSetting;
-  if (componentSetting) {
-    const props = Object.keys(componentSetting);
-    //对组件的属性进行遍历
-    props.map((oneProp) => {
-      const sourceType = componentSetting[oneProp].sourceType;
-      const apiModel = ApiInfo[componentSetting[oneProp].api];
-      //只要固定有值，不管选择的是不是固定的
-      if (componentSetting[oneProp].fixed) {
-        //给字段级组件指定prop传固定值
-        field.componentProps[oneProp] = componentSetting[oneProp].fixed;
-      } else if (sourceType.startsWith("api") && apiModel && apiModel.api) {
-        //接口是否有入参判断，有则要取值
-        const params = apiModel.params;
-        const argument = {};
-        let mustFlag = true;
-        if (params) {
-          Object.keys(params).forEach((k) => {
-            //当前接口的一个参数
-            const currParam = componentSetting[oneProp].apiParams
-              ? componentSetting[oneProp].apiParams[k]
-              : undefined;
-            if (currParam) {
-              if (
-                currParam.fixed &&
-                (currParam.sourceType === "fixed" ||
-                  currParam.sourceType === undefined)
-              ) {
-                argument[k] = currParam.fixed;
-              } else if (
-                currParam.sourceType === "field" &&
-                field.query(currParam.field).get("value")
-              ) {
-                argument[k] = field.query(currParam.field).get("value");
-              }
-            }
-            //应该有值，但是没有值
-            if (params[k].must === true && (!currParam || !argument[k])) {
-              mustFlag = false;
-            }
-          });
-        }
-        // return { prop: oneProp, service: apiModel.api(argument) };
-        //必填的字段must有值，那么就去调用接口
-        if (mustFlag) {
-          // 所有动态加载数据的组件使用的接口都会传name, id, entityName;
-          apiModel
-            .api({ ...argument, ...field.componentProps.apiCommonParams })
-            .then((data) => {
-              field.componentProps[oneProp] = data.data;
-            });
-        }
-      }
-    });
-  }
 };
-
-/**
- * 表单布局展示，需要固定写在函数式组件之外
- * 圈定所有组件
- */
-const SchemaField = createSchemaField({
-  components: {
-    InputNumber,
-    Input,
-    TextArea,
-    PreviewText,
-    FormItem,
-    FormGrid,
-    DatePicker,
-    GridColumn,
-    Select,
-    ArrayItems,
-    FormTab,
-    ArrayTable,
-    Checkbox,
-    RelationInput, //封装关系选择formily组件。特定组件支持特定业务
-    RelationSelect,
-    RoleResourcesSelect, // 特定的业务型组件 占2列；自定义组件，根据传参来处理
-    TabSelect, //tab方式的过滤，权限选择上级权限时使用在，应该会被TreeSelect取代
-    PageSelect, //平铺选择组件（查询条件过滤使用在）
-    TreeSelect,
-    VlifeSelect,
-    FormTable, //列表组件
-    QueryBuilder, // 查询组件
-    TreeQuery,
-    DictSelectTag,
-    //------------------------ new
-    SearchInput,
-    SelectTag,
-    VfSelect,
-    RelationTagInput,
-    VfTreeSelect,
-    VfTreeInput,
-    ResourcesSelect,
-    GroupSelect,
-    VfEditor,
-    VfImage,
-    SelectIcon,
-  },
-});
-
 // reaction
 //https://react.formilyjs.org/zh-CN/api/shared/schema#schemareactions
 //表信息
@@ -254,22 +164,12 @@ export default ({
   highlight,
   fieldMode,
 }: FormProps) => {
-  const { getDict } = useAuth();
-
-  const getDictByCode = (code: string): { val: string; title: string }[] => {
-    const currDict: TranDict = getDict({ codes: [code] })[0];
-    return currDict.sysDict.map((d) => {
-      return {
-        val: d.val,
-        title: d.title,
-      };
-    });
-  };
+  const { getDict, dicts: allDict } = useAuth();
 
   /**
    * 将数据与模型对应的数值取出来当入参数传入到loaddata里
    */
-  const load = async (field) => {
+  const load = async (field: any) => {
     // alert(JSON.stringify(field.componentProps));
     if (field.componentProps && field.componentProps.loadDatas) {
       const loadDatas: loadData = field.componentProps.loadDatas;
@@ -311,7 +211,6 @@ export default ({
           }),
             onFormInit((form) => {}),
             onFormValuesChange((form) => {
-              console.log("formformform", form);
               if (form.errors.length > 0 && onError !== undefined) {
                 setTimeout(() => onError(form.errors), 200);
               }
@@ -328,6 +227,31 @@ export default ({
       }),
     [modelInfo, fkMap, formData, read, reload]
   );
+
+  const SchemaField = useMemo(() => {
+    const components: any = {};
+    Object.keys(ComponentInfo)
+      .filter((key) => ComponentInfo[key].component)
+      .forEach((key) => {
+        components[key] = ComponentInfo[key].component;
+      });
+
+    return createSchemaField(
+      {
+        components: {
+          ...components,
+          PreviewText,
+          FormItem,
+          FormGrid,
+          GridColumn,
+          ArrayItems,
+          FormTab,
+          ArrayTable,
+        },
+      }
+      // },
+    );
+  }, []);
 
   /**
    * 字典数据提取
@@ -550,7 +474,8 @@ export default ({
             read: read, //预览状态
           };
         }
-        // 组件固定属性值 从 ComponentData.conponentConf里提取
+        // 组件属性值提取
+        //1  从组件定义信息里(ComponentData.conponentConf) 提取写死的值(prop=‘xxx’)
         const propInfo = ComponentInfo[f.x_component]?.propInfo;
         if (propInfo) {
           const keys = Object.keys(propInfo);
@@ -563,14 +488,87 @@ export default ({
             }
           });
         }
-        // 组件动态属性从componentSetiting里提取
-        if (f.componentSetting && f.componentSetting !== null) {
-          if (prop["x-reactions"]) {
-            prop["x-reactions"] = [...prop["x-reactions"], "{{load1}}"];
-          } else {
-            prop["x-reactions"] = ["{{load1}}"];
-          }
+        //2 组件属性db库配置里提取 fixed类型的存储的固定属性值 ;
+        if (f.pageComponentPropDtos && f.pageComponentPropDtos.length > 0) {
+          prop["x-component-props"] = {
+            ...prop["x-component-props"],
+            optionList: [{ label: "aaa", value: "234" }],
+          };
+
+          // getPropObj().then((o) => {
+          //   prop["x-component-props"] = {
+          //     ...prop["x-component-props"],
+          //     optionList: [{ label: "aaa", value: "234" }],
+          //   };
+          // });
+
+          // componentPropCreate(
+          //   f.pageComponentPropDtos, //属性值
+          //   ComponentInfo[f.x_component], //组件属性信息
+          //   (props) => {
+          //     //设置组件属性的回调方法
+          //     prop["x-component-props"] = {
+          //       ...prop["x-component-props"],
+          //       ...props,
+          //     };
+          //   },
+          //   allDict
+          // );
+          // let props: any = {};
+          // //视图组件传值组装
+          // // 1.组装fixed的简单对象
+          // f.pageComponentPropDtos
+          //   .filter(
+          //     (p) =>
+          //       p.propName &&
+          //       p.propVal &&
+          //       (p.sourceType?.startsWith("fixed") || p.sourceType === "table")
+          //   )
+          //   .forEach((p) => {
+          //     const dt = getDataType(
+          //       ComponentInfo[f.x_component],
+          //       p.propName,
+          //       p.subName
+          //     );
+          //     props = valueAdd(
+          //       p,
+          //       props,
+          //       dt === dataType.icon ? (
+          //         <SelectIcon read={true} value={p.propVal} />
+          //       ) : (
+          //         p.propVal
+          //       )
+          //     );
+          //   });
+
+          // //dict取值
+
+          // f.pageComponentPropDtos
+          //   ?.filter((p) => p.propName && p.sourceType === "dict")
+          //   .forEach((p) => {
+          //     const dt = getDataType(
+          //       ComponentInfo[f.x_component],
+          //       p.propName,
+          //       p.subName
+          //     );
+          //     //数据转换
+          //     props = valueAdd(p, props, [{ val: "1", title: "2" }]);
+          //   });
+
+          // prop["x-component-props"] = {
+          //   ...prop["x-component-props"],
+          //   ...props,
+          // };
         }
+
+        // 组件动态属性从componentSetiting里提取
+        // if (f.componentSetting && f.componentSetting !== null) {
+        //   if (prop["x-reactions"]) {
+        //     prop["x-reactions"] = [...prop["x-reactions"], "{{load1}}"];
+        //   } else {
+        //     prop["x-reactions"] = ["{{load1}}"];
+        //   }
+        // }
         // }
 
         //业务组件

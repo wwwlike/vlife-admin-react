@@ -7,12 +7,14 @@ import { FileItem } from "@douyinfe/semi-ui/lib/es/upload";
 import { Image, ImagePreview } from "@douyinfe/semi-ui";
 import { useUpdateEffect } from "ahooks";
 import { type } from "os";
+import { FormFieldVo } from "@src/mvc/model/FormField";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 /**
  * @returns 图片上传组件
  */
 
-interface VfImageProps extends VfBaseProps<string | string[], SysFile[]> {
+interface VfImageProps
+  extends Partial<VfBaseProps<string | string[], SysFile[]>> {
   size?: "large" | "small" | "default";
 }
 const VfImage = ({
@@ -31,7 +33,7 @@ const VfImage = ({
   useEffect(() => {
     //没有手工调整过之前都使用服务端传来的已上传数据信息
     if (datas && hand === false) {
-      setImageIds(datas.map((d) => d.id));
+      setImageIds(datas.map((d: any) => d.id));
     }
   }, [datas, hand]);
 
@@ -71,7 +73,7 @@ const VfImage = ({
       return (
         datas
           // ?.filter((d) => imageIds?.includes(d.id))
-          .map((d) => {
+          .map((d: any) => {
             return {
               uid: d.id,
               status: "success",
@@ -122,7 +124,7 @@ const VfImage = ({
         prompt={getPrompt("right", true)}
         promptPosition={"right"}
         listType="picture"
-        limit={fieldInfo.fieldType === "basic" ? 1 : 100}
+        limit={fieldInfo?.fieldType === "basic" ? 1 : 100}
         defaultFileList={fileList}
         afterUpload={(data: any) => {
           setHand(true);
@@ -155,7 +157,7 @@ const VfImage = ({
       prompt={getPrompt("right", true)}
       promptPosition={"right"}
       listType="picture"
-      limit={fieldInfo.fieldType === "basic" ? 1 : 100}
+      limit={fieldInfo?.fieldType === "basic" ? 1 : 100}
       // defaultFileList={fileList}
       afterUpload={(data: any) => {
         setHand(true);

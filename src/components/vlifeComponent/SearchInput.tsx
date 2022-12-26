@@ -20,18 +20,17 @@ const SearchInput = ({
   seconds = 400,
   onDataChange,
   value,
+  fieldInfo,
   ...props
 }: SearchProps & InputProps) => {
-  const [urlParam, setUrlParam] = useUrlQueryParam([props.fieldInfo.fieldName]);
+  const [urlParam, setUrlParam] = useUrlQueryParam([fieldInfo.fieldName]);
   const [searchValue, setSearchValue] = useState(
-    urlParam[props.fieldInfo.fieldName]
-      ? urlParam[props.fieldInfo.fieldName]
-      : value
+    urlParam[fieldInfo.fieldName] ? urlParam[fieldInfo.fieldName] : value
   );
 
   useDebounceEffect(
     () => {
-      setUrlParam({ [props.fieldInfo.fieldName]: searchValue });
+      setUrlParam({ [fieldInfo.fieldName]: searchValue });
       if (onDataChange) onDataChange(searchValue);
     },
     [searchValue],
@@ -45,7 +44,7 @@ const SearchInput = ({
         placeholder={
           props.placeholder
             ? props.placeholder
-            : "按照" + props.fieldInfo.title + "搜索"
+            : "按照" + fieldInfo.title + "搜索"
         }
         prefix={<IconSearch />}
         value={searchValue}

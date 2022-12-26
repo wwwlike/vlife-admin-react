@@ -79,10 +79,10 @@ const ReportTable = ({
           return {
             title: i.reportItemId
               ? findItem(i.reportItemId).name
-              : findKpi(i.reportKpiId).name,
+              : findKpi(i.reportKpiId as string).name,
             dataIndex: i.reportItemId
               ? findItem(i.reportItemId).code
-              : findKpi(i.reportKpiId).code,
+              : findKpi(i.reportKpiId as string).code,
           };
         }),
       ];

@@ -40,7 +40,7 @@ export default () => {
   /**
    * 当前报表数据
    */
-  const [reportData, setReportData] = useState([]);
+  const [reportData, setReportData] = useState<any[]>([]);
 
   /**
    * 当前报表列头
@@ -71,11 +71,21 @@ export default () => {
 
   useEffect(() => {
     listAll().then((data) => {
-      setAllReportDto(data.data);
-      setCurrReportTable(data.data[0]);
+      if (data.data) {
+        setAllReportDto(data.data);
+        setCurrReportTable(data.data[0]);
+      }
     });
-    listItemAll(null).then((data) => setAllReportItem(data.data));
-    listKpiAll().then((data) => setAllReportKpi(data.data));
+    listItemAll().then((data) => {
+      if (data.data) {
+        setAllReportItem(data.data);
+      }
+    });
+    listKpiAll().then((data) => {
+      if (data.data) {
+        setAllReportKpi(data.data);
+      }
+    });
   }, []);
 
   const groupTitle = (code: string): string => {
@@ -109,7 +119,7 @@ export default () => {
   useEffect(() => {
     if (allReportDto && allReportDto.length > 0) {
       let temps: ColumnProps<any>[] = [];
-      let groupStr: string;
+      let groupStr: string = "";
       //列头信息处理
       if (currReportTable && currReportTable.items) {
         //列头加上列函数
@@ -127,16 +137,21 @@ export default () => {
             return {
               title: i.reportItemId
                 ? findItem(i.reportItemId).name
-                : findKpi(i.reportKpiId).name,
+                : findKpi(i.reportKpiId as string).name,
               dataIndex: i.reportItemId
                 ? findItem(i.reportItemId).code
-                : findKpi(i.reportKpiId).code,
+                : findKpi(i.reportKpiId as string).code,
             };
           }),
         ];
       }
 
-      if (reportData && reportData.length > 0 && temps.length > 0 && groupStr) {
+      if (
+        reportData &&
+        reportData.length > 0 &&
+        temps.length > 0 &&
+        groupStr !== ""
+      ) {
         if (groupStr.endsWith("Id")) {
           find(
             groupStr.substring(0, groupStr.length - 2),
@@ -200,7 +215,7 @@ export default () => {
         >
           <Nav
             bodyStyle={{ height: 320 }}
-            selectedKeys={[currReportTable?.code]}
+            selectedKeys={currReportTable ? [currReportTable.code] : []}
             items={allReportDto.map((d) => {
               return {
                 itemKey: d.code,
@@ -209,9 +224,6 @@ export default () => {
               };
             })}
             onSelect={onSelect}
-            // onClick={(data) => {
-            //   console.log(data);
-            // }}
           />
         </Card>
       </div>

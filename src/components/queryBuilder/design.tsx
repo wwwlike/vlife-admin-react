@@ -4,7 +4,7 @@ import React, { ReactNode } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useCallback } from "react";
-import QueryBuilder, { FormItemCondition, where } from ".";
+import QueryBuilder, { andOr, FormItemCondition, where } from ".";
 import Compare from "./Compare";
 
 export interface QueryDesignProps {
@@ -29,8 +29,7 @@ export default ({
   datas,
   onDataChange,
   remove,
-  ...props
-}: Partial<QueryDesignProps>) => {
+}: QueryDesignProps) => {
   const [pageCondition, setPageCondition] = useState<
     Partial<FormItemCondition>
   >(
@@ -41,7 +40,6 @@ export default ({
 
   useEffect(() => {
     onDataChange(pageCondition);
-    // console.log("pageCondition", pageCondition);
   }, [pageCondition]);
 
   const addWhere = useCallback(
@@ -64,14 +62,15 @@ export default ({
 
   const removeWhere = useCallback(
     (index: number) => {
-      const exist: any[] = pageCondition.where.filter((d, number) => {
-        console.log(number, index, number !== index);
-        return number !== index;
-      });
+      const exist: any[] | undefined = pageCondition?.where?.filter(
+        (d, number) => {
+          return number !== index;
+        }
+      );
 
       setPageCondition({
         ...pageCondition,
-        where: [...exist],
+        where: exist ? [...exist] : [],
       });
     },
     [pageCondition]
@@ -79,11 +78,12 @@ export default ({
 
   const removeCondition = useCallback(
     (index: number) => {
+      const exist = pageCondition?.conditions?.filter(
+        (d, number) => number != index
+      );
       setPageCondition({
         ...pageCondition,
-        conditions: [
-          ...pageCondition.conditions.filter((d, number) => number != index),
-        ],
+        conditions: exist ? [...exist] : [],
       });
     },
     [pageCondition]
@@ -111,7 +111,7 @@ export default ({
     (attr: "value" | "opt" | "fieldName", index: number, newVal: any) => {
       setPageCondition({
         ...pageCondition,
-        where: pageCondition.where.map((d, whereIndex) => {
+        where: pageCondition?.where?.map((d, whereIndex) => {
           return whereIndex === index ? { ...d, [attr]: newVal } : d;
         }),
       });
@@ -130,8 +130,8 @@ export default ({
               placeholder="组合方式"
               style={{ width: "130px" }}
               value={pageCondition.orAnd}
-              onChange={(data: "and" | "or") => {
-                setPageCondition({ ...pageCondition, orAnd: data });
+              onChange={(data) => {
+                setPageCondition({ ...pageCondition, orAnd: data as andOr });
               }}
               optionList={[
                 { label: "或", value: "or" },
@@ -163,7 +163,7 @@ export default ({
                   onDataChange={(data) => {
                     setPageCondition({
                       ...pageCondition,
-                      where: pageCondition.where.map((d, whereIndex) => {
+                      where: pageCondition?.where?.map((d, whereIndex) => {
                         return whereIndex === index ? data : d;
                       }),
                     });
@@ -186,10 +186,10 @@ export default ({
                   pageCondition={w}
                   datas={datas}
                   onDataChange={(data) => {
-                    if (data === null) {
+                    if (data === null || data === undefined) {
                       setPageCondition({
                         ...pageCondition,
-                        conditions: pageCondition.conditions.filter(
+                        conditions: pageCondition?.conditions?.filter(
                           (co, thisIndex) => {
                             return thisIndex !== index;
                           }
@@ -198,7 +198,7 @@ export default ({
                     } else {
                       setPageCondition({
                         ...pageCondition,
-                        conditions: pageCondition.conditions.map(
+                        conditions: pageCondition?.conditions?.map(
                           (co, thisIndex) => {
                             return thisIndex === index ? JSON.parse(data) : co;
                           }

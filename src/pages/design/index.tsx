@@ -23,8 +23,6 @@ import {
   IconArrowDown,
   IconReply,
   IconSave,
-  IconOrderedList,
-  IconKanban,
 } from "@douyinfe/semi-icons";
 import FormPage from "@src/pages/common/formPage";
 import { FormVo } from "@src/mvc/model/Form";
@@ -36,8 +34,6 @@ import FieldSetting from "./fieldSetting";
 import { useUrlQueryParam } from "@src/utils/lib";
 import VlifeButton from "@src/components/basic/vlifeButton";
 import FormSetting from "./formSetting";
-import VfInput from "./data/Test";
-import FieldComponent from "./fieldSetting/FieldComponent";
 const { Content, Sider } = Layout;
 const modelType: any = {
   entity: "实体模型",
@@ -715,6 +711,7 @@ export default () => {
               <FieldSetting
                 form={currModel}
                 onDataChange={(data) => {
+                  // alert(JSON.stringify(data));
                   setCurrField({ ...data });
                   if (currModel) {
                     setSaveFlag({ ...saveFlag, [currModel.entityType]: true });

@@ -78,7 +78,7 @@ export const page = (
  * @return 单个查询统计项目;
  */
 export const listAll = (
-  req: ReportItemPageReq
+  req?: ReportItemPageReq
 ): Promise<Result<ReportItem[]>> => {
   return apiClient.get(
     `/reportItem/list/all?${qs.stringify(req, {

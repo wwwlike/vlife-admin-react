@@ -11,14 +11,14 @@ export interface PageLayout extends DbEntity{
 
 export interface PageConfDto extends SaveBean{
   id: string; 
-  content:Partial< PageComponentDto>[]; 
+  content?:PageComponentDto[]; //布局元素组件配置集合信息
 }
 /** 
    * 保存页面布局;
    * @param dto 页面布局;
    * @return 页面布局;
    */
-export const savePageConfDto=(dto: PageConfDto): Promise<Result<PageConfDto>>=>{
+export const savePageConfDto=(dto: Partial< PageConfDto>): Promise<Result<PageConfDto>>=>{
   return apiClient.post(`/pageLayout/save/pageConfDto`  ,dto  );
 };
 /** 

@@ -2,6 +2,7 @@ import { Schema } from "@formily/react";
 import apiClient from "@src/mvc/apiClient";
 import { DbEntity, Result, VoBean } from "@src/mvc/base";
 import { ComponentSetting } from "@src/pages/design/fieldSetting/componentData";
+import { PageComponentPropDto } from '../PageComponentProp';
 import { FormEventVo } from "./FormEvent";
 import { FormReactionVo } from "./FormReaction";
 
@@ -38,6 +39,12 @@ export interface FormField extends DbEntity {
   vlife_message: string; //校验不通过提醒
   listShow: boolean; //列表展示
   componentSettingJson: string;
+}
+
+// 字段dto
+export interface FormFieldDto extends FormField {
+  //字段对应组件属性设置信息集合
+   pageComponentPropDtoList?: Partial<PageComponentPropDto>[];
 }
 
 /**
@@ -118,6 +125,7 @@ export interface FormFieldVo extends VoBean, Schema {
   loadDatas: loadData; // 异步加载数据的相关属性注入(待干掉)
   componentSettingJson: string; //组件设置jsoN信息
   componentSetting: ComponentSetting; //json转换对象信息
+  pageComponentPropDtos:Partial<PageComponentPropDto>[];//字段所在组件的设置信息
 }
 
 /**

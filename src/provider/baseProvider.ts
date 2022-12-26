@@ -4,7 +4,7 @@ import { useRequest } from "ahooks";
 import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import qs from "qs";
 import apiClient from "@src/mvc/apiClient";
-import { IdBean, ModelInfo, PageVo, Result } from "@src/mvc/base";
+import { DbEntity, IdBean, ModelInfo, PageVo, Result } from "@src/mvc/base";
 import { Notification } from "@douyinfe/semi-ui";
 import { componentProps } from "@src/mvc/model/FormField";
 
@@ -197,6 +197,25 @@ export const find = (
     params: {},
   });
 };
+
+
+
+/**
+ * 单表全量数据查询
+ * @param entityName 模块
+ * @param req 查询条件
+ * @returns
+ */
+ export const listAll = (params:{
+  entityName: string,
+  req?:any
+}): Promise<Result<any[]>> => {
+  return apiClient.get(`/${params.entityName}/list/all?${qs.stringify(params.req, {
+    allowDots: true,
+    arrayFormat: "comma",
+  })}`);
+};
+
 
 export const findName = (prop: componentProps): Promise<Result<any[]>> => {
   if (prop.val === undefined || prop.val === null || prop.val.length === 0) {

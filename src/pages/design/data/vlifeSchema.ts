@@ -40,13 +40,13 @@ const schemaDef: SchemaClz = {
     type: "input",
     tag: "basic",
   },
-  dictCode: {
-    name: "字典项目",
-    type: "select",
-    tag: "basic",
-    deps: { field: "x_component", value: ["Select", "DictSelectTag"] },
-    items: [],
-  },
+  // dictCode: {
+  //   name: "字典项目",
+  //   type: "select",
+  //   tag: "basic",
+  //   deps: { field: "x_component", value: ["Select", "DictSelectTag"] },
+  //   items: [],
+  // },
   x_hidden: {
     name: "隐藏",
     type: "switch",

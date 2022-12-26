@@ -200,6 +200,13 @@ const MENU_CONFIG: MenuItem[] = [
         code: "project", // 与菜单编码对应
         path: "/oa/project",
       },
+      {
+        itemKey: "8-3",
+        text: "tailwind",
+        path: "/tailwind",
+      },
+
+      
     ],
   },
 ];

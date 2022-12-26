@@ -1,90 +1,91 @@
 /**
  * 组件属性设置
  */
-import { Collapse } from "@douyinfe/semi-ui";
-import { PageComponentDto } from "@src/mvc/PageComponent";
-import {
-  PageComponentProp,
-  PageComponentPropDto,
-} from "@src/mvc/PageComponentProp";
-import { useUpdateEffect } from "ahooks";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Button, Collapse } from "@douyinfe/semi-ui";
+import Text from "@douyinfe/semi-ui/lib/es/typography/text";
+import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
+import React, { useCallback, useMemo } from "react";
 import ComponentArrayPropSetting from "./ComponentArrayPropSetting";
-import { ComponentInfo, PropInfo } from "./componentData";
+import ComponentArraySignlePropSetting from "./ComponentArraySignlePropSetting";
+import { ComponentInfo, dataType, PropInfo } from "./componentData";
 import ComponentObjectPropSetting from "./ComponentObjectPropSetting";
 import ComponentPropSetting from "./ComponentPropSetting";
 
 interface CompontentSettingProps {
+  pageKey: string;
   /** 组件定义信息 */
   componentInfo: ComponentInfo;
   /** 组件属性db配置信息 */
-  settings: PageComponentDto;
-  onDataChange: (comp: PageComponentDto) => void;
+  // pageComponentDto: PageComponentDto;
+  pageComponentPropDtos: Partial<PageComponentPropDto>[] | undefined;
+  onDataChange: (
+    pageComponentPropDtos: Partial<PageComponentPropDto>[]
+  ) => void;
 }
 
 const PropsSetting = ({
+  pageKey,
   componentInfo,
-  settings,
+  pageComponentPropDtos,
   onDataChange,
 }: CompontentSettingProps) => {
-  const [info, setInfo] = useState<PageComponentDto>();
-  // 所有非string类型的组件对象信息
+  // 非string类型的组件对象信息
   const propInfos = useMemo((): { [key: string]: PropInfo } => {
-    const pp: { [key: string]: PropInfo } = {};
+    const propInfoObj: { [key: string]: PropInfo } = {};
     if (componentInfo && componentInfo.propInfo) {
       Object.keys(componentInfo.propInfo).forEach((key) => {
-        if (typeof componentInfo.propInfo[key] !== "string") {
-          pp[key] = componentInfo.propInfo[key];
+        if (
+          componentInfo.propInfo &&
+          typeof componentInfo.propInfo[key] !== "string"
+        ) {
+          propInfoObj[key] = componentInfo.propInfo[key] as PropInfo;
         }
       });
     }
-    return pp;
+    return propInfoObj;
   }, [componentInfo]);
 
   const replace = useCallback(
-    (propName: string, propsSetting: PageComponentPropDto[]) => {
-      const existOther: PageComponentProp = info.props?.filter(
-        (p) => p.propName !== propName
-      );
+    (propName: string, propsSetting: Partial<PageComponentPropDto>[]) => {
+      if (pageComponentPropDtos) {
+        const existOther: Partial<PageComponentPropDto>[] =
+          pageComponentPropDtos.filter((p) => p.propName !== propName);
+        const replaceObj: Partial<PageComponentPropDto>[] = [
+          ...(existOther ? existOther : []),
+          ...propsSetting,
+        ];
 
-      const replaceObj: PageComponentDto = {
-        ...info,
-        props: [...(existOther ? existOther : []), ...propsSetting],
-      };
-      setInfo(replaceObj);
+        onDataChange([...replaceObj]);
+      } else {
+        onDataChange([...propsSetting]);
+      }
     },
-    [info]
+    [{ ...pageComponentPropDtos }] //数组必须这样才能监听的到
   );
-
-  useEffect(() => {
-    setInfo(settings);
-  }, [settings.pageKey]);
-
-  useUpdateEffect(() => {
-    if (onDataChange && info) {
-      onDataChange(info);
-    }
-  }, [info]);
-
   const findProp = useCallback(
     (propName: string): any => {
-      if (info && info.props) {
-        return info.props.filter((f) => f.propName === propName);
+      if (pageComponentPropDtos) {
+        return pageComponentPropDtos.filter((f) => f.propName === propName);
       }
       return undefined;
     },
-    [info]
+    [pageComponentPropDtos]
   );
+
   return (
-    <Collapse>
-      {Object.keys(propInfos).map((key) => (
-        <Collapse.Panel
-          header={key + propInfos[key].label}
-          itemKey={"collapse" + key}
-        >
-          {/* 1. 简单属性(无dataSub都看做简单类型)*/}
-          {propInfos[key].dataSub === undefined ? (
+    <div>
+      {/* 一、 简单属性，一行一个 */}
+      {Object.keys(propInfos)
+        .filter(
+          (key) =>
+            propInfos[key].dataType !== dataType.object &&
+            propInfos[key].dataType !== dataType.list
+        )
+        .map((key) => (
+          <div key={"div_" + key}>
             <ComponentPropSetting
+              key={"componentProp_" + key}
+              pageKey={pageKey}
               propName={key}
               propInfo={propInfos[key]}
               propObj={
@@ -92,38 +93,71 @@ const PropsSetting = ({
                   ? findProp(key)[0]
                   : undefined
               }
-              onDataChange={(d) => {
-                // key都干掉
-                // 然后把都加入进来
-                // alert(JSON.stringify(d));
+              onDataChange={(d: Partial<PageComponentPropDto>) => {
                 replace(key, [d]);
               }}
             />
-          ) : propInfos[key].dataType === Object ? (
-            <div>
-              <ComponentObjectPropSetting
-                propName={key}
-                propInfo={propInfos[key]}
-                propObjs={findProp(key)}
-                onDataChange={(d) => {
-                  replace(key, d);
-                }}
-              />
-            </div>
-          ) : (
-            <ComponentArrayPropSetting
-              propName={key}
-              value={findProp(key)}
-              data={propInfos[key]}
-              onDataChange={(d) => {
-                replace(key, d);
-              }}
-            />
-          )}
-          {/* 2. 对象属性 3. 数组对象属性  */}
-        </Collapse.Panel>
-      ))}
-    </Collapse>
+          </div>
+        ))}
+      <Collapse>
+        {Object.keys(propInfos)
+          .filter(
+            (key) =>
+              propInfos[key].dataType === dataType.object ||
+              propInfos[key].dataType == dataType.list
+          )
+          .map((key) => (
+            <Collapse.Panel
+              key={`panel` + key}
+              header={key + propInfos[key].label}
+              itemKey={"collapse" + key}
+            >
+              {/* 对象属性*/}
+              {propInfos[key].dataType === dataType.object &&
+              propInfos[key].dataSub ? (
+                <div>
+                  <ComponentObjectPropSetting
+                    pageKey={pageKey}
+                    propName={key}
+                    propInfo={propInfos[key]}
+                    pageComponentPropDtos={findProp(key)}
+                    onDataChange={(d) => {
+                      replace(key, d);
+                    }}
+                  />
+                </div>
+              ) : propInfos[key].dataType === dataType.list &&
+                propInfos[key].dataSub ? ( //数组对象
+                <ComponentArrayPropSetting
+                  pageKey={pageKey}
+                  propName={key}
+                  value={findProp(key)}
+                  data={propInfos[key]}
+                  onDataChange={(d) => {
+                    replace(key, d);
+                  }}
+                />
+              ) : propInfos[key].dataType === dataType.list &&
+                propInfos[key].dataSub === undefined ? ( // 数组简单对象
+                <ComponentArraySignlePropSetting
+                  pageKey={pageKey}
+                  propName={key}
+                  pageComponentPropDtos={findProp(key)}
+                  data={propInfos[key]}
+                  onDataChange={(d) => {
+                    replace(key, d);
+                  }}
+                />
+              ) : (
+                <Text className="text-red-400" strong>
+                  组件配置信息有误，请检查
+                </Text>
+              )}
+              {/* 2. 对象属性 3. 数组对象属性  */}
+            </Collapse.Panel>
+          ))}
+      </Collapse>
+    </div>
   );
 };
 
