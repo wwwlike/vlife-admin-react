@@ -1,28 +1,28 @@
 /**
- * 组件属性设置
+ * API参数设置
  */
-import { IconSetting } from "@douyinfe/semi-icons";
-import { Input, Select, SideSheet, Typography } from "@douyinfe/semi-ui";
-import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
+import { Input, Select, Typography } from "@douyinfe/semi-ui";
 import { useAuth } from "@src/context/auth-context";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import SelectIcon from "@src/components/vlifeComponent/SelectIcon";
 import { listAll } from "@src/provider/baseProvider";
-import ApiSetting from "../ApiSetting";
 import { PropInfo } from "../fieldSetting/componentData";
 import { PageApiParam } from "@src/mvc/PageApiParam";
+import { FormFieldVo } from "@src/mvc/model/FormField";
+import { ParamInfo } from "../fieldSetting/apiData";
 const { Text } = Typography;
 interface PropSettingProps {
   /** 参数名 */
   paramName: string;
   /** 参数信息 */
-  paramInfo: PropInfo;
+  paramInfo: ParamInfo;
   /** 参数DB数据 */
   pageApiParam?: Partial<PageApiParam>;
   /**
    * 数据回传
    */
   onDataChange: (pageApiParam: Partial<PageApiParam>) => void;
+
+  fields?: FormFieldVo[];
 }
 
 const ComponentPropSetting = ({
@@ -30,6 +30,7 @@ const ComponentPropSetting = ({
   paramInfo,
   pageApiParam,
   onDataChange,
+  fields,
 }: PropSettingProps) => {
   const { dicts } = useAuth();
 
@@ -57,25 +58,19 @@ const ComponentPropSetting = ({
   /**
    * sourceType=table时，从服务端请求的可以选择的数据集
    */
-  const [tableData, setTableData] = useState<{ label: string; value: any }[]>();
+  const [selectData, setSelectData] =
+    useState<{ label: string; value: any }[]>();
 
   /**
    * 和ComponentPropSetting重复了，应该提取成
    */
   useEffect(() => {
-    const table = paramInfo?.table;
-    if (table && table.entityName) {
-      const entityName = table.entityName;
-      const labelField = table.labelField || "name";
-      const valField = table.valField || "id";
-      listAll({ entityName, req: table.table_req }).then((data) => {
-        const datas = data.data?.map((d) => {
-          return {
-            label: d[labelField],
-            value: d[valField],
-          };
-        });
-        setTableData(datas);
+    const fixed = paramInfo?.fixed;
+    if (fixed && fixed.dicts) {
+      setSelectData(fixed.dicts);
+    } else if (fixed && fixed.promise) {
+      fixed.promise.then((d) => {
+        setSelectData(d);
       });
     }
   }, [paramInfo]);
@@ -87,7 +82,7 @@ const ComponentPropSetting = ({
         <div className=" w-24">{paramInfo.label}</div>
         {(paramInfo.sourceType === "fixed" ||
           paramInfo.sourceType === undefined) &&
-        paramInfo.table === undefined &&
+        selectData === undefined &&
         paramInfo.dict === undefined ? (
           //固定值 图标选择组件
           <Input value={paramData?.paramVal} onChange={onParamValChange} />
@@ -106,20 +101,28 @@ const ComponentPropSetting = ({
         ) : (
           <></>
         )}
-        {/*3  表字段选择 */}
-        {tableData ? (
+        {/*3  自定义传值选择 */}
+        {selectData ? (
           <Select
             showClear
             value={paramData.paramVal}
             onChange={onParamValChange}
-            optionList={tableData}
+            optionList={selectData}
           />
         ) : (
           <></>
         )}
-        {/* 4  api选择,api调整后，需要把参数设置的全部给清空(目前没有做) */}
-        {paramInfo.sourceType === "api" ? (
-          <>api参数来源当前不能定义成从接口获取(sourceType!==api)</>
+        {paramInfo.sourceType === "field" && fields ? (
+          //vlife是选择字典类目
+          <Select
+            style={{ width: "100%" }}
+            showClear
+            value={paramData.paramVal}
+            optionList={fields.map((m) => {
+              return { value: m.fieldName, label: m.title };
+            })}
+            onChange={onParamValChange}
+          />
         ) : (
           <></>
         )}

@@ -187,13 +187,19 @@ export default () => {
       setSaveFlag({ ...saveFlag, [currModel.entityType]: true });
       const fields: FormFieldVo[] = form.fields.map((f) => {
         if (f.dictCode && uiType === "save") {
-          f.x_component = "Select";
+          f.x_component = "VfSelect_DICT";
         } else if (f.dictCode && uiType === "req") {
           f.componentType = "business";
-          f.x_component = "DictSelectTag";
+          f.x_component = "SelectTag";
         } else if (f.type === "date") {
           f.componentType = "basic";
           f.x_component = "DatePicker";
+        } else if (f.fieldName === "pcode" || f.fieldName === "code") {
+          if (uiType === "save") {
+            f.x_component = "VfTreeInput";
+          } else {
+            f.x_component = "VfTreeSelect";
+          }
         } else if (f.type === "boolean") {
           f.dictCode = "TF";
           if (uiType === "save") {
@@ -201,7 +207,7 @@ export default () => {
             f.x_component = "Select";
           } else {
             f.componentType = "business";
-            f.x_component = "DictSelectTag";
+            f.x_component = "SelectTag";
           }
         } else if (
           (f.fieldName !== "id" &&
@@ -210,7 +216,7 @@ export default () => {
           f.fieldName === "modifyId" ||
           f.fieldName === "createId"
         ) {
-          f.x_component = "RelationInput";
+          f.x_component = "RelationTagInput";
         } else if (f.type === "boolean") {
           f.componentType = "basic";
           f.x_component = "Checkbox";

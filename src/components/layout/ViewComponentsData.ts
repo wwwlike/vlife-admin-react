@@ -22,15 +22,15 @@ export const ViewComponents: ComponentDef = {
         sourceType:"fixed",
         dataType:dataType.string,
       },  
-      info: {
-        label: "汇总数据",
-        dataType:dataType.object,
-        dataSub:{
-          title:{label:'标题',dataType:dataType.string, sourceType:"fixed"},
-          total:{label:'数值',dataType:dataType.number,sourceType:"api"}
-        },
-        must: true,
-      },
+      // info: {
+      //   label: "汇总数据",
+      //   dataType:dataType.object,
+      //   dataSub:{
+      //     title:{label:'标题',dataType:dataType.string, sourceType:"fixed"},
+      //     total:{label:'数值',dataType:dataType.number,sourceType:"api"}
+      //   },
+      //   must: true,
+      // },
       infos: {
         label: "汇总数据数组",
         dataType:dataType.list,

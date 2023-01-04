@@ -11,7 +11,7 @@ export interface SysResources extends DbEntity {
   resourcesPcode: string; // 上级权限
   icon: string; // 图标
   sysRoleId: string; // 归属角色
-  type: string; // 资源类型
+  resourcesType: string; // 资源类型
   url: string; // 路由地址
   menuCode: string; // 归属菜单
   name: string; // 资源名称

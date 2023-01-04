@@ -1,6 +1,5 @@
 import { DbEntity, PageQuery, PageVo, Result } from "@src/mvc/base";
 import apiClient from "../apiClient";
-import { FormItem } from "./FormItem";
 // 查询过滤条件
 export interface FormCondition extends DbEntity {
   formId: string; // 实体模型id

@@ -22,7 +22,7 @@ export default () => {
             type="req"
             onDataChange={(data) => setFormData({ ...data })}
             entityName="reportItem"
-            modelName="formItemPageReq"
+            modelName="reportItemPageReq"
           />
         </Card>
       </div>

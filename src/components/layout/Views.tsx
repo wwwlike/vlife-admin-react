@@ -15,6 +15,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import SelectIcon from "../vlifeComponent/SelectIcon";
 import { ViewComponents } from "./ViewComponentsData";
 import { listAll } from "@src/provider/baseProvider";
+import { Field } from "@formily/core";
+import { FormFieldVo } from "@src/mvc/model/FormField";
+import Arrow from "@douyinfe/semi-ui/lib/es/popover/Arrow";
 /**
  * 单个组件渲染的包装组件
  * 相关函数可以给到formindex使用，form里存在联动比这里复杂
@@ -67,9 +70,259 @@ export const valueAdd = (
   }
   return propObj;
 };
-export const fetchStaticPropObj = (): any => {
-  return null;
+
+/**
+ * 静态数据请求
+ * 1固定2字典3field类数据提取
+ */
+export const fetchStaticPropObj = (
+  props: Partial<PageComponentPropDto>[],
+  componentInfo: ComponentInfo,
+  allDict: {
+    [key: string]: {
+      data: { value: string; label: string }[];
+      label: string;
+    };
+  },
+  field?: FormFieldVo,
+  formData?: any //表单数据
+): any => {
+  let propsObj: any = {};
+  // 1.组装fixed的简单对象,不需要转换直接从数据库里提取即可
+  props
+    ?.filter((p) => p.propName && p.propVal && p.sourceType === "fixed")
+    .forEach((p) => {
+      //图表类型，需要转换成组件形式
+      if (p.propName) {
+        const dt = getDataType(componentInfo, p.propName, p.subName);
+        valueAdd(
+          p,
+          propsObj,
+          dt === dataType.icon ? (
+            <SelectIcon read={true} value={p.propVal} />
+          ) : (
+            p.propVal
+          )
+        );
+      }
+    });
+  //2.  dataSource ===dict 方式取值
+  props
+    ?.filter((p) => p.propName && p.sourceType === "dict")
+    .forEach((p) => {
+      if (p.propName) {
+        const dt = getDataType(componentInfo, p.propName, p.subName);
+        if (dt === dataType.dictList) {
+          if (
+            componentInfo &&
+            componentInfo.propInfo &&
+            p.propName &&
+            typeof componentInfo.propInfo[p.propName] !== "string"
+          ) {
+            valueAdd(
+              p,
+              propsObj,
+              allDict[p.propVal || "vlife"].data.map((d) => {
+                return {
+                  label: d.label,
+                  value: field?.type === "integer" ? Number(d.value) : d.value,
+                };
+              })
+            );
+          }
+        }
+      }
+    });
+
+  //3 sys
+  props
+    ?.filter((p) => p.propName && p.propVal && p.sourceType === "sys")
+    .forEach((p) => {
+      // alert("11111111");
+      //图表类型，需要转换成组件形式
+      if (
+        p.propName &&
+        componentInfo.propInfo &&
+        typeof componentInfo.propInfo[p.propName] !== "string"
+      ) {
+        const propInfo: PropInfo = componentInfo.propInfo[
+          p.propName
+        ] as PropInfo;
+
+        if (propInfo.sourceType === "sys" && field && p.propVal) {
+          // alert(field["type"]);
+          valueAdd(p, propsObj, field[p.propVal]);
+        }
+      }
+    });
+
+  //3.  dataSource ===field 方式取值
+  // props
+  //   ?.filter((p) => p.propName && p.propVal && p.sourceType === "field")
+  //   .forEach((p) => {
+  //     if (p.propName) {
+  //       valueAdd(p, propsObj, p.propVal ? formData[p.propVal] : null);
+  //     }
+  //   });
+  return propsObj;
 };
+
+/**
+ * 请求远程数据
+ * @param props
+ * @param componentInfo
+ * @param commonParams //通用api入参
+ */
+export const fetchPropObj = (
+  props: Partial<PageComponentPropDto>[],
+  componentInfo: ComponentInfo,
+  commonParams: any,
+  field?: Field
+): Promise<any> => {
+  let propsObj: any = {};
+  return Promise.all(
+    props
+      ?.filter(
+        (p) =>
+          p.propName &&
+          p.propVal &&
+          (p.sourceType === "api" ||
+            // p.sourceType === "table" ||
+            p.sourceType === "field")
+      )
+      .map(async (prop) => {
+        // console.log(prop.propName);
+        if (prop.propVal) {
+          if (prop.sourceType === "api") {
+            // 接口参数没有先不去请求数据
+            const allParam = ApiInfo[prop.propVal]?.params;
+            const paramNames: string[] =
+              allParam !== undefined ? Object.keys(allParam) : [];
+            let load: boolean = true;
+            const paramObj: any = {};
+            if (paramNames.length > 0) {
+              paramNames.forEach((name) => {
+                const db = prop.params?.filter((p) => p.paramName === name);
+                if (db && db?.length > 0 && db[0].paramVal) {
+                  if (db[0].sourceType === "fixed") {
+                    paramObj[name] = db[0].paramVal; //当前是固定的，会从字段取计算动态的
+                  }
+                  if (db[0].sourceType === "field" && field) {
+                    paramObj[name] = field.query(db[0].paramVal).get("value");
+                  }
+                } else {
+                  load = false;
+                }
+              });
+            }
+            if (load) {
+              propsObj = await ApiInfo[prop.propVal]
+                .api({ ...paramObj, ...commonParams })
+                .then((d) => {
+                  // componentInfo.propInfo[prop.propName]
+                  if (
+                    prop.propName &&
+                    componentInfo &&
+                    prop.propVal &&
+                    componentInfo.propInfo &&
+                    typeof componentInfo.propInfo !== "string" &&
+                    (componentInfo.propInfo[prop.propName] as PropInfo)
+                      .otherData !== undefined
+                  ) {
+                    const propInfo = componentInfo.propInfo[
+                      prop.propName
+                    ] as PropInfo;
+                    const otherData: any = propInfo.otherData;
+
+                    if (otherData[ApiInfo[prop.propVal].dataType]) {
+                      propsObj = valueAdd(
+                        prop,
+                        propsObj,
+                        otherData[ApiInfo[prop.propVal].dataType](d.data)
+                      );
+                    } else {
+                      propsObj = valueAdd(prop, propsObj, d.data);
+                    }
+                  } else {
+                    propsObj = valueAdd(prop, propsObj, d.data);
+                  }
+                  // 接口出参类型和属性要求的类型是否一致，不一致则使用tran转换函数
+                  return propsObj;
+                });
+            }
+            // return propsObj;
+          }
+          // else if (
+          //   prop.propName &&
+          //   componentInfo.propInfo &&
+          //   typeof (componentInfo.propInfo[prop.propName] !== "string") &&
+          //   (componentInfo.propInfo[prop.propName] as PropInfo).table !==
+          //     undefined
+          // ) {
+          //   // table 方式
+          //   const table = (componentInfo.propInfo[prop.propName] as PropInfo)
+          //     .table;
+          //   const entityName = prop.propVal;
+          //   const labelField = table?.labelField || "name";
+          //   const valField = table?.valField || "id";
+
+          //   // table方式
+          //   propsObj = await listAll({ entityName: entityName || "form" }).then(
+          //     (d) => {
+          //       propsObj = valueAdd(
+          //         prop,
+          //         propsObj,
+          //         d.data?.map((d) => {
+          //           return { label: d[labelField], value: d[valField] };
+          //         })
+          //       );
+          //       return propsObj;
+          //     }
+          //   );
+          // }
+          else if (prop.sourceType === "field" && field) {
+            Arrow;
+            valueAdd(prop, propsObj, field.query(prop.propVal).get("value"));
+          }
+          return propsObj;
+        }
+      })
+  ).then((d) => {
+    if (d.length > 0) {
+      return { ...d[d.length - 1] };
+      // setComponentPropFunc({ ...d[d.length - 1] }); //执行回调函数
+    }
+  });
+  // const promiseTest = new Promise((resolve, reject) => {
+  //   if (4 > 2) {
+  //     resolve("a");
+  //   } else {
+  //     reject("error");
+  //   }
+  // });
+
+  // return promiseTest.then(
+  //   (data) => {
+  //     console.log(data);
+  //     return {
+  //       optionList: [
+  //         { label: "2123", value: "123" },
+  //         { label: "234", value: "123" },
+  //       ],
+  //     };
+  //   },
+  //   (error) => {
+  //     console.log(error);
+  //     return "thenError";
+  //   }
+  // );
+
+  // .then(data=>{
+  //   console.log(data)
+  //     return "then2";
+  // }
+};
+
 /**
  * 组件属性创建
  * @param props  组件属性DB数据
@@ -88,52 +341,12 @@ export const componentPropCreate = (
   }
 ) => {
   (async () => {
-    let propsObj: any = {};
-    //视图组件传值组装
-    // 1.组装fixed的简单对象,不需要转换直接从数据库里提取即可
-    props
-      ?.filter((p) => p.propName && p.propVal && p.sourceType === "fixed")
-      .forEach((p) => {
-        //图表类型，需要转换成组件形式
-        if (p.propName) {
-          const dt = getDataType(componentInfo, p.propName, p.subName);
-          valueAdd(
-            p,
-            propsObj,
-            dt === dataType.icon ? (
-              <SelectIcon read={true} value={p.propVal} />
-            ) : (
-              p.propVal
-            )
-          );
-        }
-      });
-    //2.  dataSource ===dict 方式取值
-    props
-      ?.filter((p) => p.propName && p.sourceType === "dict")
-      .forEach((p) => {
-        if (p.propName) {
-          const dt = getDataType(componentInfo, p.propName, p.subName);
-          if (dt === dataType.dictList) {
-            if (
-              componentInfo &&
-              componentInfo.propInfo &&
-              p.propName &&
-              typeof componentInfo.propInfo[p.propName] !== "string"
-            ) {
-              valueAdd(
-                p,
-                propsObj,
-                allDict[p.propVal || "vlife"].data.map((d) => {
-                  return { label: d.label, value: d.value };
-                })
-              );
-            }
-          }
-        }
-      });
+    /**
+     * 1. 本地数据提取
+     */
+    let propsObj: any = fetchStaticPropObj(props, componentInfo, allDict) || {};
 
-    // 4. api异步数据提取 (table是指定了api的异步取数据)
+    // 2.远程数据提取 . api异步数据提取 (table是指定了api的异步取数据)
     if (
       props?.filter(
         (p) =>
@@ -145,10 +358,7 @@ export const componentPropCreate = (
       Promise.all(
         props
           ?.filter(
-            (p) =>
-              p.propName &&
-              p.propVal &&
-              (p.sourceType === "api" || p.sourceType === "table")
+            (p) => p.propName && p.propVal && p.sourceType === "api" //|| p.sourceType === "table"
           )
           .map(async (prop) => {
             // console.log(prop.propName);
@@ -186,12 +396,8 @@ export const componentPropCreate = (
                 // return propsObj;
               } else {
                 // table方式
-
                 propsObj = await listAll({ entityName: "form" }).then((d) => {
-                  propsObj = valueAdd(prop, propsObj, [
-                    { value: "1", label: "2" },
-                    { value: "2", label: "44" },
-                  ]);
+                  propsObj = valueAdd(prop, propsObj, d.data);
                   return propsObj;
                 });
               }
@@ -218,14 +424,14 @@ const Views = ({ pageComponentDto, className }: ViewsProps) => {
   }, [pageComponentDto]);
 
   /** 组件属性 */
-  const [componentProps, setrComponentProps] = useState<any>();
+  const [componentProps, setComponentProps] = useState<any>();
 
   useEffect(() => {
     if (pageComponentDto.props) {
       componentPropCreate(
         pageComponentDto.props,
         ComponentInfo,
-        setrComponentProps,
+        setComponentProps,
         dicts
       );
     }

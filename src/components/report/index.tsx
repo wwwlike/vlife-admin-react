@@ -5,7 +5,7 @@ import { ReportTableSaveDto } from "@src/mvc/model/ReportTable";
 import React, { useCallback, useEffect, useMemo } from "react";
 
 interface ReportTableProps {
-  currReportTable: ReportTableSaveDto;
+  currReportTable: Partial<ReportTableSaveDto>;
   reportData?: any[];
   allReportItem: ReportItem[];
   allReportKpi: ReportKpi[];

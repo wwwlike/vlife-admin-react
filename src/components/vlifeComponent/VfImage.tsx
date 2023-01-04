@@ -4,10 +4,7 @@ import { IconPlus } from "@douyinfe/semi-icons";
 import { VfBaseProps } from "..";
 import { SysFile } from "@src/mvc/SysFile";
 import { FileItem } from "@douyinfe/semi-ui/lib/es/upload";
-import { Image, ImagePreview } from "@douyinfe/semi-ui";
-import { useUpdateEffect } from "ahooks";
-import { type } from "os";
-import { FormFieldVo } from "@src/mvc/model/FormField";
+import { Image } from "@douyinfe/semi-ui";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 /**
  * @returns 图片上传组件
@@ -94,23 +91,21 @@ const VfImage = ({
             width={viewSize.width}
             height={viewSize.height}
             src={`${apiUrl}/sysFile/image/${value}`}
-          ></Image>
+          />
         ) : (
           value?.map((d) => (
-            <>
-              {/* <Space>{apiUrl + "/sysFile/image/" + d.id}</Space> */}
-              <Image
-                width={viewSize.width}
-                height={viewSize.height}
-                src={`${apiUrl}/sysFile/image/${d}`}
-              ></Image>
-            </>
+            <Image
+              width={viewSize.width}
+              height={viewSize.height}
+              src={`${apiUrl}/sysFile/image/${d}`}
+            />
           ))
         )}
       </Space>
     </>
-  ) : datas && value ? (
+  ) : fileList && fileList.length > 0 ? (
     <>
+      {/* {JSON.stringify(fileList[0].url)} */}
       <div
         style={{
           marginBottom: 12,
@@ -151,38 +146,40 @@ const VfImage = ({
       </Upload>
     </>
   ) : (
-    <Upload
-      action={action}
-      fileName="file"
-      prompt={getPrompt("right", true)}
-      promptPosition={"right"}
-      listType="picture"
-      limit={fieldInfo?.fieldType === "basic" ? 1 : 100}
-      // defaultFileList={fileList}
-      afterUpload={(data: any) => {
-        setHand(true);
-        if (data.response.data === -1) {
-        } else {
-          if (onDataChange)
-            onDataChange([
-              ...(imageIds ? imageIds : []),
-              data.response.data.id,
-            ]);
-          setImageIds([...(imageIds ? imageIds : []), data.response.data.id]);
-        }
-        return data;
-      }}
-      onRemove={(a, b, c) => {
-        setHand(true);
-        if (onDataChange) {
-          onDataChange(imageIds?.filter((f) => f != c.uid));
-        }
-        setImageIds(imageIds?.filter((f) => f != c.uid));
-      }}
-      // defaultFileList={value && datas ? fileList : {}}
-    >
-      <IconPlus size="extra-large" />
-    </Upload>
+    <>
+      <Upload
+        action={action}
+        fileName="file"
+        prompt={getPrompt("right", true)}
+        promptPosition={"right"}
+        listType="picture"
+        limit={fieldInfo?.fieldType === "basic" ? 1 : 100}
+        // defaultFileList={fileList}
+        afterUpload={(data: any) => {
+          setHand(true);
+          if (data.response.data === -1) {
+          } else {
+            if (onDataChange)
+              onDataChange([
+                ...(imageIds ? imageIds : []),
+                data.response.data.id,
+              ]);
+            setImageIds([...(imageIds ? imageIds : []), data.response.data.id]);
+          }
+          return data;
+        }}
+        onRemove={(a, b, c) => {
+          setHand(true);
+          if (onDataChange) {
+            onDataChange(imageIds?.filter((f) => f != c.uid));
+          }
+          setImageIds(imageIds?.filter((f) => f != c.uid));
+        }}
+        // defaultFileList={value && datas ? fileList : {}}
+      >
+        <IconPlus size="extra-large" />
+      </Upload>
+    </>
   );
 };
 

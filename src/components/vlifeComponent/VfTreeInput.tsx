@@ -12,7 +12,8 @@ interface TreeQueryProps extends VfBaseProps<string, VfTree[]> {
   /**
    *点击值字段标识
    */
-  valField: "id" | "code";
+  valField?: string;
+  parentField?: string;
   /**
    * 根节点code,
    * 设置了则从他开始，没有设置就是从最短的开始
@@ -33,8 +34,10 @@ interface treeElementProps {
  * 待：机构/地区/部门联合树如何实现？
  */
 const VfTreeInput = ({
-  valField = "id",
+  valField = "code",
+  parentField = "pcode",
   root,
+  fieldInfo,
   datas,
   value,
   read,
@@ -53,9 +56,16 @@ const VfTreeInput = ({
     if (root) return [root];
     if (datas) {
       const findNull: string[] = datas
-        .filter((d: any) => d.pcode === undefined || d.pcode === null)
-        .map((d: any) => d.code);
+        .filter(
+          (d: any) => d[parentField] === undefined || d[parentField] === null
+        )
+        .map((d: any) => d[valField]);
       if (findNull && findNull.length > 0) return findNull;
+
+      const allPcodes = datas.map((d) => d.code);
+      return datas
+        .filter((data) => !allPcodes.includes(data.pcode))
+        .map((d) => d.code);
     } else {
     }
     return [];
@@ -81,11 +91,11 @@ const VfTreeInput = ({
               ? d.code === code
               : findRoot.filter((dd) => dd === d.code).length > 0 //父级
         )
-        .map((dd) => {
+        .map((dd: any) => {
           return {
-            value: dd[valField],
+            value: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : valField],
             label: dd.name,
-            key: dd[valField],
+            key: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : valField],
             children: treeData(dd.code, true),
           };
         });
@@ -96,7 +106,13 @@ const VfTreeInput = ({
     <>
       {read ? (
         <div className="formily-semi-text">
-          {datas?.filter((d) => d.code === val).map((d) => d.name)}
+          {/* {JSON.stringify(datas)} */}
+          {datas
+            ?.filter(
+              (d: any) =>
+                d[fieldInfo.fieldName.endsWith("Id") ? "id" : valField] === val
+            )
+            .map((d) => d.name)}
         </div>
       ) : (
         <>

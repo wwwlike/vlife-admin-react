@@ -184,7 +184,7 @@ export default ({
                 <QueryBuilder
                   isRoot={false}
                   pageCondition={w}
-                  datas={datas}
+                  datas={datas.entityType}
                   onDataChange={(data) => {
                     if (data === null || data === undefined) {
                       setPageCondition({

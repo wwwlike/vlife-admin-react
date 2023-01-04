@@ -1,6 +1,7 @@
 /**
  * api参数设置主键主文件
  */
+import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageApiParam } from "@src/mvc/PageApiParam";
 import { useCallback } from "react";
 import { ApiProp } from "../fieldSetting/apiData";
@@ -23,6 +24,8 @@ interface ApiSettingProps {
    * 全量设置信息返回
    */
   onDataChange: (pageApiParams: Partial<PageApiParam>[]) => void;
+
+  fields?: FormFieldVo[];
 }
 
 export default ({
@@ -30,6 +33,7 @@ export default ({
   onDataChange,
   apiName,
   data,
+  fields,
 }: ApiSettingProps) => {
   const reload = useCallback(
     (paramName: string, pageApiParam: Partial<PageApiParam>) => {
@@ -68,6 +72,7 @@ export default ({
                   }}
                   paramName={key}
                   paramInfo={data.params[key]}
+                  fields={fields}
                 />
               );
             } else {

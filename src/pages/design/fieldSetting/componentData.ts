@@ -5,12 +5,18 @@
   DatePicker as SemiDatePicker,
   Input as SemiInput,
   TextArea as SemiTextArea,
+  Select as SemiSelect,
 } from "@douyinfe/semi-ui";
 
+
 import { connect, mapReadPretty } from '@formily/react';
-import { InputNumber, PreviewText, Select } from '@formily/semi';
+import {
+  PreviewText,
+  InputNumber,
+} from '@formily/semi'
 import VData from '@src/components/form/VData';
 import QueryBuilder from '@src/components/queryBuilder';
+import FormTable from '@src/components/table/FormTable';
 import GroupSelect from '@src/components/vlifeComponent/GroupSelect';
 import RelationTagInput from '@src/components/vlifeComponent/RelationTagInput';
 import ResourcesSelect from '@src/components/vlifeComponent/ResourcesSelect';
@@ -19,15 +25,17 @@ import SelectIcon from '@src/components/vlifeComponent/SelectIcon';
 import SelectTag from '@src/components/vlifeComponent/SelectTag';
 import VfEditor from '@src/components/vlifeComponent/VfEditor';
 import VfImage from '@src/components/vlifeComponent/VfImage';
+import { VfText } from '@src/components/vlifeComponent/VfText';
 import VfTreeInput from '@src/components/vlifeComponent/VfTreeInput';
 import VfTreeSelect from '@src/components/vlifeComponent/VfTreeSelect';
-
-const Input = connect(SemiInput, mapReadPretty(PreviewText.Input));
+const Input = connect(SemiInput, mapReadPretty(PreviewText.Input))
+const Select = connect(SemiSelect, mapReadPretty(VfText))
 const TextArea = connect(SemiTextArea, mapReadPretty(PreviewText.Input));
-const DatePicker = connect(SemiDatePicker, mapReadPretty(PreviewText.Input));
-import { SysFile } from '@src/mvc/SysFile';
 
-export type sourceType='fixed'|'api'|'field'|'dict'|'sys'|'table'
+const DatePicker = connect(SemiDatePicker, mapReadPretty(VfText));
+// import { SysFile } from '@src/mvc/SysFile';
+
+export type sourceType='fixed'|'field'|'dict'|'sys'|'api'
 /**
  * 1. field.type,和field.fieldType和它进行匹配
  * 2. 自定义接口返回类型使用它进行匹配
@@ -35,14 +43,22 @@ export type sourceType='fixed'|'api'|'field'|'dict'|'sys'|'table'
 export enum dataType {
   icon="Icon",//图片类型数据，其实也是字符串;
   dictList="dictList",//字典集合类型数据；
+  fileList="file,file_list",//文件实体
   string = "string",
   object="object",
   number="number",
   stringList="string_list",
   integer = "integer",
-  list = "list",
+  double="double",
+  list = "string_list",
+  objList="list",
   date = "date",
+  dateList="date_list",
+  label_value_list="label_value_list",
   code_name_list = "code_name_lsit", //编码name数据结构
+  resourcesCode_name_list="resourcesCode_name_list",
+  entityType_name_list="entityType_name_list",
+  fieldName_title_list="fieldName_title_list",
   id_name_list = "id_name_list", //规范:标识为idName对象的数组
   val_title_list = "val_title_list", //规范:标识为idName对象的数组
   VfTree_list = "vfTree_list", // 属性结果数据，包含 id,code,pcode,name
@@ -120,11 +136,15 @@ export interface  PropInfo{
     dict?:{// sourceType===dict,
       dictCode:string
     },
-    table?:{ //2 来源实体表的某行记录值，会去访问`${tableName}/list/all`
-      entityName:string, //表名
-      valField?:string, //值字典
-      labelField?:string, //label字段
-      table_req?:any, //入参 
+    otherData?: { [key:string]: (otherData:any)=>any }, //其他类型的数据， 对应的转换方法(dataType)
+    // table?:{ //2 来源实体表的某行记录值，会去访问`${tableName}/list/all`
+    //   entityName:string, //表名
+    //   valField?:string, //值字典
+    //   labelField?:string, //label字段
+    //   table_req?:any, //入参 
+    // },
+    sys?:{
+      key?:"fieldType"
     }
 
     // sourceTyepDetail?:{//不同数据源对象取值时进行进一步设置时的字段。
@@ -139,7 +159,7 @@ export interface  PropInfo{
     // },//具体来源指定 dict指定底朝天Code，fixed：可选指定从指定表字段取值    
     dataSub?:PropDef //下一级数据的定义信息 能支持嵌套一集了
     must?: boolean; //是否必填,默认不是必须的
-    dicts?: { [key: string]: string }; //字典类型设置，在前端以下拉框形式展示,待移入到 sourceTypeDetail里去
+    // dicts?: { [key: string]: string }; //字典类型设置，在前端以下拉框形式展示,待移入到 sourceTypeDetail里去
 }
 /**
  * 属性定义
@@ -218,12 +238,12 @@ export const ComponentInfo: ComponentDef = {
   },
   InputNumber: {
     component:InputNumber,
-    dataChangeValueType: dataType.integer,
+    dataChangeValueType: [dataType.integer,dataType.double],
   },
   VfSelect_DICT: {
     component:Select,
     label: "字典下拉框",
-    dataChangeValueType: [dataType.string, dataType.number,dataType.list],
+    dataChangeValueType: [dataType.string, dataType.number,dataType.list,dataType.integer],
     remark: "支持字典项选择和外键选择(数据量不要太大了)",
     propInfo: {
       optionList:{
@@ -235,39 +255,73 @@ export const ComponentInfo: ComponentDef = {
       labelField:"title",
     },
   },
-  VfSelect_Entity: {
+
+  VfSelect: {
     component:Select,
-    label: "表数据下拉框",
-    dataChangeValueType: [dataType.string, dataType.number,dataType.list],
+    label: "vfSelect",
+    dataChangeValueType: [dataType.string, dataType.number,dataType.list,dataType.integer],
     propInfo: {
-      optionList:{//optionList的数据需要确定是哪张表的数据进行下拉选择
-        label:"实体表",
-        sourceType:"table",
-        dataType:dataType.string,// fixed里
-        table:{
-          entityName:"form",
-        }
-        // sourceTyepDetail:{
-        //   table_entityName:"reportItem",
-        //   table_valField:"code",
-        //   table_labelField:"name"
-        // }
-      },
-      valField:"id",
-      labelField:"name",
+      showClear:"true",
+      optionList:{
+        label:"数据来源",
+        sourceType:'api',
+        dataType:dataType.label_value_list, //期望的是这个数据类型
+        otherData:{ //支持的其他类型的入参数据，传入之前需要转换成 lableValue类型
+          [dataType.id_name_list]:(datas:{id:string,name:string}[])=>{
+            return datas.map((data:{id:string,name:string})=>{return {value:data.id,label:data.name}});
+          },
+          [dataType.code_name_list]:(datas:{code:string,name:string}[])=>{
+            return datas.map((data:{code:string,name:string})=>{return {value:data.code,label:data.name}});
+          },
+          [dataType.resourcesCode_name_list]:(datas:{resourcesCode:string,name:string}[])=>{
+            return datas.map((data:{resourcesCode:string,name:string})=>{return {value:data.resourcesCode,label:data.name}});
+          },
+          [dataType.entityType_name_list]:(datas:{entityType:string,name:string}[])=>{
+            return datas.map((data:{entityType:string,name:string})=>{return {value:data.entityType,label:data.name}});
+          },
+          [dataType.fieldName_title_list]:(datas:{fieldName:string,title:string}[])=>{
+            return datas.map((data:{fieldName:string,title:string})=>{return {value:data.fieldName,label:data.title}});
+          },
+          [dataType.resources_list]:(datas:{resourcesCode:string,name:string}[])=>{
+            return datas.map((data:{resourcesCode:string,name:string})=>{return {value:data.resourcesCode,label:data.name}});
+          },
+        },
+
+      }
     },
   },
+  // VfSelect_Entity: {
+  //   component:Select,
+  //   label: "数据字典(表字段下拉)",
+  //   dataChangeValueType: [dataType.string, dataType.number,dataType.list],
+  //   propInfo: {
+  //     optionList:{//optionList的数据需要确定是哪张表的数据进行下拉选择
+  //       // db=> {propName:"optionList",propVal:"选择的table",sourceType:"table"}
+  //       label:"实体表",
+  //       sourceType:"table", //来源于指定table接口
+  //       dataType:dataType.string,// fixed里
+  //       // table:{
+  //       //   entityName:"form", //查询form表
+  //       //   valField:"entityType",//存到 propVal里
+  //       //   labelField:"name"
+  //       // }
+  //     },
+  //     valField:"id",
+  //     labelField:"name",
+  //   },
+  // },
   RelationTagInput: {
     component:RelationTagInput,
     label: "关联弹框选择",
     dataChangeValueType: [dataType.string, dataType.list],
-    propInfo: {
-      datas: {
-        label: "已选择数据",
-        dataType: dataType.id_name_list, //要选来源（接口，接口的参数）2步设置，对于这种明确的需要一次设置成
-        must: false,
-      },
-    },
+    // propInfo: {
+    //   datas: {
+    //     label: "datas",
+    //     sourceType:"api",
+    //     dataType: dataType.id_name_list, //要选来源（接口，接口的参数）2步设置，对于这种明确的需要一次设置成
+    //     must: false,
+    //   },
+    // },
   },
   VfTreeSelect: {
     component:VfTreeSelect,
@@ -276,6 +330,7 @@ export const ComponentInfo: ComponentDef = {
     propInfo: {
       datas: {
         label: "VfTree结构化数据",
+        sourceType:"api",
         dataType: dataType.VfTree_list,
         must: true,
       },
@@ -285,7 +340,7 @@ export const ComponentInfo: ComponentDef = {
   DatePicker: {
     component:DatePicker,
     label: "日期",
-    dataChangeValueType: dataType.date,
+    dataChangeValueType:[dataType.date,dataType.dateList],
   },
   ResourcesSelect: {
     component:ResourcesSelect,
@@ -295,6 +350,7 @@ export const ComponentInfo: ComponentDef = {
       datas: {
         label: "资源信息",
         dataType: dataType.resources_list,
+        sourceType:"api",
         must: true,
       },
     },
@@ -306,33 +362,49 @@ export const ComponentInfo: ComponentDef = {
     propInfo: {
       datas: {
         label: "VfTree结构化数据",
+        sourceType:"api",
         dataType: dataType.VfTree_list,
         must: true,
       },
-      valField: {
-        label: "取值字段",
-        dataType: dataType.string,
-        must: true,
-      },
+      // valField: "code",
+      // valField: {
+      //   label: "取值字段",
+      //   dataType: dataType.string,
+      //   must: true,
+      // },
     },
-  },
+},
+  // TabSelectInput:{
+  //   component:TabSelectInput,
+  //   dataChangeValueType: dataType.string,
+  //   label:"tab选择组件",
+  //   propInfo:{
+  //     datas:{
+  //       label: "待选择的分组tab数据",
+  //       sourceType:'api',
+  //       dataType:dataType.id_name_list
+  //     }
+  //   }
+  // },
   GroupSelect: {
     component:GroupSelect,
     dataChangeValueType: dataType.list,
     label: "Page分组选择",
     propInfo: {
       datas: {
-        label: "Title/LIst结构的数据",
+        label: "Title/List结构的数据",
+        sourceType:'api',
         dataType: dataType.pageSelect_list,
         must: true,
       },
-      selectType: {
+      selectType:
+      {
         label: "选择维度",
         dataType:dataType.string,
         fixed:{dicts: [
           {value:"more",label:"多选"},
-          {value:"one",label:"单选"},
-          {value:"typeOne",label:"一组一个"}
+          // {value:"one",label:"单选"},
+          {value:"typeOne",label:"单选"}
         ],
         }
       },
@@ -344,8 +416,9 @@ export const ComponentInfo: ComponentDef = {
     label: "查询条件设计器",
     propInfo: {
       datas: {
-        label: "实体模型信息",
-        dataType: dataType.formVo,
+        label: "实体模型名称",
+        dataType: dataType.string,
+        sourceType:"field",
         must: true,
       },
     },
@@ -360,9 +433,9 @@ export const ComponentInfo: ComponentDef = {
     dataChangeValueType: [dataType.string, dataType.list],
     propInfo: {
       datas: {
-        label: "已上传图片信息",
-        // dataType: [Array<SysFile>]
-        dataType:dataType.list
+        label: "已上传",
+        dataType:dataType.fileList,
+        sourceType:"api"
       },
     },
   },
@@ -370,5 +443,22 @@ export const ComponentInfo: ComponentDef = {
     component:SelectIcon,
     dataChangeValueType:dataType.string,
     label: "图标选择",
+  },
+table:{
+    dataChangeValueType:dataType.objList,
+    label: "数据子集",
+    component:FormTable,
+    propInfo:{
+      type:{
+        sourceType:"sys",
+        label:"实体类",
+        dataType:dataType.string,
+        // sys:{
+        //   key:"fieldType"
+        // }
+      
+      }
+    }
+    
   }
 };

@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IconSave } from "@douyinfe/semi-icons";
 import { savePageConfDto, detail, PageConfDto } from "@src/mvc/PageLayout";
-
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-
 import {
   WidthProvider,
   Responsive,
@@ -17,7 +15,6 @@ import Views from "./Views";
 import { Button } from "@douyinfe/semi-ui";
 import VfCard from "../vlifeComponent/views/VfCard";
 import Draggable from "react-draggable";
-import { PageComponentDto } from "@src/mvc/PageComponent";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
@@ -75,10 +72,6 @@ const Layout = () => {
     });
   }, []);
 
-  function classNames(...classes: any) {
-    return classes.filter(Boolean).join(" ");
-  }
-
   const saveData = useMemo((): Partial<PageConfDto> | undefined => {
     if (
       content &&
@@ -117,18 +110,13 @@ const Layout = () => {
     }
   }, [content]);
 
-  // const getProps = (): PageComponentProp[] => {
-  //   return [];
-  // };
-
   const addModel = useCallback(
     (name: string, componentInfo: ComponentInfo) => {
       if (pageConf)
         setPageConf({
           ...pageConf,
           content: [
-            ...(pageConf.content !== undefined ? pageConf.content : []),
-
+            ...(pageConf.content ? pageConf.content : []),
             {
               pageKey:
                 "comp" + (pageConf.content ? pageConf.content.length : 0),
@@ -154,16 +142,6 @@ const Layout = () => {
     },
     [pageConf, point.x, point.y]
   );
-  // /**
-  //  * 删除
-  //  */
-  // const removeModel = useCallback((key: string) => {
-  //   if (pageConf)
-  //     setPageConf({
-  //       ...pageConf,
-  //       content: pageConf?.content?.filter((ff) => ff.pageKey !== key),
-  //     });
-  // }, []);
   /**
    * 布局改变
    * 数量，大小，位置

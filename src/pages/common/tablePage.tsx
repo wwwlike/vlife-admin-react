@@ -14,8 +14,6 @@ import { PageQuery, PageVo, Result } from "@src/mvc/base";
 import { Input } from "@douyinfe/semi-ui";
 import { FormVo } from "@src/mvc/model/Form";
 import { FormFieldVo } from "@src/mvc/model/FormField";
-import { SysFile } from "@src/mvc/SysFile";
-
 /**
  * 待写个文档
  */

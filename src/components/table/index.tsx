@@ -1,13 +1,23 @@
-import { Button, Popover, Space, Table, Tag, Tooltip } from "@douyinfe/semi-ui";
+import {
+  Button,
+  Popover,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+} from "@douyinfe/semi-ui";
 import {
   ColumnProps,
   RowSelection,
   TableProps,
 } from "@douyinfe/semi-ui/lib/es/table";
+import { useAuth } from "@src/context/auth-context";
 import { TranDict } from "@src/mvc/base";
 import { FormVo } from "@src/mvc/model/Form";
 import { FormFieldVo } from "@src/mvc/model/FormField";
 import { SysFile } from "@src/mvc/SysFile";
+import { formatDate } from "@src/utils/utils";
 import React, { useEffect, useMemo, useState } from "react";
 import SelectIcon from "../vlifeComponent/SelectIcon";
 import VfImage from "../vlifeComponent/VfImage";
@@ -89,6 +99,7 @@ export default ({
   children,
   ...props
 }: ListProps) => {
+  const { dicts } = useAuth();
   const [selectedRow, setSelectedRow] = useState<selectType[]>(
     selected ? [...selected] : []
   );
@@ -160,23 +171,37 @@ export default ({
       }
 
       // step2 字典转换
-      columnshow?.forEach((m: ColumnProps) => {
-        sysDict?.forEach((d) => {
-          if (m.dictCode?.toLowerCase() === d.column.toLowerCase()) {
-            m["render"] = (text, record, index) => {
-              return (
-                d.sysDict.find((dd) => {
-                  return dd.val + "" === text + "";
-                })?.title || "-"
-              );
-            };
-          }
-        });
-      });
+      // columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
+      //   sysDict?.forEach((d) => {
+      //     if (m.dictCode?.toLowerCase() === d.column.toLowerCase()) {
+      //       m["render"] = (text, record, index) => {
+      //         return (
+      //           d.sysDict.find((dd) => {
+      //             return dd.val + "" === text + "";
+      //           })?.title || "-"
+      //         );
+      //       };
+      //     }
+      //   });
+      // });
 
       //Boolean,外键，Pcode翻译处理
-      columnshow?.forEach((m: ColumnProps) => {
-        if (m.type === "boolean") {
+      columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
+        if (
+          m.pageComponentPropDtos &&
+          m.pageComponentPropDtos.filter((f) => f.sourceType === "dict")
+            .length > 0
+        ) {
+          const dictCode = m.pageComponentPropDtos.filter(
+            (f) => f.sourceType === "dict"
+          )[0].propVal;
+
+          m["render"] = (text, record, index) => {
+            return dicts[dictCode || "vlife"].data.filter(
+              (d) => d.value + "" === text + ""
+            )[0].label;
+          };
+        } else if (m.type === "boolean") {
           m["render"] = (text, record, index) => {
             return text === null ? "-" : text ? "是" : "否";
           };
@@ -184,16 +209,20 @@ export default ({
           m["render"] = (text, record, index) => {
             return fkMap[text];
           };
-        } else if (m.entityFieldName === "pcode") {
+        } else if (m.fieldName === "pcode") {
           m["render"] = (text, record, index) => {
             return parentMap[text];
+          };
+        } else if (m.type === "date") {
+          m["render"] = (text, record, index) => {
+            return formatDate(text, "yyyy-MM-dd");
           };
         }
       });
 
       //图标组件转换
       //图像组件转换
-      columnshow?.forEach((m) => {
+      columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
         if (m.x_component === "VfImage") {
           m["render"] = (text, record, index) => {
             return (
@@ -362,14 +391,17 @@ export default ({
         }
       })}
       {children}
-      <Table
-        rowKey={"id"}
-        dataSource={dataSource}
-        columns={memoColumns}
-        onRow={onRow}
-        rowSelection={select_more != undefined ? rowSelection : undefined}
-        {...props}
-      />
+      <>
+        {/* {JSON.stringify(parentMap)} */}
+        <Table
+          rowKey={"id"}
+          dataSource={dataSource}
+          columns={memoColumns}
+          onRow={onRow}
+          rowSelection={select_more != undefined ? rowSelection : undefined}
+          {...props}
+        />
+      </>
       {select_show_field &&
         selectedRow.map((one) => {
           return (

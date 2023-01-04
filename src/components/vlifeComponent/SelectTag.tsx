@@ -2,7 +2,8 @@ import { Space, Tag } from "@douyinfe/semi-ui";
 import { useUpdateEffect } from "ahooks";
 import React, { useCallback, useState } from "react";
 import { VfBaseProps, VfDict } from "..";
-interface DictSelectTagProps extends VfBaseProps<any, VfDict[]> {
+interface DictSelectTagProps
+  extends VfBaseProps<any, { label: string; value: string }[]> {
   selectMore?: boolean;
 }
 /**
@@ -66,18 +67,18 @@ DictSelectTagProps) => {
   return (
     <Space wrap={true}>
       {datas &&
-        datas.map((d) => {
+        datas.map((d: { label: string; value: string }) => {
           return (
             <Tag
               onClick={() => {
-                onSelect(d.val);
+                onSelect(d.value);
               }}
               size="large"
-              key={"dict_select_tag" + d.val}
+              key={"dict_select_tag" + d.value}
               color="blue"
-              type={selects.includes(d.val) ? "solid" : "ghost"}
+              type={selects.includes(d.value) ? "solid" : "ghost"}
             >
-              {d.title}
+              {d.label}
             </Tag>
           );
         })}

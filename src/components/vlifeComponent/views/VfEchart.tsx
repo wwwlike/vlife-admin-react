@@ -3,7 +3,6 @@
  */
 import React, { useMemo } from "react";
 import ReactECharts, { EChartsOption } from "echarts-for-react";
-import { VfBaseViewProps } from "@src/components";
 
 /**
  * 图表展示组件，

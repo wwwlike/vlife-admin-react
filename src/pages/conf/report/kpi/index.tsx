@@ -12,7 +12,7 @@ export default () => {
     <div className="h-full overscroll-auto">
       <div className="h-full w-72 float-left ">
         <Card
-          title="统计项管理"
+          title="指标项管理"
           bordered={true}
           className="h-full"
           headerLine={false}

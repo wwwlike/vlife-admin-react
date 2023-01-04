@@ -1,9 +1,10 @@
-import { Modal, Space, Tag, TagInput } from "@douyinfe/semi-ui";
+import { Modal, Space, TagInput } from "@douyinfe/semi-ui";
+import { FormFieldVo } from "@src/mvc/model/FormField";
 import TablePage from "@src/pages/common/tablePage";
 import { useUpdateEffect } from "ahooks";
 import { useEffect, useState } from "react";
 import { VfBaseProps, VfRelation, VfType } from "..";
-
+import { find } from "@src/provider/baseProvider";
 interface RelationInputProps
   extends VfBaseProps<string | string[], VfRelation[]> {}
 
@@ -15,6 +16,21 @@ function realEntityName(path: string): string {
     paths[paths.length - 1].length - 2
   );
 }
+
+function queryData(
+  value: string[],
+  f: FormFieldVo
+): Promise<VfRelation[] | undefined> {
+  return find(
+    f.entityFieldName.endsWith("Id")
+      ? f.entityFieldName.substring(0, f.entityFieldName.length - 2) //字段是ID结尾则去掉ID提取entityName
+      : f.entityType, //非id结尾直接使用entityType
+    "id",
+    value
+  ).then((data) => {
+    return data.data;
+  });
+}
 /**
  * 外键关系的tagInput组件
  */
@@ -22,10 +38,23 @@ const RelationTagInput = ({
   datas, //选中的数据，已经将value里封装在里面了
   fieldInfo,
   read,
+  value,
   onDataChange,
 }: RelationInputProps) => {
   // tag里最新的数据
-  const [tagData, setTagData] = useState<VfRelation[]>(datas ? [...datas] : []);
+  const [tagData, setTagData] = useState<VfRelation[]>([]);
+
+  useEffect(() => {
+    if (value) {
+      queryData(typeof value === "string" ? [value] : value, fieldInfo).then(
+        (d) => {
+          if (d) setTagData(d);
+        }
+      );
+    } else {
+      setTagData([]);
+    }
+  }, []);
 
   /**
    * 列表选中的数据
@@ -40,7 +69,7 @@ const RelationTagInput = ({
 
   return read ? (
     <Space>
-      {datas?.map((d) => {
+      {tagData?.map((d) => {
         return <div className="formily-semi-text">{d.name}</div>;
       })}
     </Space>
@@ -71,22 +100,25 @@ const RelationTagInput = ({
           select_show_field={"name"}
         ></TablePage>
       </Modal>
-
-      <TagInput
-        // showClear
-        placeholder={fieldInfo.title}
-        value={tagData?.map((m) => m.name)}
-        defaultValue={tagData?.map((m) => m?.id)}
-        onFocus={() => setModalState(true)}
-        onRemove={(v, i) => {
-          const obj = [
-            ...tagData.filter((d, index) => {
-              return i !== index;
-            }),
-          ];
-          setTagData([...obj]);
-        }}
-      />
+      <>
+        {/* {JSON.stringify(value)} */}
+        <TagInput
+          // showClear
+          placeholder={fieldInfo.title}
+          value={tagData?.map((m) => m.name)}
+          defaultValue={tagData?.map((m) => m?.id)}
+          onFocus={() => setModalState(true)}
+          onRemove={(v, i) => {
+            const obj = [
+              ...tagData.filter((d, index) => {
+                return i !== index;
+              }),
+            ];
+            // alert(obj.length);
+            setTagData([...obj]);
+          }}
+        />
+      </>
     </>
   );
 };

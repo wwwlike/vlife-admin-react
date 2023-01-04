@@ -38,13 +38,13 @@ import { eventReaction, loadDeps } from "./reactions";
 import FormTable from "../table/FormTable";
 import { FormFieldVo, loadData } from "@src/mvc/model/FormField";
 import { action } from "@formily/reactive";
-import { ApiInfo } from "@src/pages/design/fieldSetting/apiData";
 import { useAuth } from "@src/context/auth-context";
+import { ComponentInfo } from "@src/pages/design/fieldSetting/componentData";
 import {
-  ComponentInfo,
-  ComponentSetting,
-} from "@src/pages/design/fieldSetting/componentData";
-import { componentPropCreate } from "../layout/Views";
+  fetchPropObj, //动态数据提取
+  fetchStaticPropObj, //静态数据提取
+} from "../layout/Views";
+import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 
 // const useAsyncDataSource = (service) => (field: FormFieldVo) => {
 //   field.loading = true;
@@ -118,8 +118,22 @@ import { componentPropCreate } from "../layout/Views";
 
 //异步加载数据，联动数据
 const load1 = async (field: Field) => {
-  const componentSetting: ComponentSetting =
-    field.componentProps.componentSetting;
+  const pageComponentPropDtos: PageComponentPropDto[] =
+    field.componentProps["pageComponentPropDtos"];
+  if (pageComponentPropDtos)
+    //  field.componentProps.apiCommonParams
+    fetchPropObj(
+      pageComponentPropDtos,
+      ComponentInfo[field.componentProps["fieldInfo"].x_component],
+      field.componentProps.apiCommonParams,
+      field
+    ).then((data) => {
+      if (data) {
+        Object.keys(data).forEach((oneProp) => {
+          field.componentProps[oneProp] = data[oneProp];
+        });
+      }
+    });
 };
 // reaction
 //https://react.formilyjs.org/zh-CN/api/shared/schema#schemareactions
@@ -461,8 +475,10 @@ export default ({
             fieldInfo: {
               ...f,
             },
-            //组件设置信息
+            //组件设置信息（ 待移除）
             componentSetting: f.componentSetting,
+            //组件设置信息
+            pageComponentPropDtos: f.pageComponentPropDtos,
             //组件prop组件接口取值通用参数，不一定使用但是每次必定传，固需要用则参数名称应该和下面一致
             apiCommonParams: {
               entityName, //当前业务模型名称
@@ -490,86 +506,96 @@ export default ({
         }
         //2 组件属性db库配置里提取 fixed类型的存储的固定属性值 ;
         if (f.pageComponentPropDtos && f.pageComponentPropDtos.length > 0) {
+          const obj =
+            fetchStaticPropObj(
+              f.pageComponentPropDtos,
+              ComponentInfo[f.x_component],
+              allDict,
+              f,
+              formData //表单数据
+            ) || {};
           prop["x-component-props"] = {
             ...prop["x-component-props"],
-            optionList: [{ label: "aaa", value: "234" }],
+            ...obj,
           };
 
-          // getPropObj().then((o) => {
-          //   prop["x-component-props"] = {
-          //     ...prop["x-component-props"],
-          //     optionList: [{ label: "aaa", value: "234" }],
-          //   };
-          // });
-
-          // componentPropCreate(
-          //   f.pageComponentPropDtos, //属性值
-          //   ComponentInfo[f.x_component], //组件属性信息
-          //   (props) => {
-          //     //设置组件属性的回调方法
-          //     prop["x-component-props"] = {
-          //       ...prop["x-component-props"],
-          //       ...props,
-          //     };
-          //   },
-          //   allDict
-          // );
-          // let props: any = {};
-          // //视图组件传值组装
-          // // 1.组装fixed的简单对象
-          // f.pageComponentPropDtos
-          //   .filter(
-          //     (p) =>
-          //       p.propName &&
-          //       p.propVal &&
-          //       (p.sourceType?.startsWith("fixed") || p.sourceType === "table")
-          //   )
-          //   .forEach((p) => {
-          //     const dt = getDataType(
-          //       ComponentInfo[f.x_component],
-          //       p.propName,
-          //       p.subName
-          //     );
-          //     props = valueAdd(
-          //       p,
-          //       props,
-          //       dt === dataType.icon ? (
-          //         <SelectIcon read={true} value={p.propVal} />
-          //       ) : (
-          //         p.propVal
-          //       )
-          //     );
-          //   });
-
-          // //dict取值
-
-          // f.pageComponentPropDtos
-          //   ?.filter((p) => p.propName && p.sourceType === "dict")
-          //   .forEach((p) => {
-          //     const dt = getDataType(
-          //       ComponentInfo[f.x_component],
-          //       p.propName,
-          //       p.subName
-          //     );
-          //     //数据转换
-          //     props = valueAdd(p, props, [{ val: "1", title: "2" }]);
-          //   });
-
-          // prop["x-component-props"] = {
-          //   ...prop["x-component-props"],
-          //   ...props,
-          // };
+          if (prop["x-reactions"]) {
+            prop["x-reactions"] = [...prop["x-reactions"], "{{load1}}"];
+          } else {
+            prop["x-reactions"] = ["{{load1}}"];
+          }
         }
 
-        // 组件动态属性从componentSetiting里提取
+        // 异步数据提取 组件动态属性从componentSetiting里提取
         // if (f.componentSetting && f.componentSetting !== null) {
-        //   if (prop["x-reactions"]) {
-        //     prop["x-reactions"] = [...prop["x-reactions"], "{{load1}}"];
-        //   } else {
-        //     prop["x-reactions"] = ["{{load1}}"];
-        //   }
+
         // }
         // }
+
+        // getPropObj().then((o) => {
+        //   prop["x-component-props"] = {
+        //     ...prop["x-component-props"],
+        //     optionList: [{ label: "aaa", value: "234" }],
+        //   };
+        // });
+
+        // componentPropCreate(
+        //   f.pageComponentPropDtos, //属性值
+        //   ComponentInfo[f.x_component], //组件属性信息
+        //   (props) => {
+        //     //设置组件属性的回调方法
+        //     prop["x-component-props"] = {
+        //       ...prop["x-component-props"],
+        //       ...props,
+        //     };
+        //   },
+        //   allDict
+        // );
+        // let props: any = {};
+        // //视图组件传值组装
+        // // 1.组装fixed的简单对象
+        // f.pageComponentPropDtos
+        //   .filter(
+        //     (p) =>
+        //       p.propName &&
+        //       p.propVal &&
+        //       (p.sourceType?.startsWith("fixed") || p.sourceType === "table")
+        //   )
+        //   .forEach((p) => {
+        //     const dt = getDataType(
+        //       ComponentInfo[f.x_component],
+        //       p.propName,
+        //       p.subName
+        //     );
+        //     props = valueAdd(
+        //       p,
+        //       props,
+        //       dt === dataType.icon ? (
+        //         <SelectIcon read={true} value={p.propVal} />
+        //       ) : (
+        //         p.propVal
+        //       )
+        //     );
+        //   });
+
+        // //dict取值
+
+        // f.pageComponentPropDtos
+        //   ?.filter((p) => p.propName && p.sourceType === "dict")
+        //   .forEach((p) => {
+        //     const dt = getDataType(
+        //       ComponentInfo[f.x_component],
+        //       p.propName,
+        //       p.subName
+        //     );
+        //     //数据转换
+        //     props = valueAdd(p, props, [{ val: "1", title: "2" }]);
+        //   });
+
+        // prop["x-component-props"] = {
+        //   ...prop["x-component-props"],
+        //   ...props,
+        // };
 
         //业务组件
         // if (f.componentType === "business") {

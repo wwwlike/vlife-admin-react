@@ -2,14 +2,7 @@
  * 组件属性设置
  */
 import { IconSetting } from "@douyinfe/semi-icons";
-import {
-  Avatar,
-  Badge,
-  Input,
-  Select,
-  SideSheet,
-  Typography,
-} from "@douyinfe/semi-ui";
+import { Badge, Input, Select, SideSheet, Typography } from "@douyinfe/semi-ui";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 import { useAuth } from "@src/context/auth-context";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -19,6 +12,7 @@ import SelectIcon from "@src/components/vlifeComponent/SelectIcon";
 import { listAll } from "@src/provider/baseProvider";
 import ApiSetting from "../ApiSetting";
 import { PageApiParam } from "@src/mvc/PageApiParam";
+import { FormFieldVo } from "@src/mvc/model/FormField";
 const { Text } = Typography;
 interface PropSettingProps {
   /** 属性 */
@@ -33,6 +27,7 @@ interface PropSettingProps {
   propObj?: Partial<PageComponentPropDto>;
   onDataChange: (propObj: Partial<PageComponentPropDto>) => void;
   pageKey: String;
+  fields?: FormFieldVo[];
   //所在页面组件key
 }
 
@@ -44,6 +39,7 @@ const ComponentPropSetting = ({
   propObj,
   pageKey,
   onDataChange,
+  fields,
 }: PropSettingProps) => {
   const { dicts } = useAuth();
 
@@ -74,25 +70,28 @@ const ComponentPropSetting = ({
   /**
    * sourceType=table时，从服务端请求的可以选择的数据集
    */
-  const [tableData, setTableData] = useState<{ label: string; value: any }[]>();
+  // const [tableData, setTableData] = useState<{ label: string; value: any }[]>();
 
   useEffect(() => {
-    const table = propInfo?.table;
-    if (table && table.entityName) {
-      const entityName = table.entityName;
-      const labelField = table.labelField || "name";
-      const valField = table.valField || "id";
-      listAll({ entityName, req: table.table_req }).then((data) => {
-        const datas = data.data?.map((d) => {
-          return {
-            label: d[labelField],
-            value: d[valField],
-          };
-        });
-        setTableData(datas);
-      });
-    }
-  }, [propInfo]);
+    // const table = propInfo.sourceType;
+    // if (table === "table") {
+    //   const entityName = "form";
+    //   const labelField = "name";
+    //   const valField = "entityType";
+    //   // table.table_req
+    //   listAll({ entityName, req: {} }).then((data) => {
+    //     const datas = data.data?.map((d) => {
+    //       return {
+    //         label: d[labelField],
+    //         value: d[valField],
+    //       };
+    //     });
+    //     setTableData(datas);
+    //   });
+    // } else {
+    //   setTableData(undefined);
+    // }
+  }, [{ ...propInfo }]);
 
   /**
    * api侧滑面板控制属性
@@ -115,7 +114,7 @@ const ComponentPropSetting = ({
         <div className=" w-24">{propInfo.label}</div>
         {(propInfo.sourceType === "fixed" ||
           propInfo.sourceType === undefined) &&
-        propInfo.table === undefined &&
+        // propInfo.table === undefined &&
         propInfo.dict === undefined ? (
           //固定值 图标选择组件
           propInfo.dataType === dataType.icon ? (
@@ -124,12 +123,10 @@ const ComponentPropSetting = ({
               value={propData?.propVal}
               onDataChange={onPropValChange}
             />
-          ) : propInfo?.fixed?.dicts ? ( //固定值，取自字典
+          ) : propInfo.fixed && propInfo.fixed.dicts ? (
             <Select
-              style={{ width: "100%" }}
-              showClear
-              value={propData.propVal}
-              optionList={propInfo?.fixed?.dicts}
+              optionList={propInfo.fixed.dicts}
+              value={propData?.propVal}
               onChange={onPropValChange}
             />
           ) : (
@@ -151,7 +148,7 @@ const ComponentPropSetting = ({
         ) : (
           <></>
         )}
-        {/*3 取字数据表； */}
+        {/* 3 取自数据表；
         {tableData ? (
           <Select
             showClear
@@ -161,8 +158,37 @@ const ComponentPropSetting = ({
           />
         ) : (
           <></>
+        )} */}
+        {propInfo.sourceType === "field" ? (
+          //vlife是选择字典类目
+          <>
+            <Select
+              style={{ width: "100%" }}
+              showClear
+              value={propData.propVal}
+              optionList={fields?.map((m) => {
+                return { value: m.fieldName, label: m.title };
+              })}
+              onChange={onPropValChange}
+            />
+          </>
+        ) : (
+          <></>
         )}
-
+        {propInfo.sourceType === "sys" ? (
+          //vlife是选择字典类目
+          <>
+            <Select
+              style={{ width: "100%" }}
+              showClear
+              value={propData.propVal}
+              optionList={[{ label: "字段所在实体类名", value: "type" }]}
+              onChange={onPropValChange}
+            />
+          </>
+        ) : (
+          <></>
+        )}
         {/* 4  api选择,api调整后，需要把参数设置的全部给清空(目前没有做) */}
         {propInfo.sourceType === "api" ? (
           <Select
@@ -173,7 +199,14 @@ const ComponentPropSetting = ({
                 label: ApiInfo[k].label,
                 value: k,
               }))
-              .filter((f) => ApiInfo[f.value].dataType === propInfo.dataType)}
+              .filter(
+                (f) =>
+                  ApiInfo[f.value].dataType === propInfo.dataType || //1 接口的类型和属性类型一致
+                  (propInfo.otherData && //2 属性支持的tran转换类型，就是接口的类型
+                    Object.keys(propInfo.otherData).includes(
+                      ApiInfo[f.value].dataType
+                    ))
+              )}
             onChange={onPropValChange}
           />
         ) : (
@@ -182,19 +215,7 @@ const ComponentPropSetting = ({
         {propData.propVal &&
         ApiInfo[propData.propVal] &&
         ApiInfo[propData.propVal].params !== undefined ? (
-          // <IconSetting
-          //   className=" cursor-pointer"
-          //   size="large"
-          //   onClick={change}
-          // />
           <Badge position="rightBottom" count={"api"} type="danger">
-            {/* <Avatar
-              onClick={change}
-              className=" cursor-pointer rounded-lg"
-              color="blue"
-              shape="square"
-              style={{ width: "28px", height: "28px" }}
-            >  </Avatar> */}
             <IconSetting
               className=" cursor-pointer"
               size="large"
@@ -205,7 +226,6 @@ const ComponentPropSetting = ({
           <></>
         )}
       </div>
-
       <SideSheet title="滑动侧边栏" visible={visible} onCancel={change}>
         {propInfo.sourceType === "api" && propData.propVal && propInfo ? (
           <>
@@ -223,6 +243,7 @@ const ComponentPropSetting = ({
                 onDataChange({ ...propData, params: pageApiParams });
               }}
               pageApiParams={propData.params}
+              fields={fields}
             />
           </>
         ) : (

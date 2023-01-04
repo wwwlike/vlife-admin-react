@@ -6,7 +6,7 @@ export interface ReportKpi extends DbEntity {
   code: string; //指标编码
   formId: string; //所属实体模块
   reportItemId: string; //分子
-  reportItemId2: string; //分母
+  reportItemOtherId: string; //分母
   name: string; // 指标名称
 }
 // 指标查询条件

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { CheckboxGroup, Divider } from "@douyinfe/semi-ui";
+import { CheckboxGroup, Divider, Space, Tag } from "@douyinfe/semi-ui";
 import { SysResources } from "@src/mvc/SysResources";
 import { VfBaseProps } from "..";
 /**
@@ -19,7 +19,7 @@ const ResourcesSelect = ({
    */
   const menus = useMemo((): SysResources[] => {
     if (datas) {
-      return datas.filter((f) => f.type === "1") || []; //1是菜单
+      return datas.filter((f) => f.resourcesType === "1") || []; //1是菜单
     } else {
       return [];
     }
@@ -51,12 +51,20 @@ const ResourcesSelect = ({
                   <b>{menu.name}</b>
                 </h3>
                 <Divider margin="8px" />
-                <CheckboxGroup
-                  value={value}
-                  onChange={onDataChange}
-                  options={getResources(menu.resourcesCode)}
-                  direction="horizontal"
-                />
+                {read ? (
+                  <Space>
+                    {getResources(menu.resourcesCode).map((d) => (
+                      <Tag key={"tag_" + d.value}> {d.label}</Tag>
+                    ))}
+                  </Space>
+                ) : (
+                  <CheckboxGroup
+                    value={value}
+                    onChange={onDataChange}
+                    options={getResources(menu.resourcesCode)}
+                    direction="horizontal"
+                  />
+                )}
               </div>
             );
           })}

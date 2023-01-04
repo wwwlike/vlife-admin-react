@@ -1,8 +1,9 @@
 /**
  * 查询统计项目过滤条件的设计器
  */
+import { useAuth } from "@src/context/auth-context";
 import { FormVo } from "@src/mvc/model/Form";
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect, useMemo } from "react";
 import { useState } from "react";
 import { VfBaseProps } from "..";
 import Design from "./design";
@@ -33,7 +34,7 @@ export interface FormItemCondition {
 }
 
 // 将string 转换成 formItemCondition
-export interface ItemDesignProps extends Partial<VfBaseProps<string, FormVo>> {
+export interface ItemDesignProps extends Partial<VfBaseProps<string, string>> {
   //模型信息
   pageCondition?: Partial<FormItemCondition>;
   // 是否根节点
@@ -59,6 +60,17 @@ const QueryBuilder = ({
     pageCondition ? pageCondition : value ? JSON.parse(value) : {}
   );
 
+  const { getFormInfo } = useAuth();
+  // 模型信息(待转成formVO)
+  const [modelInfo, setModelInfo] = useState<FormVo>();
+
+  useEffect(() => {
+    if (datas)
+      getFormInfo(datas, "save").then((data) => {
+        setModelInfo(data);
+      });
+  }, [datas]);
+
   useEffect(() => {
     if (onDataChange) {
       if (conditions && conditions !== null) {
@@ -81,11 +93,11 @@ const QueryBuilder = ({
       setConditions({ ...conditions, conditions: undefined });
     }
   }, [conditions]);
-  return datas ? (
+  return modelInfo ? (
     <>
       <Design
         root={isRoot}
-        datas={datas}
+        datas={modelInfo}
         onDataChange={(data) => {
           setConditions(data);
         }}

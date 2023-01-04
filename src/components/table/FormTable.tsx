@@ -1,12 +1,9 @@
 import { Button, Modal } from "@douyinfe/semi-ui";
-import { onFieldInitialValueChange } from "@formily/core";
-import { useAuth } from "@src/context/auth-context";
-import { IdBean } from "@src/mvc/base";
 import { FormVo } from "@src/mvc/model/Form";
 import FormPage from "@src/pages/common/formPage";
 import TablePage from "@src/pages/common/tablePage";
 import { useUpdateEffect } from "ahooks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { VfButton } from ".";
 import { VfBaseProps } from "..";
 
@@ -95,7 +92,7 @@ export default ({
           type="save"
           formData={formData}
           onDataChange={setFormData}
-          entityName="projectTask"
+          entityName={type}
           modelName={type}
         />
       </Modal>

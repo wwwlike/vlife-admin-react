@@ -2,6 +2,7 @@
  * 数组类型属性设置
  */
 import { Button, TabPane, Tabs } from "@douyinfe/semi-ui";
+import { FormFieldVo } from "@src/mvc/model/FormField";
 import {
   PageComponentProp,
   PageComponentPropDto,
@@ -22,6 +23,7 @@ interface ArrayPropSettingProps {
   onDataChange: (propObj: Partial<PageComponentPropDto>[]) => void;
   /** 所在页面组件key */
   pageKey: string;
+  fields?: FormFieldVo[];
 }
 
 const ComponentArrayPropSetting = ({
@@ -30,6 +32,7 @@ const ComponentArrayPropSetting = ({
   value,
   pageKey,
   onDataChange,
+  fields,
 }: ArrayPropSettingProps) => {
   /**
    * 数据数据
@@ -104,6 +107,7 @@ const ComponentArrayPropSetting = ({
               onDataChange={(d) => {
                 replace(n, d);
               }}
+              fields={fields}
             />
           </TabPane>
         );

@@ -4,7 +4,6 @@ import {
   Nav,
   Select,
   Space,
-  Table,
   TabPane,
   Tabs,
   Tag,
@@ -59,7 +58,8 @@ export default () => {
   /**
    * 当前编辑的报表配置
    */
-  const [currReportTable, setCurrReportTable] = useState<ReportTableSaveDto>(); //{ items: [] }
+  const [currReportTable, setCurrReportTable] =
+    useState<Partial<ReportTableSaveDto>>(); //{ items: [] }
 
   const [reportTableDto, setReportTableDto] = useState<ReportTableDto>();
 
@@ -72,12 +72,18 @@ export default () => {
       const formData: Partial<ReportTableDto> = {
         ...currReportTable,
         id: currReportTable.id,
-        itemIds: currReportTable.items
-          .filter((f) => f.reportItemId) //是统计项
-          .map((ff) => ff.reportItemId as string),
-        kpiIds: currReportTable.items //是指标项
-          .filter((f) => f.reportKpiId)
-          .map((ff) => ff.reportKpiId as string),
+        itemIds:
+          currReportTable && currReportTable.items
+            ? currReportTable.items
+                .filter((f: ReportTableItem) => f.reportItemId) //是统计项
+                .map((ff: ReportTableItem) => ff.reportItemId as string)
+            : [],
+        kpiIds:
+          currReportTable && currReportTable.items
+            ? currReportTable.items //是指标项
+                .filter((f) => f.reportKpiId)
+                .map((ff) => ff.reportKpiId as string)
+            : [],
       };
       return formData;
     } else {
@@ -169,7 +175,7 @@ export default () => {
         .map((f) => (f.reportItemId || f.reportKpiId) as string);
 
       setItems(i);
-      beforeSelects.current = i;
+      beforeSelects.current = i || [];
     }
   }, [currReportTable?.code, JSON.stringify(currReportTable?.items)]);
 
@@ -194,7 +200,11 @@ export default () => {
         });
       }
     });
-    saveReportTableSaveDto({ ...reportTableDto, items: saveItems });
+    saveReportTableSaveDto({ ...reportTableDto, items: saveItems }).then(
+      (d) => {
+        initData();
+      }
+    );
   }, [JSON.stringify(items), currReportTable, reportTableDto]);
 
   return (
@@ -232,7 +242,13 @@ export default () => {
                   <Button
                     onClick={() => {
                       setPageState("add");
-                      // setCurrReportTable({ items: [], code: "" });
+                      setCurrReportTable({
+                        items: [],
+                        code: "",
+                        name: "",
+                        groupColumn: "",
+                        func: "",
+                      });
                       setReload(!reload);
                     }}
                   >
@@ -306,7 +322,8 @@ export default () => {
                           //saveReportTableSaveDto(currReportTable);
                           saveReport();
                           setPageState("edit");
-                          initData();
+                          // initData();
+                        } else {
                         }
                       }}
                     >
@@ -317,14 +334,18 @@ export default () => {
                   ""
                 )}
 
-                {currReportTable && currReportTable.id !== undefined ? (
+                {pageState !== "add" &&
+                currReportTable &&
+                currReportTable.id !== undefined ? (
                   <>
                     <Button
                       onClick={() => {
-                        remove(currReportTable.id).then((data) => {
-                          setCurrReportTable(undefined);
-                          initData();
-                        });
+                        if (currReportTable && currReportTable.id) {
+                          remove(currReportTable.id).then((data) => {
+                            setCurrReportTable(undefined);
+                            initData();
+                          });
+                        }
                       }}
                     >
                       删除
@@ -382,7 +403,7 @@ export default () => {
                 ""
               )}
               <TabPane tab="报表配置" itemKey="eventTab">
-                {JSON.stringify(items)}
+                {/* {JSON.stringify(items)} */}
                 {(currReportTable && currReportTable.id) ||
                 pageState === "add" ? (
                   <>

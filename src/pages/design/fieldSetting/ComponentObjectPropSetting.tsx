@@ -1,6 +1,7 @@
 /**
  * 对象类型属性设置
  */
+import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 import React, { useCallback, useMemo } from "react";
 import { PropInfo } from "./componentData";
@@ -18,6 +19,7 @@ interface ObjectPropSettingProps {
   onDataChange: (propObj: Partial<PageComponentPropDto>[]) => void;
   /** 所在页面组件key */
   pageKey: string;
+  fields?: FormFieldVo[];
 }
 
 const ComponentObjectPropSetting = ({
@@ -27,6 +29,7 @@ const ComponentObjectPropSetting = ({
   pageComponentPropDtos,
   pageKey,
   onDataChange,
+  fields,
 }: ObjectPropSettingProps) => {
   //对象的所有属性数据信息
 
@@ -86,6 +89,7 @@ const ComponentObjectPropSetting = ({
             //组装最全的
             replace(propName, key, d);
           }}
+          fields={fields}
         />
       ))}
     </>

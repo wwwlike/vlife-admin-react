@@ -43,23 +43,49 @@ const FieldComponentSetting = ({
   }, [fieldName, fields]);
   // type list basic
 
+  const check = (
+    componentDataType: dataType,
+    currField: FormFieldVo
+  ): boolean => {
+    // alert(currField.type + "_" + currField.fieldType);
+    return (
+      (currField.fieldType === "basic" &&
+        componentDataType === currField.type) ||
+      componentDataType === currField.type + "_" + currField.fieldType ||
+      (componentDataType === dataType.objList &&
+        currField.fieldType === "list" &&
+        currField.type !== "string" &&
+        currField.type !== "integer" &&
+        currField.type !== "boolean" &&
+        currField.type !== "double")
+    );
+  };
+
   /** 字段类型能够使用的模型信息对象 */
   const usableComponents = useMemo((): ComponentDef => {
     //所有组件名称 keys
     const keys: string[] = Object.keys(ComponentInfo);
     const components: any = {};
     keys.forEach((key) => {
+      if (key === "ResourcesSelect") {
+        // alert(
+        //   check(ComponentInfo[key].dataChangeValueType as dataType, currField)
+        // );
+      }
+      //1 不是数组，但是匹配
       if (
-        (currField.fieldType === "basic" &&
-          ComponentInfo[key].dataChangeValueType === currField.type) ||
-        ComponentInfo[key].dataChangeValueType === currField.fieldType ||
-        //组件
-        (ComponentInfo[key].dataChangeValueType instanceof Array &&
-          (ComponentInfo[key].dataChangeValueType as Array<dataType>).filter(
-            (m) => {
-              return m === currField.type || m === currField.fieldType;
-            }
-          ).length > 0)
+        ComponentInfo[key].dataChangeValueType instanceof Array === false &&
+        check(ComponentInfo[key].dataChangeValueType as dataType, currField)
+      ) {
+        components[key] = ComponentInfo[key];
+      } else if (
+        //2 数组包涵
+        ComponentInfo[key].dataChangeValueType instanceof Array &&
+        (ComponentInfo[key].dataChangeValueType as Array<dataType>).filter(
+          (m) => {
+            return check(m, currField);
+          }
+        ).length > 0
       ) {
         components[key] = ComponentInfo[key];
       }
@@ -69,10 +95,11 @@ const FieldComponentSetting = ({
 
   return (
     <>
-      {JSON.stringify(pageComponentPropDtos)}
+      {/* {JSON.stringify(pageComponentPropDtos)} */}
       {/* 1. 选择组件 */}
       <Select
         value={x_component}
+        filter
         key={fieldName + "fieldComponent_select"}
         showClear
         style={{ width: "100%" }}
@@ -106,6 +133,7 @@ const FieldComponentSetting = ({
               });
               //替换指定组件里的指定属性设置值
             }}
+            fields={fields}
           />
         </>
       ) : (

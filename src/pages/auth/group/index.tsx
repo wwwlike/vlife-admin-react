@@ -49,7 +49,7 @@ export default () => {
           <TablePage
             req={formData} //搜索条件
             entityName={entityName}
-            viewModel="sysGroupDetailVo"
+            viewModel="groupDto"
             editModel="groupDto"
             customBtns={[
               {

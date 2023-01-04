@@ -1,6 +1,7 @@
-import { CheckboxGroup, Divider } from "@douyinfe/semi-ui";
+import { Checkbox, CheckboxGroup, Divider } from "@douyinfe/semi-ui";
 import { useUpdateEffect } from "ahooks";
 import React, { useCallback, useEffect, useState } from "react";
+import { addAbortSignal } from "stream";
 import { VfBaseProps } from "..";
 /**
  实现效果如下
@@ -51,7 +52,6 @@ const GroupSelect = ({
     (index: number, checked: string[]) => {
       if (onDataChange && datas) {
         //先取消datas里index该分类里的suoyou7选项，添加checked里选择的选项
-
         if (value === undefined || value.length === 0) {
           onDataChange(checked);
         } else {
@@ -67,7 +67,7 @@ const GroupSelect = ({
 
   return (
     <>
-      {JSON.stringify(value)}
+      {/* {JSON.stringify(selectType)} */}
       {datas
         ? datas.map((d, index) => {
             return d.detailList && d.detailList.length > 0 ? (
@@ -76,14 +76,44 @@ const GroupSelect = ({
                   <b>{d.name}</b>
                   <Divider margin="12px" />
                 </h3>
-                <CheckboxGroup
-                  value={value}
-                  onChange={(checkeds) => {
-                    handleChange(index, checkeds);
-                  }}
-                  options={d.detailList}
-                  direction="horizontal"
-                />
+                <div className=" ">
+                  {d.detailList.map((dd) => (
+                    <Checkbox
+                      key={dd.value}
+                      value={dd.value}
+                      checked={value && value.includes(dd.value)}
+                      onChange={(checkeds) => {
+                        const checked = checkeds.target.checked;
+
+                        if (checked && value) {
+                          //选中（1.取消同级其他已选中的 2，把自己加入到选中的）
+                          if (selectType === "typeOne") {
+                            onDataChange([
+                              ...value.filter(
+                                (v) =>
+                                  !d.detailList
+                                    .map((ddd) => ddd.value)
+                                    .includes(v)
+                              ),
+                              dd.value,
+                            ]);
+                          } else {
+                            onDataChange([...value, dd.value]);
+                          }
+                        } else if (checked) {
+                          onDataChange([dd.value]);
+                        } else {
+                          //取消\
+                          onDataChange([
+                            ...value.filter((v) => v !== dd.value),
+                          ]);
+                        }
+                      }}
+                    >
+                      {dd.label}
+                    </Checkbox>
+                  ))}
+                </div>
               </div>
             ) : (
               ""

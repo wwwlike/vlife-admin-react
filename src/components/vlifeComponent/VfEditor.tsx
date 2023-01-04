@@ -70,7 +70,7 @@ function VfEditor({ value, onDataChange, read }: VfEditorProps) {
           style={{ height: "500px", overflowY: "hidden" }}
         />
       </div>
-      <div style={{ marginTop: "15px" }}>{html}</div>{" "}
+      {/* <div style={{ marginTop: "15px" }}>{html}</div>{" "} */}
     </>
   );
 }

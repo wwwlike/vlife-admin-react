@@ -3,6 +3,7 @@
  */
 import { Button, Collapse } from "@douyinfe/semi-ui";
 import Text from "@douyinfe/semi-ui/lib/es/typography/text";
+import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 import React, { useCallback, useMemo } from "react";
 import ComponentArrayPropSetting from "./ComponentArrayPropSetting";
@@ -21,6 +22,7 @@ interface CompontentSettingProps {
   onDataChange: (
     pageComponentPropDtos: Partial<PageComponentPropDto>[]
   ) => void;
+  fields?: FormFieldVo[];
 }
 
 const PropsSetting = ({
@@ -28,6 +30,7 @@ const PropsSetting = ({
   componentInfo,
   pageComponentPropDtos,
   onDataChange,
+  fields,
 }: CompontentSettingProps) => {
   // 非string类型的组件对象信息
   const propInfos = useMemo((): { [key: string]: PropInfo } => {
@@ -96,6 +99,7 @@ const PropsSetting = ({
               onDataChange={(d: Partial<PageComponentPropDto>) => {
                 replace(key, [d]);
               }}
+              fields={fields}
             />
           </div>
         ))}
@@ -124,6 +128,7 @@ const PropsSetting = ({
                     onDataChange={(d) => {
                       replace(key, d);
                     }}
+                    fields={fields}
                   />
                 </div>
               ) : propInfos[key].dataType === dataType.list &&
@@ -136,6 +141,7 @@ const PropsSetting = ({
                   onDataChange={(d) => {
                     replace(key, d);
                   }}
+                  fields={fields}
                 />
               ) : propInfos[key].dataType === dataType.list &&
                 propInfos[key].dataSub === undefined ? ( // 数组简单对象
@@ -147,6 +153,7 @@ const PropsSetting = ({
                   onDataChange={(d) => {
                     replace(key, d);
                   }}
+                  fields={fields}
                 />
               ) : (
                 <Text className="text-red-400" strong>

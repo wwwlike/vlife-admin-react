@@ -35,9 +35,9 @@ interface treeElementProps {
  * 待：机构/地区/部门联合树如何实现？
  */
 const VfTreeSelect = ({
-  valField = "id",
   root, //尚未使用
   datas,
+  fieldInfo,
   onDataChange,
   ...props
 }: TreeQueryProps & TreeProps) => {
@@ -47,12 +47,19 @@ const VfTreeSelect = ({
   const findRoot = useMemo((): string[] => {
     if (root) return [root];
     if (datas) {
+      //查找pcode为空的为根节点
       const findNull: string[] = datas
         .filter((d: any) => d.pcode === undefined || d.pcode === null)
         .map((d: any) => d.code);
+
       if (findNull && findNull.length > 0) return findNull;
-    } else {
+      //查找pcode在datas里给定的code不存在的 ，作为根节点
+      const allPcodes = datas.map((d) => d.code);
+      return datas
+        .filter((data) => !allPcodes.includes(data.pcode))
+        .map((d) => d.code);
     }
+
     return [];
   }, [datas]);
 
@@ -78,9 +85,9 @@ const VfTreeSelect = ({
         )
         .map((dd) => {
           return {
-            value: dd[valField],
+            value: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : "code"],
             label: dd.name,
-            key: dd[valField],
+            key: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : "code"],
             children: treeData(dd.code, true),
           };
         });
@@ -89,6 +96,7 @@ const VfTreeSelect = ({
   );
   return (
     <>
+      {/* {JSON.stringify(root)} */}
       <Tree
         treeData={treeData(root, false)}
         defaultExpandAll

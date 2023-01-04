@@ -8,6 +8,7 @@ import { useUpdateEffect } from "ahooks";
 import React, { useCallback, useEffect, useState } from "react";
 import { PropInfo } from "./componentData";
 import ComponentPropSetting from "./ComponentPropSetting";
+import { FormFieldVo } from "@src/mvc/model/FormField";
 
 interface ArraySignlePropSettingProps {
   /** 属性名称 */
@@ -20,6 +21,7 @@ interface ArraySignlePropSettingProps {
   onDataChange: (propObj: Partial<PageComponentPropDto>[]) => void;
   /** 所在页面组件key */
   pageKey: string;
+  fields?: FormFieldVo[];
 }
 
 const ComponentArraySignlePropSetting = ({
@@ -28,6 +30,7 @@ const ComponentArraySignlePropSetting = ({
   pageComponentPropDtos,
   onDataChange,
   pageKey,
+  fields,
 }: ArraySignlePropSettingProps) => {
   //存放listNo的序号数组
   const [num, setNum] = useState<number[]>([]);
@@ -93,6 +96,7 @@ const ComponentArraySignlePropSetting = ({
               onDataChange={(d: Partial<PageComponentPropDto>) => {
                 replace(n, d);
               }}
+              fields={fields}
             />
             <span className="block"></span>
           </div>

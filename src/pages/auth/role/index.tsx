@@ -43,6 +43,7 @@ export default () => {
             req={pageReq}
             entityName={entityName}
             editModel="roleDto"
+            viewModel="roleDto"
             select_more={true}
           />
         </Card>
