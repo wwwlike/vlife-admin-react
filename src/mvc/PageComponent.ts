@@ -8,10 +8,13 @@ export interface PageComponent extends DbEntity{
   x: number;  // 栅格横向位置
   y: number;  // 栅格纵坐标位置
   w: number;  // 栅格宽度
+  i?: number;  // 布局层次
   name: string;  // 单元名称
   pageKey: string;  // 单元编号
-  component: string;  // 单元组件类型
+  component?: string;  // 单元组件类型
   pageLayoutId?: string;  // 组件单元所在页面
+  moduleId?:string;//模块id
+  layoutTop?:boolean;//组件置顶(y=0 且是所在pagelayout是页面)
 }
 
 export interface PageComponentDto extends DbEntity{
@@ -20,11 +23,14 @@ export interface PageComponentDto extends DbEntity{
   x: number;  // 栅格横向位置
   y: number;  // 栅格纵坐标位置
   w: number;  // 栅格宽度
+  i?: number;  // 布局层次
   name: string;  // 单元命名
   pageKey: string;  // 单元编号/编码
-  component: string;  // 单元组件类型
+  component?: string;  // 单元组件类型
   pageLayoutId?: string;  // 组件单元所在页面
+  moduleId?:string;//模块id
   props?: Partial<PageComponentPropDto>[];// 组件属性信息集合
+  layoutTop?:boolean;//组件置顶(y=0 且是所在pagelayout是页面)
 }
 
 /** 

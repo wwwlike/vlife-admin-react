@@ -3,7 +3,6 @@ import {
   Card,
   Checkbox,
   Divider,
-  Input,
   Layout,
   Nav,
   Select,
@@ -34,6 +33,7 @@ import FieldSetting from "./fieldSetting";
 import { useUrlQueryParam } from "@src/utils/lib";
 import VlifeButton from "@src/components/basic/vlifeButton";
 import FormSetting from "./formSetting";
+import { useType } from "./data/componentData";
 const { Content, Sider } = Layout;
 const modelType: any = {
   entity: "实体模型",
@@ -715,6 +715,7 @@ export default () => {
           >
             {currField && currModel ? (
               <FieldSetting
+                useType={uiType === "save" ? useType.form : useType.query}
                 form={currModel}
                 onDataChange={(data) => {
                   // alert(JSON.stringify(data));

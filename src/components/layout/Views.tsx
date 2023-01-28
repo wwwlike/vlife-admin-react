@@ -4,20 +4,21 @@ import {
   PageComponentProp,
   PageComponentPropDto,
 } from "@src/mvc/PageComponentProp";
-import { ApiInfo } from "@src/pages/design/fieldSetting/apiData";
+import React, { useEffect, useMemo, useState } from "react";
+import SelectIcon from "../vlifeComponent/SelectIcon";
+import { listAll } from "@src/provider/baseProvider";
+import { Field } from "@formily/core";
+import { FormFieldVo } from "@src/mvc/model/FormField";
+import Arrow from "@douyinfe/semi-ui/lib/es/popover/Arrow";
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 import {
   ComponentInfo,
   dataType,
   getDataType,
   PropInfo,
-} from "@src/pages/design/fieldSetting/componentData";
-import React, { useEffect, useMemo, useState } from "react";
-import SelectIcon from "../vlifeComponent/SelectIcon";
-import { ViewComponents } from "./ViewComponentsData";
-import { listAll } from "@src/provider/baseProvider";
-import { Field } from "@formily/core";
-import { FormFieldVo } from "@src/mvc/model/FormField";
-import Arrow from "@douyinfe/semi-ui/lib/es/popover/Arrow";
+} from "@src/pages/design/data/componentData";
+import { ApiInfo } from "@src/mvc/apis";
+import { ViewComponents } from "../components_view";
 /**
  * 单个组件渲染的包装组件
  * 相关函数可以给到formindex使用，form里存在联动比这里复杂
@@ -26,6 +27,7 @@ import Arrow from "@douyinfe/semi-ui/lib/es/popover/Arrow";
 interface ViewsProps {
   pageComponentDto: PageComponentDto;
   className?: string;
+  h?: number;
 }
 
 /**
@@ -40,8 +42,7 @@ export const valueAdd = (
   propObj: any,
   value: any
 ): any => {
-  // if (props) alert(JSON.stringify(props));
-
+  // console.log(JSON.stringify(value));
   if (p.subName || p.listNo) {
     //对象是数组
     if (p.listNo) {
@@ -67,6 +68,45 @@ export const valueAdd = (
     }
   } else {
     propObj[p.propName + ""] = value;
+  }
+  return propObj;
+};
+
+/**
+ *
+ * @param props 事件属性组装生成
+ * @param componentInfo
+ */
+export const fetchEventPropObj = (
+  props: Partial<PageComponentPropDto>[],
+  componentInfo: ComponentInfo,
+  propObj: any, //传入到组件的属性
+  setEventChangeData: (prop: any) => void
+): any => {
+  if (propObj === undefined) propObj = {};
+  for (let eventName in componentInfo.propInfo) {
+    const filterPorp = props.filter((p) => p.propName === eventName);
+    const propVal =
+      filterPorp && filterPorp.length > 0 && filterPorp[0].propVal
+        ? filterPorp[0].propVal
+        : undefined;
+    if (
+      typeof componentInfo.propInfo[eventName] !== "string" &&
+      (componentInfo.propInfo[eventName] as PropInfo).dataType ===
+        dataType.event &&
+      propVal
+    ) {
+      const propInfo: PropInfo = componentInfo.propInfo[eventName] as PropInfo;
+      propObj[eventName] = function (val: any) {
+        // alert(val);
+        ApiInfo[propVal].api(val).then((d) => {
+          if (propInfo.event?.propName) {
+            setEventChangeData({ [propInfo.event?.propName]: d.data });
+            // propObj[propInfo.event?.propName] = d.data;
+          }
+        });
+      };
+    }
   }
   return propObj;
 };
@@ -98,8 +138,10 @@ export const fetchStaticPropObj = (
         valueAdd(
           p,
           propsObj,
-          dt === dataType.icon ? (
+          dt === dataType.icon ? ( //图标
             <SelectIcon read={true} value={p.propVal} />
+          ) : dt === dataType.image && p.propVal && p.propVal !== "" ? ( //图片
+            `${apiUrl}/sysFile/image/${p.propVal}`
           ) : (
             p.propVal
           )
@@ -138,8 +180,6 @@ export const fetchStaticPropObj = (
   props
     ?.filter((p) => p.propName && p.propVal && p.sourceType === "sys")
     .forEach((p) => {
-      // alert("11111111");
-      //图表类型，需要转换成组件形式
       if (
         p.propName &&
         componentInfo.propInfo &&
@@ -333,6 +373,7 @@ export const componentPropCreate = (
   props: Partial<PageComponentPropDto>[],
   componentInfo: ComponentInfo,
   setComponentPropFunc: (prop: any) => void,
+  setEventChangeData: (prop: any) => void,
   allDict: {
     [key: string]: {
       data: { value: string; label: string }[];
@@ -342,11 +383,20 @@ export const componentPropCreate = (
 ) => {
   (async () => {
     /**
-     * 1. 本地数据提取
+     * 1. 本地属性prop静态数据提取
      */
     let propsObj: any = fetchStaticPropObj(props, componentInfo, allDict) || {};
 
-    // 2.远程数据提取 . api异步数据提取 (table是指定了api的异步取数据)
+    // 2. 事件属性，组装传入
+    propsObj = fetchEventPropObj(
+      props,
+      componentInfo,
+      propsObj,
+      setEventChangeData
+    );
+
+    // alert(JSON.stringify(propsObj));
+    // 3.远程数据提取 . api异步数据提取 (table是指定了api的异步取数据)
     if (
       props?.filter(
         (p) =>
@@ -406,7 +456,6 @@ export const componentPropCreate = (
           })
       ).then((d) => {
         if (d.length > 0) {
-          console.log(d);
           setComponentPropFunc({ ...d[d.length - 1] }); //执行回调函数
         }
       });
@@ -415,12 +464,19 @@ export const componentPropCreate = (
     }
   })();
 };
-const Views = ({ pageComponentDto, className }: ViewsProps) => {
+const Views = ({ pageComponentDto, className, h }: ViewsProps) => {
   const { dicts } = useAuth();
 
+  /**
+   * 组件事件改变指定属性值state
+   */
+  const [eventChangeData, setEventChangeData] = useState<any>();
+
   /** 组件 */
-  const ComponentInfo = useMemo(() => {
-    return ViewComponents[pageComponentDto.component];
+  const ComponentInfo = useMemo((): any => {
+    if (pageComponentDto.component)
+      return ViewComponents[pageComponentDto.component];
+    return {};
   }, [pageComponentDto]);
 
   /** 组件属性 */
@@ -432,6 +488,7 @@ const Views = ({ pageComponentDto, className }: ViewsProps) => {
         pageComponentDto.props,
         ComponentInfo,
         setComponentProps,
+        setEventChangeData,
         dicts
       );
     }
@@ -441,7 +498,8 @@ const Views = ({ pageComponentDto, className }: ViewsProps) => {
     <ComponentInfo.component
       className={className}
       {...componentProps}
-    ></ComponentInfo.component>
+      {...eventChangeData}
+    />
   );
 };
 

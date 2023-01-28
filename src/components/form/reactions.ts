@@ -133,14 +133,7 @@ export const eventReaction = (
   });
   return obj;
 };
-function hehe(s: any): string {
-  return s;
-}
 
-// dynamic: {
-//   modelName: { formItem: "entityName" },
-//  返回配对关系 ： {modelName:entityName}
-// },
 export const loadDeps = (dynamic: any, entityType: String): any => {
   const mapping:any = {};
   let keys: string[] = Object.keys(dynamic);

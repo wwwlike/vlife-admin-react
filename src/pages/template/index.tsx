@@ -13,7 +13,7 @@ import { useAuth } from "@src/context/auth-context";
  * - 存在该页面请求模型信息，table也请求的重复情况
  */
 export default () => {
-  const { getModelInfo } = useAuth();
+  const { getFormInfo } = useAuth();
   const params = useParams();
   const local = useLocation();
   const [title, setTitle] = useState<string>();
@@ -24,7 +24,7 @@ export default () => {
   }, [params]);
   // const {data,runAsync}=useModelInfo({entityName})
   useEffect(() => {
-    getModelInfo(entityName, entityName).then((data) => {
+    getFormInfo(entityName, "save").then((data) => {
       setTitle(data?.title || "");
       setFormData({});
     });

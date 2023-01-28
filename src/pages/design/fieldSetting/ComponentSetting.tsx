@@ -1,14 +1,15 @@
 /**
  * 组件属性设置
  */
-import { Button, Collapse } from "@douyinfe/semi-ui";
+import { Collapse } from "@douyinfe/semi-ui";
 import Text from "@douyinfe/semi-ui/lib/es/typography/text";
 import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 import React, { useCallback, useMemo } from "react";
+import { ComponentInfo, dataType, PropInfo } from "../data/componentData";
 import ComponentArrayPropSetting from "./ComponentArrayPropSetting";
 import ComponentArraySignlePropSetting from "./ComponentArraySignlePropSetting";
-import { ComponentInfo, dataType, PropInfo } from "./componentData";
+import ComponenetEventSetting from "./ComponentEventSetting";
 import ComponentObjectPropSetting from "./ComponentObjectPropSetting";
 import ComponentPropSetting from "./ComponentPropSetting";
 
@@ -23,6 +24,8 @@ interface CompontentSettingProps {
     pageComponentPropDtos: Partial<PageComponentPropDto>[]
   ) => void;
   fields?: FormFieldVo[];
+  //page方式设置组件需要设置的属性
+  children?: any;
 }
 
 const PropsSetting = ({
@@ -31,15 +34,34 @@ const PropsSetting = ({
   pageComponentPropDtos,
   onDataChange,
   fields,
+  children,
 }: CompontentSettingProps) => {
-  // 非string类型的组件对象信息
+  // 非string类型,事件类型的的组件对象信息
   const propInfos = useMemo((): { [key: string]: PropInfo } => {
     const propInfoObj: { [key: string]: PropInfo } = {};
     if (componentInfo && componentInfo.propInfo) {
       Object.keys(componentInfo.propInfo).forEach((key) => {
         if (
           componentInfo.propInfo &&
-          typeof componentInfo.propInfo[key] !== "string"
+          typeof componentInfo.propInfo[key] !== "string" &&
+          (componentInfo.propInfo[key] as PropInfo).dataType !== dataType.event
+        ) {
+          propInfoObj[key] = componentInfo.propInfo[key] as PropInfo;
+        }
+      });
+    }
+    return propInfoObj;
+  }, [componentInfo]);
+
+  //事件类型组件属性过滤
+  const eventPropInfos = useMemo((): { [key: string]: PropInfo } => {
+    const propInfoObj: { [key: string]: PropInfo } = {};
+    if (componentInfo && componentInfo.propInfo) {
+      Object.keys(componentInfo.propInfo).forEach((key) => {
+        if (
+          componentInfo.propInfo &&
+          typeof componentInfo.propInfo[key] !== "string" &&
+          (componentInfo.propInfo[key] as PropInfo).dataType === dataType.event
         ) {
           propInfoObj[key] = componentInfo.propInfo[key] as PropInfo;
         }
@@ -77,33 +99,51 @@ const PropsSetting = ({
 
   return (
     <div>
-      {/* 一、 简单属性，一行一个 */}
-      {Object.keys(propInfos)
-        .filter(
+      <Collapse>
+        {/* 一、 组件全局设置 (page方式会使用) */}
+        {children}
+
+        {/* 二、 简单属性，一行一个 */}
+        {Object.keys(propInfos).filter(
           (key) =>
             propInfos[key].dataType !== dataType.object &&
             propInfos[key].dataType !== dataType.list
-        )
-        .map((key) => (
-          <div key={"div_" + key}>
-            <ComponentPropSetting
-              key={"componentProp_" + key}
-              pageKey={pageKey}
-              propName={key}
-              propInfo={propInfos[key]}
-              propObj={
-                findProp(key) && findProp(key).length > 0
-                  ? findProp(key)[0]
-                  : undefined
-              }
-              onDataChange={(d: Partial<PageComponentPropDto>) => {
-                replace(key, [d]);
-              }}
-              fields={fields}
-            />
-          </div>
-        ))}
-      <Collapse>
+        ).length > 0 ? (
+          <Collapse.Panel
+            key={`panel_basic`}
+            header={"一般属性"}
+            itemKey={"collapse_basic"}
+          >
+            {Object.keys(propInfos)
+              .filter(
+                (key) =>
+                  propInfos[key].dataType !== dataType.object &&
+                  propInfos[key].dataType !== dataType.list
+              )
+              .map((key) => (
+                <div key={"div_" + key}>
+                  <ComponentPropSetting
+                    key={"componentProp_" + key}
+                    pageKey={pageKey}
+                    propName={key}
+                    propInfo={propInfos[key]}
+                    propObj={
+                      findProp(key) && findProp(key).length > 0
+                        ? findProp(key)[0]
+                        : undefined
+                    }
+                    onDataChange={(d: Partial<PageComponentPropDto>) => {
+                      replace(key, [d]);
+                    }}
+                    fields={fields}
+                  />
+                </div>
+              ))}
+          </Collapse.Panel>
+        ) : (
+          <></>
+        )}
+
         {Object.keys(propInfos)
           .filter(
             (key) =>
@@ -163,6 +203,48 @@ const PropsSetting = ({
               {/* 2. 对象属性 3. 数组对象属性  */}
             </Collapse.Panel>
           ))}
+        {/* 事件设置 */}
+        {eventPropInfos && Object.keys(eventPropInfos).length > 0 ? (
+          <Collapse.Panel
+            key={`panel_event`}
+            header={"事件设置"}
+            itemKey={"collapse_event"}
+          >
+            {Object.keys(eventPropInfos).map((key) => (
+              <div className="flex space-x-2 mb-2 p-2">
+                <div className=" w-24">{`${eventPropInfos[key].label}(${key})`}</div>
+                <ComponenetEventSetting
+                  key={"event_" + key}
+                  propInfo={eventPropInfos[key]}
+                  pageKey={pageKey}
+                  eventName={key}
+                  targetPropInfo={
+                    eventPropInfos[key] &&
+                    eventPropInfos[key].event &&
+                    eventPropInfos[key].event?.propName &&
+                    componentInfo &&
+                    componentInfo.propInfo &&
+                    typeof componentInfo.propInfo !== "string"
+                      ? (componentInfo.propInfo[
+                          eventPropInfos[key].event?.propName || ""
+                        ] as PropInfo)
+                      : undefined
+                  }
+                  propObj={
+                    findProp(key) && findProp(key).length > 0
+                      ? findProp(key)[0]
+                      : undefined
+                  }
+                  onDataChange={(d: Partial<PageComponentPropDto>) => {
+                    replace(key, [d]);
+                  }}
+                />
+              </div>
+            ))}
+          </Collapse.Panel>
+        ) : (
+          ""
+        )}
       </Collapse>
     </div>
   );

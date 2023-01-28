@@ -1,10 +1,8 @@
 import VlifeForm, { FormProps } from "@src/components/form";
 import { useAuth } from "@src/context/auth-context";
 import { FormVo } from "@src/mvc/model/Form";
-import { componentProps } from "@src/mvc/model/FormField";
 import { find } from "@src/provider/baseProvider";
 import React, { useEffect, useMemo, useState } from "react";
-import loadDatas from "../design/data/loadData";
 
 /**
  * 入参：

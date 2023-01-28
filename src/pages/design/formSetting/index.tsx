@@ -2,17 +2,8 @@
  * 表单配置
  * 包含保单列数和分组容器的定义
  */
-
-import {
-  Button,
-  Card,
-  Col,
-  Divider,
-  Form,
-  Input,
-  Row,
-} from "@douyinfe/semi-ui";
-import { IconPlusCircle, IconMinusCircle } from "@douyinfe/semi-icons";
+import { Button, Card, Col, Divider, Form, Row } from "@douyinfe/semi-ui";
+import { IconMinusCircle } from "@douyinfe/semi-icons";
 import { ArrayField, FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { FormVo } from "@src/mvc/model/Form";
 import { useUpdateEffect } from "ahooks";

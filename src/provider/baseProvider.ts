@@ -67,17 +67,6 @@ type modelInfoProps = Options<Result<ModelInfo>, any> & {
   entityName: string;
 };
 
-/**
- * 单个用户信息视图
- * @param id
- * @return
- */
-export const modelInfo = (
-  entityName: string,
-  modelName: string
-): Promise<Result<ModelInfo>> => {
-  return apiClient.get(`/${entityName}/modelInfo/${modelName}`);
-};
 
 /**
  * 通用数据保存

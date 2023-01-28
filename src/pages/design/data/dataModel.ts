@@ -2,8 +2,6 @@
  * 相关设计器的字段模型
  */
 
-import { Select } from "@douyinfe/semi-ui";
-
 /**
  * 匹配方式
  */

@@ -4,11 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { detail, PageConfDto } from "@src/mvc/PageLayout";
 import { WidthProvider, Responsive } from "react-grid-layout";
-import { ComponentInfo } from "../design/fieldSetting/componentData";
-import { ViewComponents } from "@src/components/layout/ViewComponentsData";
 import Views from "@src/components/layout/Views";
-import SelectIcon from "@src/components/vlifeComponent/SelectIcon";
-
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const Dashboard = () => {
@@ -21,7 +17,7 @@ const Dashboard = () => {
    * 数据请求
    */
   useEffect(() => {
-    detail("1").then((data) => {
+    detail("desktop").then((data) => {
       setPageConf(data.data);
     });
   }, []);

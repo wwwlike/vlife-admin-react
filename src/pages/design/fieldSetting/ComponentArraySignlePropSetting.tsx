@@ -4,11 +4,10 @@
 import { Button } from "@douyinfe/semi-ui";
 import { IconDelete, IconPlus } from "@douyinfe/semi-icons";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
-import { useUpdateEffect } from "ahooks";
 import React, { useCallback, useEffect, useState } from "react";
-import { PropInfo } from "./componentData";
 import ComponentPropSetting from "./ComponentPropSetting";
 import { FormFieldVo } from "@src/mvc/model/FormField";
+import { PropInfo } from "../data/componentData";
 
 interface ArraySignlePropSettingProps {
   /** 属性名称 */

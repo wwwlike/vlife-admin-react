@@ -4,6 +4,7 @@ import { FormVo } from "@src/mvc/model/Form";
 import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { useType } from "../data/componentData";
 import schemaDef, { deps, SchemaClz, types } from "../data/vlifeSchema";
 import FieldComponentSetting from "./FieldComponentSetting";
 
@@ -12,6 +13,10 @@ import FieldComponentSetting from "./FieldComponentSetting";
  * 接收FormFieldVo数据，与schemaData对应的数据进行操作，隐藏组件的数据需要清空
  */
 interface schemaModalProp {
+  /**
+   * 组件使用场景
+   */
+  useType: useType;
   /**
    * 当前字段信息
    */
@@ -27,7 +32,7 @@ interface schemaModalProp {
   onDataChange: (field: FormFieldVo) => void;
 }
 
-export default ({ field, form, onDataChange }: schemaModalProp) => {
+export default ({ field, form, onDataChange, useType }: schemaModalProp) => {
   /** 当前form接口 */
   const api = useRef<FormApi>();
   /** 返回的数据 数据在当前落地了，是否？*/
@@ -139,6 +144,7 @@ export default ({ field, form, onDataChange }: schemaModalProp) => {
                 {/* 第一个panel放入设置组件 */}
                 {index === 0 && field.fieldName ? (
                   <FieldComponentSetting
+                    useType={useType}
                     fieldName={field.fieldName}
                     fields={form.fields}
                     x_component={field.x_component}

@@ -66,7 +66,7 @@ const VfImage = ({
   };
 
   const fileList = useMemo((): FileItem[] => {
-    if (datas && value)
+    if (datas) {
       return (
         datas
           // ?.filter((d) => imageIds?.includes(d.id))
@@ -80,6 +80,17 @@ const VfImage = ({
             };
           }) || []
       );
+    } else if (value && typeof value === "string") {
+      return [
+        {
+          uid: value,
+          status: "success",
+          name: value,
+          size: value,
+          url: apiUrl + "/sysFile/image/" + value,
+        },
+      ];
+    }
     return [];
   }, [datas, value]);
 
@@ -119,27 +130,35 @@ const VfImage = ({
         prompt={getPrompt("right", true)}
         promptPosition={"right"}
         listType="picture"
-        limit={fieldInfo?.fieldType === "basic" ? 1 : 100}
+        limit={fieldInfo?.fieldType === "list" ? 100 : 1}
         defaultFileList={fileList}
         afterUpload={(data: any) => {
           setHand(true);
           if (data.response.data === -1) {
           } else {
             if (onDataChange)
-              onDataChange([
-                ...(imageIds ? imageIds : []),
-                data.response.data.id,
-              ]);
+              if (fieldInfo?.fieldType === "list") {
+                onDataChange([
+                  ...(imageIds ? imageIds : []),
+                  data.response.data.id,
+                ]);
+              } else {
+                onDataChange(data.response.data.id);
+              }
             setImageIds([...(imageIds ? imageIds : []), data.response.data.id]);
           }
           return data;
         }}
         onRemove={(a, b, c) => {
           setHand(true);
-          if (onDataChange) {
-            onDataChange(imageIds?.filter((f) => f != c.uid));
+          let result: any = undefined;
+          if (fieldInfo?.fieldType === "list") {
+            result = imageIds?.filter((f) => f != c.uid);
           }
-          setImageIds(imageIds?.filter((f) => f != c.uid));
+          if (onDataChange) {
+            onDataChange(result);
+          }
+          setImageIds(result);
         }}
       >
         <IconPlus size="extra-large" />
@@ -147,33 +166,43 @@ const VfImage = ({
     </>
   ) : (
     <>
+      {/* {JSON.stringify(fileList)} */}
       <Upload
         action={action}
         fileName="file"
         prompt={getPrompt("right", true)}
         promptPosition={"right"}
         listType="picture"
-        limit={fieldInfo?.fieldType === "basic" ? 1 : 100}
-        // defaultFileList={fileList}
+        limit={fieldInfo?.fieldType === "list" ? 100 : 1}
+        defaultFileList={fileList}
         afterUpload={(data: any) => {
           setHand(true);
           if (data.response.data === -1) {
           } else {
-            if (onDataChange)
-              onDataChange([
-                ...(imageIds ? imageIds : []),
-                data.response.data.id,
-              ]);
+            if (onDataChange) {
+              if (fieldInfo?.fieldType === "list") {
+                onDataChange([
+                  ...(imageIds ? imageIds : []),
+                  data.response.data.id,
+                ]);
+              } else {
+                onDataChange(data.response.data.id);
+              }
+            }
             setImageIds([...(imageIds ? imageIds : []), data.response.data.id]);
           }
           return data;
         }}
         onRemove={(a, b, c) => {
           setHand(true);
-          if (onDataChange) {
-            onDataChange(imageIds?.filter((f) => f != c.uid));
+          let result: any = undefined;
+          if (fieldInfo?.fieldType === "list") {
+            result = imageIds?.filter((f) => f != c.uid);
           }
-          setImageIds(imageIds?.filter((f) => f != c.uid));
+          if (onDataChange) {
+            onDataChange(result);
+          }
+          setImageIds(result);
         }}
         // defaultFileList={value && datas ? fileList : {}}
       >

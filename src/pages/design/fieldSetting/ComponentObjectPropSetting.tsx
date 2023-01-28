@@ -4,7 +4,7 @@
 import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 import React, { useCallback, useMemo } from "react";
-import { PropInfo } from "./componentData";
+import { PropInfo } from "../data/componentData";
 import ComponentPropSetting from "./ComponentPropSetting";
 
 interface ObjectPropSettingProps {

@@ -1,4 +1,3 @@
-import Search from "@src/components/search";
 import Table from "@src/components/table";
 import Form from "@src/components/form";
 import { FormFieldVo } from "@src/mvc/model/FormField";
@@ -21,16 +20,8 @@ export interface VfTree {
 /**
  * 支持字典和外键name形成选择项
  */
-export interface VfDict {
-  val: string;
-  title: string;
-}
 export interface VfRelation {
   id: string;
-  name: string;
-}
-export interface VfCode {
-  code: string;
   name: string;
 }
 /**
@@ -54,9 +45,5 @@ export interface VfBaseProps<T, D> {
 
 export interface VfBaseViewProps<D>{
   data:D;
-  
 }
-/**
- * vlife的组件库
- */
-export { Search, Table, Form };
+

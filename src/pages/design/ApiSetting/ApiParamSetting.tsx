@@ -4,11 +4,9 @@
 import { Input, Select, Typography } from "@douyinfe/semi-ui";
 import { useAuth } from "@src/context/auth-context";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { listAll } from "@src/provider/baseProvider";
-import { PropInfo } from "../fieldSetting/componentData";
 import { PageApiParam } from "@src/mvc/PageApiParam";
 import { FormFieldVo } from "@src/mvc/model/FormField";
-import { ParamInfo } from "../fieldSetting/apiData";
+import { ParamInfo } from "../data/apiData";
 const { Text } = Typography;
 interface PropSettingProps {
   /** 参数名 */
@@ -40,6 +38,7 @@ const ComponentPropSetting = ({
     } else {
       return {
         paramName: paramName,
+        paramVal: paramInfo.defValue ? paramInfo.defValue : undefined,
         sourceType: paramInfo.sourceType, //可以去掉
       };
     }
@@ -69,7 +68,7 @@ const ComponentPropSetting = ({
     if (fixed && fixed.dicts) {
       setSelectData(fixed.dicts);
     } else if (fixed && fixed.promise) {
-      fixed.promise.then((d) => {
+      fixed.promise().then((d) => {
         setSelectData(d);
       });
     }
@@ -84,7 +83,6 @@ const ComponentPropSetting = ({
           paramInfo.sourceType === undefined) &&
         selectData === undefined &&
         paramInfo.dict === undefined ? (
-          //固定值 图标选择组件
           <Input value={paramData?.paramVal} onChange={onParamValChange} />
         ) : (
           <></>

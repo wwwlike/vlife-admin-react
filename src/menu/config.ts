@@ -136,7 +136,7 @@ const MENU_CONFIG: MenuItem[] = [
       },
       {
         itemKey: "9-18",
-        text: "首页布局",
+        text: "页面设计",
         icon: IconTickCircle,
         path: "/conf/layout",
       },
@@ -201,12 +201,11 @@ const MENU_CONFIG: MenuItem[] = [
         path: "/oa/project",
       },
       {
-        itemKey: "8-3",
-        text: "tailwind",
-        path: "/tailwind",
+        itemKey: "8-4",
+        text: "新闻管理",
+        // code: "oaNews", // 与菜单编码对应
+        path: "/oa/news",
       },
-
-      
     ],
   },
 ];

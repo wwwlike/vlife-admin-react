@@ -63,13 +63,14 @@ export interface TranDict {
 }
 
 /**
- * 模型信息(待删除)
+ * 模型信息
  */
 export interface ModelInfo extends IdBean {
   title: string;
   type: string;
   itemType: string;
   entityType: string;
+  parentsName:string[]
 }
 
 //表信息
@@ -81,6 +82,5 @@ export interface formInfo {
   read?: boolean; //只读模式
   dicts?: TranDict[]; //字典信息
   fkIds?: { fk: string; vals: { id: string; name: string }[] }; // 外键信息
-
   maxColumns?: number[];
 }

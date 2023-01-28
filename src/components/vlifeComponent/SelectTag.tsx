@@ -1,7 +1,7 @@
 import { Space, Tag } from "@douyinfe/semi-ui";
 import { useUpdateEffect } from "ahooks";
 import React, { useCallback, useState } from "react";
-import { VfBaseProps, VfDict } from "..";
+import { VfBaseProps } from "..";
 interface DictSelectTagProps
   extends VfBaseProps<any, { label: string; value: string }[]> {
   selectMore?: boolean;

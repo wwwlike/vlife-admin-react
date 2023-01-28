@@ -3,13 +3,9 @@
  */
 import { Button, TabPane, Tabs } from "@douyinfe/semi-ui";
 import { FormFieldVo } from "@src/mvc/model/FormField";
-import {
-  PageComponentProp,
-  PageComponentPropDto,
-} from "@src/mvc/PageComponentProp";
-import { useUpdateEffect } from "ahooks";
+import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { PropInfo } from "./componentData";
+import { PropInfo } from "../data/componentData";
 import ComponentObjectPropSetting from "./ComponentObjectPropSetting";
 
 interface ArrayPropSettingProps {

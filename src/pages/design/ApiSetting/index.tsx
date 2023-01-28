@@ -4,7 +4,7 @@
 import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageApiParam } from "@src/mvc/PageApiParam";
 import { useCallback } from "react";
-import { ApiProp } from "../fieldSetting/apiData";
+import { ApiProp } from "../data/apiData";
 import ApiParamSetting from "./ApiParamSetting";
 
 interface ApiSettingProps {

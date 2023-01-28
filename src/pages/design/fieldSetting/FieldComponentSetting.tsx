@@ -1,14 +1,19 @@
 import { Select } from "@douyinfe/semi-ui";
+import { ComponentInfo } from "@src/components/components";
 import { FormFieldVo } from "@src/mvc/model/FormField";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
-import React, { useCallback, useMemo } from "react";
-import { ComponentDef, ComponentInfo, dataType } from "./componentData";
+import React, { useMemo } from "react";
+import { ComponentDef, dataType, useType } from "../data/componentData";
 import ComponentSetting from "./ComponentSetting";
 /**
  * 字段组件设置(新方式）
  * 采用page_的表存储（之前是field的json字段存储）)
  */
 interface FieldComponentSettingProps {
+  /**
+   * 当前使用场景
+   */
+  useType: useType;
   /** 字段名称 */
   fieldName: string;
   /** 已经选择的组件类型 */
@@ -30,6 +35,7 @@ interface FieldComponentSettingProps {
  * 2.组件属性设置
  */
 const FieldComponentSetting = ({
+  useType,
   fieldName,
   x_component,
   pageComponentPropDtos,
@@ -67,27 +73,28 @@ const FieldComponentSetting = ({
     const keys: string[] = Object.keys(ComponentInfo);
     const components: any = {};
     keys.forEach((key) => {
-      if (key === "ResourcesSelect") {
-        // alert(
-        //   check(ComponentInfo[key].dataChangeValueType as dataType, currField)
-        // );
-      }
-      //1 不是数组，但是匹配
       if (
-        ComponentInfo[key].dataChangeValueType instanceof Array === false &&
-        check(ComponentInfo[key].dataChangeValueType as dataType, currField)
+        //使用场景一致的组件过滤
+        ComponentInfo[key].useType === undefined ||
+        ComponentInfo[key].useType === useType ||
+        (ComponentInfo[key].useType as Array<useType>).includes(useType)
       ) {
-        components[key] = ComponentInfo[key];
-      } else if (
-        //2 数组包涵
-        ComponentInfo[key].dataChangeValueType instanceof Array &&
-        (ComponentInfo[key].dataChangeValueType as Array<dataType>).filter(
-          (m) => {
-            return check(m, currField);
-          }
-        ).length > 0
-      ) {
-        components[key] = ComponentInfo[key];
+        if (
+          ComponentInfo[key].dataChangeValueType instanceof Array === false &&
+          check(ComponentInfo[key].dataChangeValueType as dataType, currField)
+        ) {
+          components[key] = ComponentInfo[key];
+        } else if (
+          //2 数组包涵
+          ComponentInfo[key].dataChangeValueType instanceof Array &&
+          (ComponentInfo[key].dataChangeValueType as Array<dataType>).filter(
+            (m) => {
+              return check(m, currField);
+            }
+          ).length > 0
+        ) {
+          components[key] = ComponentInfo[key];
+        }
       }
     });
     return components;
@@ -139,6 +146,8 @@ const FieldComponentSetting = ({
       ) : (
         ""
       )}
+
+      {/* 3. 组件事件设置 ；基础组件目前是否有事件设置的必要 */}
     </>
   );
 };

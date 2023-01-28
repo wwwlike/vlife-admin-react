@@ -5,24 +5,28 @@ import { AuthForm, useCurrUser, useLogin } from "@src/provider/userProvider";
 import { useAllDict } from "@src/provider/dictProvider";
 import { ModelInfo, Result, TranDict } from "@src/mvc/base";
 import { useAllResources } from "@src/mvc/SysResources";
-import { useMount } from "ahooks";
-import React, { ReactNode, useCallback, useMemo, useState } from "react";
+import { useMount, useSize } from "ahooks";
+import React, {
+  ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SysDict } from "@src/mvc/SysDict";
 import { UserDetailVo } from "@src/mvc/SysUser";
-import { modelInfo } from "@src/provider/baseProvider";
-import { FormVo, model } from "@src/mvc/model/Form";
+import { FormVo, model, javaModel } from "@src/mvc/model/Form";
 import { SysResources } from "@src/mvc/SysResources";
+import { useEffect } from "react";
+import { number } from "echarts";
 
 export const localStorageKey = "__auth_provider_token__";
 //全局状态类型定义，初始化为undefiend ,注意这里返回的是Pomise函数
 const AuthContext = React.createContext<
   | {
       //返回模型信息(旧待删除)
-      getModelInfo: (
-        entityName: string,
-        modelName: string
-      ) => Promise<ModelInfo | undefined>;
+      getModelInfo: (modelName: string) => Promise<ModelInfo | undefined>;
       //模型信息
       getFormInfo: (
         modelName: string,
@@ -35,6 +39,7 @@ const AuthContext = React.createContext<
       getIcon: (key: string) => string;
       login: (form: AuthForm) => void;
       loginOut: () => void;
+      screenSize?: { width: number; height: number; sizeKey: string }; //当前屏幕大小
       //获得字典信息,如果codes不传，则返回一级字典
       getDict: (obj: { emptyLabel?: string; codes?: string[] }) => TranDict[];
       dicts: {
@@ -64,8 +69,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [allResources, setAllResources] = useState<SysResources[]>();
 
   //存模型信息的对象，key是modelName, modelInfoProps
-  // 要缓存最后计算的信息
+  // 与数据库一致的，有UI场景的模型信息
   const [models, setModels] = useState<any>({});
+
+  const [javaModels, setJavaModels] = useState<any>({});
+
   const [dicts, setDicts] = useState<SysDict[]>([]);
   /** 全量字典信息 */
   const [dictObj, setDictObj] = useState<{
@@ -140,22 +148,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [allResources]
   );
 
+  /**
+   * 获得后台Java内存里的模型原始信息
+   * @param modelName
+   */
   async function getModelInfo(
-    entityName: string,
     modelName: string
   ): Promise<ModelInfo | undefined> {
-    if (models[modelName] === undefined) {
+    if (javaModels[modelName] === undefined) {
       //简写
-      let model = await (await modelInfo(entityName, modelName)).data;
-      setModels({ ...models, modelName: model });
+      let model = await (await javaModel(modelName)).data;
+      setJavaModels({ ...javaModel, modelName: model });
       // then的写法
       // await modelInfo(entityName,modelName).then(data=>{
       //   model=data.data;
       //   setModels({...models,modelName:model})
       // });
+      // alert(JSON.stringify(model?.parentsName));
       return model;
     } else {
-      return models[modelName];
+      return javaModels[modelName];
     }
   }
 
@@ -281,24 +293,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(undefined);
     navigate("/login");
   }, []);
+  const [screenSize, setScreenSize] = useState<{
+    width: number;
+    height: number;
+    sizeKey: string;
+  }>();
+  const ref = useRef(null);
+  const size = useSize(ref);
+  useEffect(() => {
+    let sizeKey = "3xl";
+    if (screenSize === undefined || screenSize.width < 640) {
+      sizeKey = "sm";
+    } else if (screenSize.width < 768) {
+      sizeKey = "md";
+    } else if (screenSize.width < 1024) {
+      sizeKey = "lg";
+    } else if (screenSize.width < 1280) {
+      sizeKey = "xl";
+    } else if (screenSize.width < 1536) {
+      sizeKey = "2xl";
+    }
+    if (size) setScreenSize({ ...size, sizeKey });
+  }, [size]);
 
   return (
-    <AuthContext.Provider
-      children={children}
-      value={{
-        user,
-        login,
-        error,
-        loginOut,
-        getIcon,
-        dicts: dictObj,
-        getDict,
-        checkBtnPermission,
-        getModelInfo,
-        getFormInfo,
-        models,
-      }}
-    />
+    <div ref={ref}>
+      <AuthContext.Provider
+        children={children}
+        value={{
+          user,
+          login,
+          error,
+          loginOut,
+          getIcon,
+          dicts: dictObj,
+          getDict,
+          checkBtnPermission,
+          getModelInfo,
+          getFormInfo,
+          models,
+          screenSize,
+        }}
+      />
+    </div>
   );
 };
 

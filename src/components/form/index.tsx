@@ -16,12 +16,7 @@ import {
   onFormValuesChange,
   Field,
 } from "@formily/core";
-import {
-  FormProvider,
-  mapReadPretty,
-  connect,
-  createSchemaField,
-} from "@formily/react";
+import { FormProvider, createSchemaField } from "@formily/react";
 
 import {
   FormItem,
@@ -32,19 +27,17 @@ import {
   ArrayTable,
   FormTab,
 } from "@formily/semi";
-import { Result, TranDict } from "@src/mvc/base";
+import { TranDict } from "@src/mvc/base";
 import { FormVo } from "@src/mvc/model/Form";
 import { eventReaction, loadDeps } from "./reactions";
-import FormTable from "../table/FormTable";
 import { FormFieldVo, loadData } from "@src/mvc/model/FormField";
-import { action } from "@formily/reactive";
 import { useAuth } from "@src/context/auth-context";
-import { ComponentInfo } from "@src/pages/design/fieldSetting/componentData";
 import {
   fetchPropObj, //动态数据提取
   fetchStaticPropObj, //静态数据提取
 } from "../layout/Views";
 import { PageComponentPropDto } from "@src/mvc/PageComponentProp";
+import { ComponentInfo } from "../components";
 
 // const useAsyncDataSource = (service) => (field: FormFieldVo) => {
 //   field.loading = true;

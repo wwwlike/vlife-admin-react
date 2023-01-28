@@ -21,7 +21,7 @@ const RoleResourcesSelect = ({
    */
   const menus = useMemo((): SysResources[] => {
     if (datas) {
-      return datas.filter((f) => f.type === "1") || []; //1是菜单
+      return datas.filter((f) => f.resourcesType === "1") || []; //1是菜单
     } else {
       return [];
     }

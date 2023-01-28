@@ -19,6 +19,8 @@ const errorMessage = [
   { code: 505, msg: "HTTP版本不受支持" },
 ];
 
+//弹出错误的白名单，不进行右上角弹出提醒的路由地址集合
+const whiteError=["/login"]
 // const { user } = useAuth();
 // 创建 axios 的实例
 
@@ -82,9 +84,14 @@ instance.interceptors.response.use(
         content: `服务端运行异常，异常代码${res.status}`,
       });
     } else if (res.data.code != 200) {
+      //路由地址是在
       //业务逻辑异常
       Notification.error({
         content: `${res.data.msg}`,
+      });
+    }else if (res.config.method === "post") {
+      Notification.success({
+        content: `操作成功`,
       });
     }
 
@@ -93,11 +100,7 @@ instance.interceptors.response.use(
       // window.localStorage.removeItem(localStorageKey);
     }
 
-    if (res.config.method === "post") {
-      Notification.success({
-        content: `操作成功`,
-      });
-    }
+    
     //
     return res.data;
     // return Promise.reject(res.data);

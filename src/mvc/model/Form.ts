@@ -1,5 +1,5 @@
 import apiClient from "../apiClient";
-import { DbEntity, Result, SaveBean, VoBean } from "../base";
+import { DbEntity, ModelInfo, Result, SaveBean, VoBean } from "../base";
 import { FormGroup } from "../FormGroup";
 import { FormField, FormFieldDto, FormFieldVo } from "./FormField";
 
@@ -34,6 +34,7 @@ export interface FormVo extends VoBean {
   name: string;
   fields: FormFieldVo[];
   groups: FormGroup[];
+  parentsName:string[];
 }
 
 export interface SelectCompVo extends VoBean {
@@ -56,6 +57,15 @@ export const model = (params: {
   modelName: string;
 }): Promise<Result<FormVo>> => {
   return apiClient.get(`/form/model/`, { params });
+};
+
+/**
+ * 原始模型信息
+ */
+export const javaModel = (
+  modelName: string
+): Promise<Result<ModelInfo>> => {
+  return apiClient.get(`/form/javaModel/${modelName}`);
 };
 
 /**
