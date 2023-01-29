@@ -5,7 +5,7 @@ import { Editor, Toolbar } from "@wangeditor/editor-for-react";
 import { IDomEditor, IEditorConfig, IToolbarConfig } from "@wangeditor/editor";
 import { VfBaseProps } from "..";
 import { useUpdateEffect } from "ahooks";
-
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 interface VfEditorProps extends VfBaseProps<string, string> {}
 
 function VfEditor({ value, onDataChange, read }: VfEditorProps) {
@@ -32,7 +32,7 @@ function VfEditor({ value, onDataChange, read }: VfEditorProps) {
 
     MENU_CONF: {
       uploadImage: {
-        server: "http://localhost:8288/oa/sysFile/upload",
+        server: apiUrl + "/sysFile/upload",
       },
     },
   };

@@ -42,7 +42,7 @@ const Index: React.FC = () => {
       giteeCallBack(urlParam.code).then((result) => {
         if (result.data) {
           window.localStorage.setItem(localStorageKey, result.data);
-          window.location.href = "http://localhost:3000";
+          window.location.href = "http://admin.vlife.cc";
         }
       });
     }

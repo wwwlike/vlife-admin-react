@@ -20,7 +20,7 @@ const errorMessage = [
 ];
 
 //弹出错误的白名单，不进行右上角弹出提醒的路由地址集合
-const whiteError=["/login"]
+const whiteError = ["/login"];
 // const { user } = useAuth();
 // 创建 axios 的实例
 
@@ -36,10 +36,10 @@ let source = CancelToken.source();
 
 const diseaseApi = [
   "remove", //所有都不能删除
-  "sysRole/save",
-  "sysResources/save",
-  "sysGroup/save",
-  "sysUser/save",
+  "sysRole/save", //角色 不能新增和修改
+  "sysResources/save", //资源 不能新增和修改
+  "sysGroup/save", //角色组 不能新增和修改
+  "sysUser/save", //用户 不能新增和修改
 ];
 // const navigate = useNavigate();
 
@@ -48,6 +48,7 @@ instance.interceptors.request.use(
     config.cancelToken = source.token; // 写入取消请求的标识
     const isEnabled =
       diseaseApi.filter((str) => config.url?.indexOf(str) != -1).length > 0;
+
     if (canRemove === "false" && isEnabled) {
       source.cancel("演示环境不能进行该操作"); //取消请求
       source = CancelToken.source(); //终止cancel;否则全部请求都会取消
@@ -89,7 +90,7 @@ instance.interceptors.response.use(
       Notification.error({
         content: `${res.data.msg}`,
       });
-    }else if (res.config.method === "post") {
+    } else if (res.config.method === "post") {
       Notification.success({
         content: `操作成功`,
       });
@@ -100,7 +101,6 @@ instance.interceptors.response.use(
       // window.localStorage.removeItem(localStorageKey);
     }
 
-    
     //
     return res.data;
     // return Promise.reject(res.data);
