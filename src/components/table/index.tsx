@@ -197,7 +197,7 @@ export default ({
           )[0].propVal;
 
           m["render"] = (text, record, index) => {
-            return dicts[dictCode || "vlife"].data.filter(
+            return dicts[dictCode || "vlife"].data?.filter(
               (d) => d.value + "" === text + ""
             )[0].label;
           };

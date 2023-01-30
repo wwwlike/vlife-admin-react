@@ -453,12 +453,9 @@ export default ({
                     data === null)) ||
                 (data instanceof Array && data.length === 0)
               ) {
-                console.log("fieldDataChange", data);
                 //字段属性去除
                 form.deleteValuesIn(f.fieldName);
               } else if (f.fieldType === "basic" && data instanceof Array) {
-                console.log("fieldDataChange", data);
-
                 form.setValuesIn(f.fieldName, data[0]);
               } else {
                 form.setValuesIn(f.fieldName, data);
