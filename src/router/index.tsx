@@ -9,7 +9,7 @@ import LayoutPage from "../pages/layout";
 import Empty from "@src/components/empty";
 import LoginPage from "@src/pages/login";
 import { AppProviders } from "@src/context";
-import CmsPage from "@src/components/cms";
+// import CmsPage from "@src/components/cms";
 /**
  * 这里是路由配置页面
  * menu\config.ts 是菜单内容的配置信息
@@ -305,15 +305,15 @@ const RenderRouter: FC = () => {
       path: "login",
       element: <LoginPage />,
     },
-    {
-      path: "cms",
-      element: (
-        <WrapperRouteWithOutLayoutComponent
-          element={<CmsPage />}
-          titleId="vlife官网"
-        />
-      ),
-    },
+    // {
+    //   path: "cms",
+    //   element: (
+    //     <WrapperRouteWithOutLayoutComponent
+    //       element={<CmsPage />}
+    //       titleId="vlife官网"
+    //     />
+    //   ),
+    // },
     {
       path: "page/*",
       element: (

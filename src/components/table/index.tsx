@@ -197,13 +197,9 @@ export default ({
           )[0].propVal;
 
           m["render"] = (text, record, index) => {
-            const a: any[] = dicts[dictCode || "vlife"].data.filter(
+            return dicts[dictCode || "vlife"].data?.filter(
               (d) => d.value + "" === text + ""
-            );
-            if (a.length > 0) {
-              return a[0].label;
-            }
-            return "-";
+            )[0].label;
           };
         } else if (m.type === "boolean") {
           m["render"] = (text, record, index) => {

@@ -19,8 +19,6 @@ const errorMessage = [
   { code: 505, msg: "HTTP版本不受支持" },
 ];
 
-//弹出错误的白名单，不进行右上角弹出提醒的路由地址集合
-const whiteError = ["/login"];
 // const { user } = useAuth();
 // 创建 axios 的实例
 
@@ -29,7 +27,7 @@ const instance = axios.create({
   timeout: 30000,
 });
 
-const whiteList = ["/login", "/gitee/callback"];
+const whiteList = ["/login", "/git/token"];
 
 const CancelToken = axios.CancelToken;
 let source = CancelToken.source();
@@ -57,7 +55,9 @@ instance.interceptors.request.use(
     if (
       token === null &&
       config.url?.indexOf("/login") === -1 &&
-      config.url?.indexOf("callback") === -1
+      config.url?.indexOf("token") === -1 && 
+      config.url?.indexOf("Email") === -1 &&
+      config.url?.indexOf("/register") === -1
     ) {
       source.cancel("请先登录"); //取消请求
       source = CancelToken.source(); //终止cancel;否则全部请求都会取消
@@ -68,8 +68,10 @@ instance.interceptors.request.use(
       token &&
       config.headers
     ) {
+   
       config.headers.Authorization = token;
     }
+ 
     return config;
   },
   (err) => {

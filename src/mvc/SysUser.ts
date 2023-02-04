@@ -15,6 +15,20 @@ export interface SysUser extends DbEntity {
   sysGroupId: string; // 权限组
   username: string; // 用户名
 }
+
+
+// 第三方账户信息
+export interface ThirdAccountDto {
+  id: string; //三方账号id
+  name: string; // 中文密码
+  username: string; // 账号
+  email: string; // 邮箱
+  from:"gitee"; //来源
+  thirdToken:string; //三方账号临时token
+  token:string; //本系统token
+  avatar:string;//头像url
+}
+
 // 用户列表查询
 export interface SysUserPageReq extends PageQuery {
   area: string; // 区划编码
@@ -57,6 +71,16 @@ export interface UserInfoVo extends VoBean {
   name: string; // 负责人姓名
   orgs: SysOrg[]; // 关联负责项目的甲方信息sysUser->project(sysUserId,sysOrgId)<-sysOrg
 }
+
+/**
+ * 注册数据
+ */
+export interface RegisterDto {
+  email: string;//邮箱
+  password: string; //密码
+  checkCode: string; // 验证码
+}
+
 /**
  * 分页查询用户表(视图);
  * @param req 用户表(视图);
@@ -78,6 +102,31 @@ export const list = (
 ): Promise<Result<SysUser[]>> => {
   return apiClient.get(`/sysUser/list`, { params: req });
 };
+
+/** 邮件唯一性检查*/
+export const checkEmail = (
+  email:string
+): Promise<Result<number>> => {
+  return apiClient.get(`/sysUser/checkEmail?email=${email}`);
+};
+
+
+/** 邮件唯一性检查*/
+export const sendEmail = (
+  email:string
+): Promise<Result<string>> => {
+  return apiClient.get(`/sysUser/sendEmail?email=${email}`);
+};
+
+
+/** 注册*/
+export const register = (
+  data:RegisterDto
+): Promise<Result<string>> => {
+  return apiClient.post(`/sysUser/register`,data);
+};
+
+
 
 /**
  * 保存用户表;
@@ -125,20 +174,15 @@ export const userInfoVoDetail = (id: string): Promise<Result<UserInfoVo>> => {
   return apiClient.get(`/sysUserTest/detail/userInfoVo/${id}`);
 };
 
-/**
- * 单个用户信息视图
- * @param id
- * @return
- */
-export const giteeLogin = (): Promise<Result<string>> => {
-  return apiClient.get(`/gitee/auth`);
-};
+
 
 /**
  * 单个用户信息视图
  * @param id
  * @return
  */
-export const giteeCallBack = (code: string): Promise<Result<string>> => {
-  return apiClient.get(`/gitee/callback?code=${code}`);
+export const gitToken = (code: string,from:string): Promise<Result<ThirdAccountDto>> => {
+  return apiClient.get(`/git/token/${from}?code=${code}`);
 };
+
+

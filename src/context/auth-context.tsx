@@ -15,13 +15,16 @@ import React, {
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SysDict } from "@src/mvc/SysDict";
-import { UserDetailVo } from "@src/mvc/SysUser";
+import { gitToken, ThirdAccountDto, UserDetailVo } from "@src/mvc/SysUser";
 import { FormVo, model, javaModel } from "@src/mvc/model/Form";
 import { SysResources } from "@src/mvc/SysResources";
 import { useEffect } from "react";
-import { number } from "echarts";
 
 export const localStorageKey = "__auth_provider_token__";
+/**
+ * 上次登录的用户名,清除token不会清除它
+ */
+export const localHistoryLoginUserName = "__local_history_login_username__";
 //全局状态类型定义，初始化为undefiend ,注意这里返回的是Pomise函数
 const AuthContext = React.createContext<
   | {
@@ -38,6 +41,7 @@ const AuthContext = React.createContext<
       models: any;
       getIcon: (key: string) => string;
       login: (form: AuthForm) => void;
+      giteeLogin: (code: string) => Promise<ThirdAccountDto | undefined>;
       loginOut: () => void;
       screenSize?: { width: number; height: number; sizeKey: string }; //当前屏幕大小
       //获得字典信息,如果codes不传，则返回一级字典
@@ -91,48 +95,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   //不刷新则只加载一次
   useMount(() => {
     //拉取用户信息的同步拉拉取字典信息
-    runCurruser().then((res) => {
-      setUser(res.data);
-      runAsync().then((res) => {
-        if (res.data) {
-          setDicts(res.data);
-          const obj: any = {};
+    const token = window.localStorage.getItem(localStorageKey);
+    if (token) {
+      runCurruser().then((res) => {
+        setUser(res.data);
+        runAsync().then((res) => {
+          if (res.data) {
+            setDicts(res.data);
+            const obj: any = {};
 
-          res.data.forEach((d) => {
-            if (obj[d.code] === undefined) {
-              if (d.val === null) {
-                obj[d.code] = { label: d.title, data: [] };
+            res.data.forEach((d) => {
+              if (obj[d.code] === undefined) {
+                if (d.val === null) {
+                  obj[d.code] = { label: d.title, data: [] };
+                } else {
+                  obj[d.code] = {
+                    label: "",
+                    data: [{ label: d.title, value: d.val }],
+                  };
+                }
               } else {
-                obj[d.code] = {
-                  label: "",
-                  data: [{ label: d.title, value: d.val }],
-                };
+                if (d.val === null) {
+                  obj[d.code].label = d.title;
+                } else {
+                  obj[d.code].data.push({ label: d.title, value: d.val });
+                }
               }
-            } else {
-              if (d.val === null) {
-                obj[d.code].label = d.title;
-              } else {
-                obj[d.code].data.push({ label: d.title, value: d.val });
-              }
-            }
-          });
+            });
 
-          obj["vlife"] = {
-            lable: "字典类目",
-            data: res.data
-              .filter((d) => d.val === null)
-              .map((d) => {
-                return { value: d.code, label: d.title };
-              }),
-          };
-          setDictObj(obj);
-        }
+            obj["vlife"] = {
+              lable: "字典类目",
+              data: res.data
+                .filter((d) => d.val === null)
+                .map((d) => {
+                  return { value: d.code, label: d.title };
+                }),
+            };
+            setDictObj(obj);
+          }
+        });
       });
-    });
-    //同步拉取全量资源信息
-    asyncResources({}).then((d) => {
-      setAllResources(d.data);
-    });
+      //同步拉取全量资源信息
+      asyncResources({}).then((d) => {
+        setAllResources(d.data);
+      });
+    }
   });
 
   const getIcon = useCallback(
@@ -252,10 +259,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return tranDicts;
   };
 
+  //giteelogin 方式登录】
+  const giteeLogin = useCallback(
+    (code: string): Promise<ThirdAccountDto | undefined> => {
+      return gitToken(code, "gitee").then((result) => {
+        // alert(JSON.stringify(result));
+        if (result.code == "200" && result.data) {
+          window.localStorage.setItem(localStorageKey, result.data.token);
+          // window.localStorage.setItem(
+          //   localHistoryLoginUserName,
+          //   result.data.username
+          // );
+          runCurruser().then((res) => {
+            setUser(res.data);
+            runAsync().then((res) => {
+              if (res.data) {
+                setDicts(res.data);
+              }
+            });
+          });
+        } else {
+          setError(result.msg);
+        }
+        return result.data;
+      });
+    },
+    []
+  );
+
   const login = useCallback((from: AuthForm) => {
     userLogin(from).then((result) => {
       if (result.code == "200" && result.data) {
         window.localStorage.setItem(localStorageKey, result.data);
+        window.localStorage.setItem(
+          localHistoryLoginUserName,
+          from.username || ""
+        );
         runCurruser().then((res) => {
           setUser(res.data);
           runAsync().then((res) => {
@@ -323,6 +362,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         value={{
           user,
           login,
+          giteeLogin,
           error,
           loginOut,
           getIcon,

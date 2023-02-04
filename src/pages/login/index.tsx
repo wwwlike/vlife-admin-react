@@ -1,18 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { localStorageKey, useAuth } from "@src/context/auth-context";
+import React, { useCallback, useEffect, useState } from "react";
+import { localHistoryLoginUserName, useAuth } from "@src/context/auth-context";
 import "./login.css";
 import { useForm } from "@src/hooks/useForm";
 import { useNavigate } from "react-router-dom";
 import { AuthForm } from "@src/provider/userProvider";
-import { giteeCallBack, giteeLogin } from "@src/mvc/SysUser";
 import { useUrlQueryParam } from "@src/utils/lib";
 import loginBg from "@src/image/loginBg.jpg";
 import { IconEyeOpened } from "@douyinfe/semi-icons";
+import {
+  checkEmail,
+  RegisterDto,
+  sendEmail,
+  register as serverReg, //服务端注册
+  ThirdAccountDto,
+} from "@src/mvc/SysUser";
+import { Result } from "@src/mvc/base";
+import { useDebounceEffect } from "ahooks";
+import { emailReg } from "@src/utils/regexp";
+import { Modal } from "@douyinfe/semi-ui";
+
 const Index: React.FC = () => {
-  const { user, login, error } = useAuth();
+  const localUsername = window.localStorage.getItem(localHistoryLoginUserName);
+  const { user, login, error, giteeLogin } = useAuth();
+
   const navigate = useNavigate();
   const { values, errors, setFieldValue } = useForm<AuthForm>(
-    { username: "manage", password: "123456" },
+    { username: localUsername || "", password: "" },
     null
   );
   useEffect(() => {
@@ -26,44 +39,162 @@ const Index: React.FC = () => {
     await login(values);
   };
 
-  const [urlParam, setUrlParam] = useUrlQueryParam(["code"]);
-  //现实公众号二维码
-  const [showQR, setShowQR] = useState(false);
+  interface registerFlag {
+    flag: boolean;
+    msg?: string; //校验说明
+    email?: string; //已经发送的邮箱
+  }
+  /**
+   * 注册的数据
+   */
+  const [registerData, setRegisterData] = useState<Partial<RegisterDto>>({});
+
+  const [registerFlag, setRegisterFlag] = useState<registerFlag>({
+    flag: true,
+  });
+
+  //检查注册信息
+  useDebounceEffect(
+    () => {
+      const emailEmpty =
+        registerData.email === "" || registerData.email === null;
+      const pwdEmpty =
+        registerData.password === "" || registerData.password === null;
+      // const checkCodeEmpty =
+      //   registerData.checkCode === undefined ||
+      //   registerData.checkCode === "" ||
+      //   registerData.checkCode === null;
+      let f: registerFlag = { ...registerFlag };
+      // 前端校验
+      if (
+        registerData.email === undefined &&
+        registerData.password === undefined
+      ) {
+        f = { flag: false };
+      } else if (emailEmpty) {
+        f = {
+          flag: false,
+          msg: "邮箱不能为空",
+        };
+      } else if (registerData.email && !emailReg.test(registerData.email)) {
+        f = { flag: false, msg: "邮箱格式错误" };
+      } else if (pwdEmpty) {
+        f = {
+          flag: false,
+          msg: "密码不能为空",
+        };
+      } else if (registerData.password && registerData.password.length < 6) {
+        f = { flag: false, msg: "密码至少6位" };
+      } else {
+        f = { flag: true };
+      }
+
+      //前端校验通过，采用后端校验
+      if (f.flag === true) {
+        checkEmail(registerData.email || "").then((rs: Result<number>) => {
+          //邮箱验证
+          if (rs.data && rs.data > 0) {
+            f = { ...registerFlag, flag: false, msg: "账号邮箱已经注册" };
+          } else {
+            f = { ...registerFlag, flag: true, msg: undefined };
+          }
+          //密码验证
+          setRegisterFlag(f);
+        });
+      } else {
+        setRegisterFlag(f);
+      }
+    },
+    [registerData],
+    {
+      wait: 200,
+    }
+  );
+
+  // const gitSubmit = async () => {
+  //   await login(values);
+  // };
+
+  const [urlParam, setUrlParam] = useUrlQueryParam(["code", "from"]);
+  //当前场景
+  const [part, setPart] = useState<"login" | "register" | "qr">("login");
   const gitLogin = () => {
     const url =
-      "https://gitee.com/oauth/authorize?client_id=e3b04bf27387e4c935f5e1827ad596d568790fd38f5ca436f2c59b187dbbbee4&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&response_type=code";
+      "https://gitee.com/oauth/authorize?client_id=e3b04bf27387e4c935f5e1827ad596d568790fd38f5ca436f2c59b187dbbbee4&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin%3Ffrom%3Dgitee&response_type=code";
     window.location.href = url;
-    // giteeLogin().then((data) => {
-    //   if (data && data.data) window.location.href = data.data;
-    // });
   };
   useEffect(() => {
     if (urlParam.code !== undefined) {
-      giteeCallBack(urlParam.code).then((result) => {
-        if (result.data) {
-          window.localStorage.setItem(localStorageKey, result.data);
-          window.location.href = "http://admin.vlife.cc";
-        }
-      });
+      if (urlParam.from === "gitee") {
+        giteeLogin(urlParam.code).then(
+          (account: ThirdAccountDto | undefined) => {}
+        );
+      }
     }
   }, [urlParam]);
 
+  const register = useCallback(() => {
+    if (
+      registerFlag.flag === true &&
+      registerData.checkCode &&
+      registerData.email &&
+      registerData.password
+    ) {
+      serverReg({
+        password: registerData.password,
+        checkCode: registerData.checkCode,
+        email: registerData.email,
+      }).then((res) => {
+        if (res.data === "" || res.data === null || res.data === undefined) {
+          setPart("login");
+          Modal.success({
+            title: "注册成功",
+            content: "请登录",
+          });
+          setFieldValue("username", registerData.email || "");
+          setFieldValue("password", "");
+        } else {
+          Modal.warning({
+            title: "注册结果",
+            content: res.data,
+          });
+        }
+      });
+    }
+  }, [registerData, registerFlag]);
+
   return (
     <div
-      className=" bg-cover bg-center min-h-screen pt-12 md:pt-20 pb-6 px-2 md:px-0 "
+      className=" bg-no-repeat bg-bottom bg-contain min-h-screen pt-12 md:pt-20 pb-6 px-2 md:px-0 "
       style={{
-        backgroundImage: `url(https://g.alicdn.com/teambition/account-web/0.3.41/images/login-bg.7628d7f.jpg)`,
+        backgroundColor: `#00c1c1`,
+        backgroundImage: `url(https://img.bosszhipin.com/static/file/2022/zlqc2m9fao1667185843533.png) `,
       }}
     >
+      {/* background: `#00c1c1 url(https://img.bosszhipin.com/static/file/2022/zlqc2m9fao1667185843533.png) bottom/100% no-repeat`, */}
       <div className="max-w-md mr-0 pt-2 ">
-        <h1 className="text-5xl font-bold text-white text-center">
-          VLIFE-ADMIN
+        <h1 className="text-3xl font-bold text-white text-center">
+          vlife低代码研发平台
         </h1>
       </div>
+
+      <div className="relative flex left-1/3 w-4/12  h-px-96  bg-white     rounded-3xl shadow-3xl">
+        <div
+          id="side-slide-box"
+          className=" w-1/3 bg-slate-200 m-0 h-full rounded-l-3xl"
+        >
+          11111
+        </div>
+        <div>22222222222222</div>
+      </div>
+
       <div
         style={{ width: "432px" }}
-        className=" relative left-1/2 bg-white p-8 pt-16 pb-20  my-10 rounded-lg shadow-2xl"
+        className=" relative left-1/2 bg-white p-8 pt-16 pb-20  my-10 rounded-2xl shadow-2xl"
       >
+        <div className="gitee" onClick={gitLogin}>
+          <div className="switch-tip">Gitee快捷登录</div>
+        </div>
         <div>
           <section className="flex justify-between">
             <div
@@ -76,12 +207,18 @@ const Index: React.FC = () => {
             >
               密码登录
             </div>
-            <div>
+            <div
+              className=" cursor-pointer"
+              onClick={() => {
+                setPart("register");
+                setRegisterData({});
+              }}
+            >
               <a
                 href="#"
-                className="text-sm text-blue-400 hover:text-blue-500 hover:underline mb-6"
+                className="text-sm  text-blue-400 hover:text-blue-500 hover:underline mb-6"
               >
-                忘记密码?
+                账号注册
               </a>
             </div>
             {/* <p className="text-gray-600 pt-2">管理员：manage/123456</p>
@@ -108,7 +245,7 @@ const Index: React.FC = () => {
                   className=" h-12 text-xl  rounded w-full text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
                 />
               </div>
-              <div className="mb-6 pt-3 rounded ">
+              <div className="mb-2 pt-3 rounded ">
                 {/* <label
                 className="block text-gray-700 text-sm font-bold mb-2 ml-3"
                 htmlFor="password"
@@ -130,7 +267,14 @@ const Index: React.FC = () => {
                   <IconEyeOpened size="large" />
                 </span>
               </div>
-              {/* <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded shadow-lg hover:shadow-xl transition duration-200"  onClick={()=>ll}>登陆1</button> */}
+              <div className="mb-12 relative">
+                <div
+                  onClick={gitLogin}
+                  className=" absolute cursor-pointer right-0  text-base  text-blue-700 hover:text-blue-500 hover:underline"
+                >
+                  {/* Gitee快捷登录 */}
+                </div>
+              </div>
               <button
                 className=" bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 rounded-md shadow-lg hover:shadow-xl transition duration-200"
                 onClick={handelSubmit}
@@ -145,7 +289,24 @@ const Index: React.FC = () => {
           >
             <div className="mb-2">— 更多登录方式 —</div>
             <ul className="flex w-full h-10 justify-evenly">
-              <li className="ThirdParty_recommend_2xwMV">
+              <li className="cursor-pointer" onClick={gitLogin}>
+                <svg
+                  viewBox="0 0 1024 1024"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  p-id="7764"
+                  width="32"
+                  height="32"
+                >
+                  <path
+                    d="M512 1024C229.222 1024 0 794.778 0 512S229.222 0 512 0s512 229.222 512 512-229.222 512-512 512z m259.149-568.883h-290.74a25.293 25.293 0 0 0-25.292 25.293l-0.026 63.206c0 13.952 11.315 25.293 25.267 25.293h177.024c13.978 0 25.293 11.315 25.293 25.267v12.646a75.853 75.853 0 0 1-75.853 75.853h-240.23a25.293 25.293 0 0 1-25.267-25.293V417.203a75.853 75.853 0 0 1 75.827-75.853h353.946a25.293 25.293 0 0 0 25.267-25.292l0.077-63.207a25.293 25.293 0 0 0-25.268-25.293H417.152a189.62 189.62 0 0 0-189.62 189.645V771.15c0 13.977 11.316 25.293 25.294 25.293h372.94a170.65 170.65 0 0 0 170.65-170.65V480.384a25.293 25.293 0 0 0-25.293-25.267z"
+                    fill="#C71D23"
+                    p-id="7765"
+                  ></path>
+                </svg>
+              </li>
+
+              {/* <li className="ThirdParty_recommend_2xwMV">
                 <i className="iconfont ThirdParty_icon_2R4Q4">
                   <svg
                     viewBox="0 0 1024 1024"
@@ -185,48 +346,157 @@ const Index: React.FC = () => {
                     ></path>
                   </svg>
                 </i>
-              </li>
-              <li className="cursor-pointer">
-                <svg
-                  viewBox="0 0 1024 1024"
-                  version="1.1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  p-id="7764"
-                  width="32"
-                  height="32"
-                >
-                  <path
-                    d="M512 1024C229.222 1024 0 794.778 0 512S229.222 0 512 0s512 229.222 512 512-229.222 512-512 512z m259.149-568.883h-290.74a25.293 25.293 0 0 0-25.292 25.293l-0.026 63.206c0 13.952 11.315 25.293 25.267 25.293h177.024c13.978 0 25.293 11.315 25.293 25.267v12.646a75.853 75.853 0 0 1-75.853 75.853h-240.23a25.293 25.293 0 0 1-25.267-25.293V417.203a75.853 75.853 0 0 1 75.827-75.853h353.946a25.293 25.293 0 0 0 25.267-25.292l0.077-63.207a25.293 25.293 0 0 0-25.268-25.293H417.152a189.62 189.62 0 0 0-189.62 189.645V771.15c0 13.977 11.316 25.293 25.294 25.293h372.94a170.65 170.65 0 0 0 170.65-170.65V480.384a25.293 25.293 0 0 0-25.293-25.267z"
-                    fill="#C71D23"
-                    p-id="7765"
-                  ></path>
-                </svg>
-              </li>
+              </li> */}
             </ul>
           </div>
         </div>
-        {showQR ? (
-          <div
-            onMouseOver={() => {
-              setShowQR(true);
-            }}
-            onMouseOut={() => {
-              setShowQR(false);
-            }}
-            className=" absolute top-0 left-0 rounded-lg h-full w-full bg-white"
-          >
-            <div>vlife低代码</div>
-            <div></div>
+
+        {part === "register" ? (
+          <div className=" absolute top-0 left-0 p-8 pt-16 rounded-lg h-full w-full bg-white">
+            <section className="flex justify-between">
+              <div
+                style={{
+                  fontSize: "22px",
+                  color: "#262626",
+                  fontWeight: 500,
+                  lineHeight: "32px",
+                }}
+              >
+                账号注册
+              </div>
+              <div onClick={() => setPart("login")}>
+                <a className=" cursor-pointer text-sm text-blue-400 hover:text-blue-500 hover:underline mb-6">
+                  密码登录
+                </a>
+              </div>
+            </section>
+            <section className="mt-5">
+              <div className="flex flex-col">
+                <p className="text-red-500 pt-2 text-center h-6 ">
+                  {/* {JSON.stringify(registerFlag)} */}
+                  {registerFlag.msg}
+                </p>
+                <div className="mb-1 pt-2 rounded">
+                  <input
+                    type="text"
+                    placeholder="邮箱"
+                    id="username"
+                    value={registerData.email}
+                    onChange={(evt) => {
+                      setRegisterData({
+                        ...registerData,
+                        email: evt.target.value,
+                      });
+                      setRegisterFlag({ ...registerFlag, email: undefined });
+                    }}
+                    className=" h-12 text-xl  rounded w-full text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
+                  />
+                </div>
+                <div className="mb-1 pt-2 rounded">
+                  {" "}
+                  <input
+                    type="password"
+                    id="password"
+                    placeholder="密码"
+                    value={registerData.password}
+                    onChange={(evt) =>
+                      setRegisterData({
+                        ...registerData,
+                        password: evt.target.value,
+                      })
+                    }
+                    className="h-12 text-xl  rounded w-full text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
+                  />
+                  <span className=" absolute right-8">
+                    <IconEyeOpened size="large" />
+                  </span>
+                </div>
+
+                <div className="mb-6 pt-2 rounded flex">
+                  <input
+                    type="text"
+                    placeholder="邮箱验证码"
+                    id="code"
+                    value={registerData.checkCode}
+                    onChange={(evt) => {
+                      setRegisterData({
+                        ...registerData,
+                        checkCode: evt.target.value,
+                      });
+                    }}
+                    className=" h-12 text-xl  rounded w-1/2 text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
+                  />
+                  <button
+                    className={`p-4 absolute right-20 ${
+                      registerFlag.flag === true &&
+                      registerFlag.email === undefined
+                        ? "bg-blue-400 hover:bg-blue-500"
+                        : " bg-slate-400"
+                    }   text-white font-bold py-2 rounded-md shadow-lg hover:shadow-xl transition duration-200`}
+                    onClick={() => {
+                      if (
+                        registerData.email &&
+                        registerFlag.flag === true &&
+                        registerFlag.email === undefined
+                      ) {
+                        sendEmail(registerData.email).then((d) => {
+                          if (
+                            d.data === "" ||
+                            d.data === null ||
+                            d.data === undefined
+                          ) {
+                            setRegisterFlag({
+                              //发送成功
+                              ...registerFlag,
+                              email: registerData.email || "",
+                            });
+                            Modal.success({
+                              title: "邮件已发送",
+                              content: `请登录邮箱(${registerData.email})查看验证码`,
+                            });
+                          } else {
+                            //发送失败
+                            setRegisterFlag({ ...registerFlag, msg: d.data });
+                          }
+                        });
+                      }
+                    }}
+                  >
+                    {registerFlag.flag === true
+                      ? registerFlag.email
+                        ? "重新发送"
+                        : "发送邮件"
+                      : "发送邮件"}
+                  </button>
+                </div>
+                <button
+                  className={` ${
+                    registerFlag.flag === true &&
+                    registerData.checkCode?.length === 4 &&
+                    registerFlag.email
+                      ? "bg-blue-400 hover:bg-blue-500"
+                      : "bg-slate-400"
+                  } text-white font-bold py-2 rounded-md shadow-lg hover:shadow-xl transition duration-200`}
+                  onClick={register}
+                >
+                  注册
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : part === "qr" ? (
+          <div className=" absolute top-0 left-0 p-8 rounded-lg h-full w-full bg-white">
+            qr
           </div>
         ) : (
           <></>
         )}
         <div
           onMouseOver={() => {
-            setShowQR(true);
+            // setPart("qr");
           }}
           onMouseOut={() => {
-            setShowQR(false);
+            // setPart("login");
           }}
           className="absolute  cursor-pointer text-center w-full py-4 h-16 bottom-0 left-0  bg-cover bg-center"
           style={{
