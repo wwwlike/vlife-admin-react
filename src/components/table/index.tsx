@@ -197,6 +197,9 @@ export default ({
           )[0].propVal;
 
           m["render"] = (text, record, index) => {
+            if (text === "" || text === null || text === undefined) {
+              return "-";
+            }
             return dicts[dictCode || "vlife"].data?.filter(
               (d) => d.value + "" === text + ""
             )[0].label;

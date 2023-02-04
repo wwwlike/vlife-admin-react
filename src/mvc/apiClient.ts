@@ -55,7 +55,7 @@ instance.interceptors.request.use(
     if (
       token === null &&
       config.url?.indexOf("/login") === -1 &&
-      config.url?.indexOf("token") === -1 && 
+      config.url?.indexOf("git") === -1 && 
       config.url?.indexOf("Email") === -1 &&
       config.url?.indexOf("/register") === -1
     ) {
@@ -86,13 +86,15 @@ instance.interceptors.response.use(
       Notification.error({
         content: `服务端运行异常，异常代码${res.status}`,
       });
-    } else if (res.data.code != 200) {
+    } else if (res.data.code != 200 &&    window.location.href.indexOf("login") === -1) {
       //路由地址是在
       //业务逻辑异常
       Notification.error({
         content: `${res.data.msg}`,
       });
-    } else if (res.config.method === "post") {
+    } else if (res.config.method === "post"&&
+    window.location.href.indexOf("login") === -1
+    ){
       Notification.success({
         content: `操作成功`,
       });
@@ -115,10 +117,11 @@ instance.interceptors.response.use(
       });
     } else if (err.code === "ERR_CANCELED") {
       //请求取消
-      if (window.location.href.indexOf("login") === -1)
+      if (window.location.href.indexOf("login") === -1){
         Notification.error({
           content: `${err.message}`,
         });
+      }
     } else if (err.response.status === 403) {
       Notification.error({
         content: `没有权限`,

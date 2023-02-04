@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { localHistoryLoginUserName, useAuth } from "@src/context/auth-context";
 import "./login.css";
 import { useForm } from "@src/hooks/useForm";
@@ -13,21 +13,32 @@ import {
   sendEmail,
   register as serverReg, //服务端注册
   ThirdAccountDto,
+  giteeUrl,
+  openCheckCode,
 } from "@src/mvc/SysUser";
 import { Result } from "@src/mvc/base";
-import { useDebounceEffect } from "ahooks";
+import { useDebounceEffect, useInterval } from "ahooks";
 import { emailReg } from "@src/utils/regexp";
 import { Modal } from "@douyinfe/semi-ui";
 
 const Index: React.FC = () => {
   const localUsername = window.localStorage.getItem(localHistoryLoginUserName);
   const { user, login, error, giteeLogin } = useAuth();
-
+  const second: number = 99;
   const navigate = useNavigate();
   const { values, errors, setFieldValue } = useForm<AuthForm>(
     { username: localUsername || "", password: "" },
     null
   );
+
+  const [count, setCount] = useState(0);
+  // const [interval, setInterval] = useState<number | undefined>(1000);
+
+  const clear = useInterval(() => {
+    if (count !== 0) {
+      setCount(count - 1);
+    }
+  }, 1000);
   useEffect(() => {
     if (user && user.id) {
       navigate("/");
@@ -48,7 +59,7 @@ const Index: React.FC = () => {
    * 注册的数据
    */
   const [registerData, setRegisterData] = useState<Partial<RegisterDto>>({});
-
+  const [open, setOpen] = useState<boolean>(false);
   const [registerFlag, setRegisterFlag] = useState<registerFlag>({
     flag: true,
   });
@@ -66,12 +77,7 @@ const Index: React.FC = () => {
       //   registerData.checkCode === null;
       let f: registerFlag = { ...registerFlag };
       // 前端校验
-      if (
-        registerData.email === undefined &&
-        registerData.password === undefined
-      ) {
-        f = { flag: false };
-      } else if (emailEmpty) {
+      if (emailEmpty) {
         f = {
           flag: false,
           msg: "邮箱不能为空",
@@ -98,10 +104,20 @@ const Index: React.FC = () => {
           } else {
             f = { ...registerFlag, flag: true, msg: undefined };
           }
+
+          if (registerData.password === undefined) {
+            f = { ...f, flag: false };
+          }
           //密码验证
           setRegisterFlag(f);
         });
       } else {
+        if (
+          registerData.email === undefined &&
+          registerData.password === undefined
+        ) {
+          f = { ...f, flag: false };
+        }
         setRegisterFlag(f);
       }
     },
@@ -119,10 +135,22 @@ const Index: React.FC = () => {
   //当前场景
   const [part, setPart] = useState<"login" | "register" | "qr">("login");
   const gitLogin = () => {
-    const url =
-      "https://gitee.com/oauth/authorize?client_id=e3b04bf27387e4c935f5e1827ad596d568790fd38f5ca436f2c59b187dbbbee4&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin%3Ffrom%3Dgitee&response_type=code";
-    window.location.href = url;
+    giteeUrl().then((d) => {
+      if (d.data) {
+        window.location.href = d.data;
+      } else {
+        alert("服务端没有启用gitee快捷登录");
+      }
+    });
   };
+
+  // const openRegCode = useCallback((): boolean => {
+  //   const abc = async (): => {
+  //     await openCheckCode();
+  //   };
+
+  // }, []);
+
   useEffect(() => {
     if (urlParam.code !== undefined) {
       if (urlParam.from === "gitee") {
@@ -131,18 +159,21 @@ const Index: React.FC = () => {
         );
       }
     }
+    openCheckCode().then((d: any) => {
+      setOpen(d.data);
+    });
   }, [urlParam]);
 
   const register = useCallback(() => {
     if (
       registerFlag.flag === true &&
-      registerData.checkCode &&
+      ((registerData.checkCode && open) || open === false) &&
       registerData.email &&
       registerData.password
     ) {
       serverReg({
         password: registerData.password,
-        checkCode: registerData.checkCode,
+        checkCode: registerData.checkCode || "",
         email: registerData.email,
       }).then((res) => {
         if (res.data === "" || res.data === null || res.data === undefined) {
@@ -161,7 +192,7 @@ const Index: React.FC = () => {
         }
       });
     }
-  }, [registerData, registerFlag]);
+  }, [registerData, registerFlag, open]);
 
   return (
     <div
@@ -172,13 +203,13 @@ const Index: React.FC = () => {
       }}
     >
       {/* background: `#00c1c1 url(https://img.bosszhipin.com/static/file/2022/zlqc2m9fao1667185843533.png) bottom/100% no-repeat`, */}
-      <div className="max-w-md mr-0 pt-2 ">
-        <h1 className="text-3xl font-bold text-white text-center">
+      <div className=" absolute  left-36 top-1/4 ">
+        <h1 className=" text-6xl font-bold text-white text-center">
           vlife低代码研发平台
         </h1>
       </div>
 
-      <div className="relative flex left-1/3 w-4/12  h-px-96  bg-white     rounded-3xl shadow-3xl">
+      {/* <div className="relative flex left-1/3 w-4/12  h-px-96  bg-white     rounded-3xl shadow-3xl">
         <div
           id="side-slide-box"
           className=" w-1/3 bg-slate-200 m-0 h-full rounded-l-3xl"
@@ -186,7 +217,7 @@ const Index: React.FC = () => {
           11111
         </div>
         <div>22222222222222</div>
-      </div>
+      </div> */}
 
       <div
         style={{ width: "432px" }}
@@ -393,7 +424,6 @@ const Index: React.FC = () => {
                   />
                 </div>
                 <div className="mb-1 pt-2 rounded">
-                  {" "}
                   <input
                     type="password"
                     id="password"
@@ -412,68 +442,98 @@ const Index: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="mb-6 pt-2 rounded flex">
-                  <input
-                    type="text"
-                    placeholder="邮箱验证码"
-                    id="code"
-                    value={registerData.checkCode}
-                    onChange={(evt) => {
-                      setRegisterData({
-                        ...registerData,
-                        checkCode: evt.target.value,
-                      });
-                    }}
-                    className=" h-12 text-xl  rounded w-1/2 text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
-                  />
-                  <button
-                    className={`p-4 absolute right-20 ${
-                      registerFlag.flag === true &&
-                      registerFlag.email === undefined
-                        ? "bg-blue-400 hover:bg-blue-500"
-                        : " bg-slate-400"
-                    }   text-white font-bold py-2 rounded-md shadow-lg hover:shadow-xl transition duration-200`}
-                    onClick={() => {
-                      if (
-                        registerData.email &&
-                        registerFlag.flag === true &&
-                        registerFlag.email === undefined
-                      ) {
-                        sendEmail(registerData.email).then((d) => {
-                          if (
-                            d.data === "" ||
-                            d.data === null ||
-                            d.data === undefined
-                          ) {
-                            setRegisterFlag({
-                              //发送成功
-                              ...registerFlag,
-                              email: registerData.email || "",
-                            });
-                            Modal.success({
-                              title: "邮件已发送",
-                              content: `请登录邮箱(${registerData.email})查看验证码`,
-                            });
-                          } else {
-                            //发送失败
-                            setRegisterFlag({ ...registerFlag, msg: d.data });
-                          }
+                {open ? (
+                  <div className="mb-6 pt-2 rounded flex">
+                    <input
+                      type="text"
+                      placeholder="邮箱验证码"
+                      id="code"
+                      value={registerData.checkCode}
+                      onChange={(evt) => {
+                        setRegisterData({
+                          ...registerData,
+                          checkCode: evt.target.value,
                         });
-                      }
-                    }}
-                  >
-                    {registerFlag.flag === true
-                      ? registerFlag.email
-                        ? "重新发送"
-                        : "发送邮件"
-                      : "发送邮件"}
-                  </button>
-                </div>
+                      }}
+                      className=" h-12 text-xl  rounded w-1/2 text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
+                    />
+                    <button
+                      className={`p-4 absolute right-20 ${
+                        registerFlag.flag === true &&
+                        count === 0 &&
+                        registerFlag.email !== "ing"
+                          ? // && registerFlag.email === undefined
+                            "bg-blue-400 hover:bg-blue-500"
+                          : " bg-slate-400"
+                      }   text-white font-bold py-2 rounded-md shadow-lg hover:shadow-xl transition duration-200`}
+                      onClick={() => {
+                        if (
+                          registerData.email &&
+                          registerFlag.flag === true &&
+                          registerFlag.email !== "ing" &&
+                          count === 0
+                        ) {
+                          sendEmail(registerData.email).then((d) => {
+                            if (
+                              d.data === "" ||
+                              d.data === null ||
+                              d.data === undefined
+                            ) {
+                              setRegisterFlag({
+                                //发送成功
+                                ...registerFlag,
+                                email: registerData.email || "",
+                              });
+                              Modal.success({
+                                title: "邮件已发送",
+                                content: `请登录邮箱(${registerData.email})查看验证码`,
+                              });
+                              setCount(second); //倒计时
+                            } else {
+                              //发送失败
+                              setRegisterFlag({ ...registerFlag, msg: d.data });
+                            }
+                          });
+
+                          setRegisterFlag({
+                            //发送中
+                            ...registerFlag,
+                            email: "ing",
+                          });
+                        }
+                      }}
+                    >
+                      {registerFlag.email && registerFlag.email === "ing" ? (
+                        `发送中...`
+                      ) : (
+                        <></>
+                      )}
+
+                      {registerFlag.email &&
+                      registerFlag.email !== "ing" &&
+                      count > 0
+                        ? `重新发送${count}`
+                        : ""}
+
+                      {(count === 0 &&
+                        registerFlag.email &&
+                        registerFlag.email !== "ing") ||
+                      registerFlag.email === undefined
+                        ? `发送邮件`
+                        : ""}
+                    </button>
+                  </div>
+                ) : (
+                  ""
+                )}
+                {/* {JSON.stringify(registerFlag)} */}
                 <button
                   className={` ${
                     registerFlag.flag === true &&
-                    registerData.checkCode?.length === 4 &&
-                    registerFlag.email
+                    ((registerData.checkCode?.length === 4 &&
+                      open === true &&
+                      registerFlag.email) ||
+                      open === false)
                       ? "bg-blue-400 hover:bg-blue-500"
                       : "bg-slate-400"
                   } text-white font-bold py-2 rounded-md shadow-lg hover:shadow-xl transition duration-200`}
