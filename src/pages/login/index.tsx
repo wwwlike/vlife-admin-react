@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthForm } from "@src/provider/userProvider";
 import { useUrlQueryParam } from "@src/utils/lib";
 import loginBg from "@src/image/loginBg.jpg";
+import { Notification, Spin } from "@douyinfe/semi-ui";
 import { IconEyeOpened } from "@douyinfe/semi-icons";
 import {
   checkEmail,
@@ -67,6 +68,7 @@ const Index: React.FC = () => {
   //检查注册信息
   useDebounceEffect(
     () => {
+      setCount(0);
       const emailEmpty =
         registerData.email === "" || registerData.email === null;
       const pwdEmpty =
@@ -214,7 +216,7 @@ const Index: React.FC = () => {
           id="side-slide-box"
           className=" w-1/3 bg-slate-200 m-0 h-full rounded-l-3xl"
         >
-          11111
+         带介绍的登录框
         </div>
         <div>22222222222222</div>
       </div> */}
@@ -294,9 +296,9 @@ const Index: React.FC = () => {
                   className="h-12 text-xl  rounded w-full text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
                 />
 
-                <span className=" absolute right-8">
+                {/* <span className=" absolute right-8">
                   <IconEyeOpened size="large" />
-                </span>
+                </span> */}
               </div>
               <div className="mb-12 relative">
                 <div
@@ -437,9 +439,9 @@ const Index: React.FC = () => {
                     }
                     className="h-12 text-xl  rounded w-full text-gray-700 focus:outline-none border-b border-gray-300 focus:border-blue-400 transition duration-500 px-3 pb-3"
                   />
-                  <span className=" absolute right-8">
+                  {/* <span className=" absolute right-8">
                     <IconEyeOpened size="large" />
-                  </span>
+                  </span> */}
                 </div>
 
                 {open ? (
@@ -484,9 +486,8 @@ const Index: React.FC = () => {
                                 ...registerFlag,
                                 email: registerData.email || "",
                               });
-                              Modal.success({
-                                title: "邮件已发送",
-                                content: `请登录邮箱(${registerData.email})查看验证码`,
+                              Notification.success({
+                                content: `发送成功,请登录邮箱查看验证码`,
                               });
                               setCount(second); //倒计时
                             } else {
@@ -504,7 +505,10 @@ const Index: React.FC = () => {
                       }}
                     >
                       {registerFlag.email && registerFlag.email === "ing" ? (
-                        `发送中...`
+                        <>
+                          发送中
+                          <Spin size="small" />
+                        </>
                       ) : (
                         <></>
                       )}
