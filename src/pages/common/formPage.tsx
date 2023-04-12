@@ -1,9 +1,10 @@
 import VlifeForm, { FormProps } from "@src/components/form";
 import { useAuth } from "@src/context/auth-context";
-import { FormVo } from "@src/mvc/model/Form";
-import { find } from "@src/provider/baseProvider";
+import { FormVo } from "@src/api/Form";
 import React, { useEffect, useMemo, useState } from "react";
-
+import { find } from "@src/api/base/baseService";
+import CheckModel from "@src/pages/sysConf/model/checkModel";
+const mode = import.meta.env.VITE_APP_MODE;
 /**
  * 入参：
  * formData=> 表单初始化数据
@@ -15,75 +16,75 @@ import React, { useEffect, useMemo, useState } from "react";
  * 3. 外键数据提取
  * 4. 数据透传
  */
-export interface FormPageProps extends Omit<FormProps, "dicts" | "modelInfo"> {
-  entityName: string; // 实体名称
-  modelName?: string; // 模型名称
+
+export interface FormPageProps extends Omit<FormProps, "modelInfo"> {
+  type: string; //表单模型必传
+  title?: string; //表单名称
   modelInfo?: FormVo; //模型信息可选，设计表单时实时传
-  type: "req" | "save"; //表单类型，查询表单/数据表单/待加入设计表单
+  //将模型传输出去
+  onVfForm?: (formVo: FormVo) => void;
 }
 const FormPage = ({
-  entityName,
-  modelName,
-  modelInfo,
-  reload,
   type,
+  modelInfo,
+  className,
   onDataChange,
+  onClickFieldComponent,
+  onVfForm,
+  design,
   ...props
 }: FormPageProps) => {
-  const { getDict, getFormInfo } = useAuth(); //context里的字典信息、模型信息提取
-  //模型信息状态初始化,对组件信息json转对象
-  const [model, setModel] = useState<FormVo | undefined>();
+  const { getDict, getFormInfo, groups, user } = useAuth(); //context里的字典信息、模型信息提取
+
+  const [model, setModel] = useState<FormVo | undefined>(
+    modelInfo ? { ...modelInfo } : undefined
+  );
   //外键字段(待删除)
   const [fkMap, setFkMap] = useState<any>({}); // 外键数据集合
 
-  // 组件数据(promise不能作为返回)
-  const [dataModel, setDataModel] = useState<FormVo>();
-
-  //模型信息提取
+  //模型信息提取，模型信息返回
   useEffect(() => {
-    if (modelInfo) {
-      const mm = {
-        ...modelInfo,
-        fields: modelInfo.fields.map((f) => {
-          return {
-            ...f,
-            componentSetting:
-              f && f.componentSettingJson
-                ? JSON.parse(f.componentSettingJson)
-                : undefined,
-          };
-        }),
-      };
-      setModel(mm);
-    }
-    if (modelInfo === undefined) {
-      getFormInfo(modelName ? modelName : entityName, type).then((data) => {
-        setModel(data);
+    if (model === undefined) {
+      getFormInfo({ type, design }).then((data) => {
+        if (data?.id) {
+          setModel(data);
+          if (onVfForm) {
+            onVfForm(data);
+          }
+        }
       });
     }
-  }, [entityName, modelName, modelInfo, reload]);
+  }, [type, design, groups]);
 
-  //表单数据与初始化数据整合，新增时从模型信息里提取初始化数据
+  //模型信息提取，模型信息返回
+  useEffect(() => {
+    if (modelInfo) {
+      setModel({ ...modelInfo });
+    }
+  }, [JSON.stringify(modelInfo)]);
+
+  //模型数据，无数据时去取字段的默认值
   const formData = useMemo(() => {
     if (model && props.formData === undefined) {
       const memoModel: any = {};
       model.fields.forEach((field) => {
-        if (field.initialValues) {
+        if (field.initialValues && field.fieldName) {
           memoModel[field.fieldName] = field.initialValues;
         }
       });
       return memoModel;
     }
+    // alert(JSON.stringify(props.formData));
     return props.formData;
-  }, [model, props.formData, reload]);
+  }, [model, props.formData]);
 
   /**
+   *
    * “同步数据源”方案处理；异步的联动的需要把接口传入到index里，在其触发时执行
    * 自定义组件prop数据处理
    * 1. datas提取
    * 2. read设置
    */
-
   // useEffect(() => {
   //   if (model && model.fields) {
   //     Promise.all(
@@ -140,7 +141,7 @@ const FormPage = ({
       if (s) distCodes.push(s);
     });
     return distCodes;
-  }, [model, reload]);
+  }, [model?.fields]);
 
   /**
    * 外键字段信息
@@ -176,7 +177,7 @@ const FormPage = ({
         // }
       };
     });
-  }, [model, formData, reload]);
+  }, [model, formData]);
 
   useEffect(() => {
     //step2 找到字段里有字典的数据，并从全局context里得到本次需要的字典数据
@@ -194,40 +195,49 @@ const FormPage = ({
         });
       }
     });
-  }, [fkInfos, reload]);
+  }, [fkInfos]);
 
-  if (model && formData) {
-    return (
-      <VlifeForm
-        entityName={entityName}
-        reload={reload}
-        modelInfo={model}
-        dicts={getDict({
-          emptyLabel: type === "req" ? "全部" : "请选择",
-          codes: [...modelDicts],
-        })}
-        fkMap={fkMap}
-        onDataChange={(data) => {
-          if (onDataChange) {
-            onDataChange(data);
-          }
-        }}
-        {...props}
-        formData={formData}
-      ></VlifeForm>
-    );
-  } else {
-    return (
-      <>
-        {/* {JSON.stringify(modelInfo)} */}
-        "loading..."
-        {/* 加入连接跳转到设计页面里
-        错误提示，每次都会在页面先渲染不好
-        <div>{modelName}模型在后端应用中不存在，请按照规范进行配置</div>
-        规范：列表查询模型的命名,应该以模型名称开头，pageReq结尾 */}
-      </>
-    );
-  }
+  const form = useMemo(() => {
+    if (model && formData) {
+      return (
+        <VlifeForm
+          {...props}
+          key={formData.id + "_" + props.key}
+          onClickFieldComponent={onClickFieldComponent}
+          className={className}
+          // reload={reload}
+          // fieldMode="name"
+          modelInfo={model}
+          design={design}
+          dicts={getDict({
+            emptyLabel: type === "req" ? "全部" : "请选择",
+            codes: [...modelDicts],
+          })}
+          fkMap={fkMap}
+          onDataChange={(data, field) => {
+            if (onDataChange) {
+              onDataChange(data, field);
+            }
+          }}
+          formData={formData}
+        />
+      );
+    } else {
+      return <>${type}模型无法解析，请检查名称是否准确</>;
+    }
+  }, [model, formData]);
+
+  return (
+    <>
+      {mode === "pro" || type === undefined ? (
+        <>{form}</>
+      ) : (
+        <>
+          <CheckModel modelName={[type]}>{form}</CheckModel>
+        </>
+      )}
+    </>
+  );
 };
 // };
 export default FormPage;

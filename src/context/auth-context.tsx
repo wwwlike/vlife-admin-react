@@ -1,60 +1,86 @@
-/**
- * 把用户信息放置到 context里去
- */
-import { AuthForm, useCurrUser, useLogin } from "@src/provider/userProvider";
-import { useAllDict } from "@src/provider/dictProvider";
-import { ModelInfo, Result, TranDict } from "@src/mvc/base";
-import { useAllResources } from "@src/mvc/SysResources";
+// import { AuthForm, useCurrUser, useLogin } from "@src/provider/userProvider";
+// import { useAllDict } from "@src/provider/dictProvider";
+import { ModelInfo, TranDict } from "@src/api/base";
+import { useAllResources } from "@src/api/SysResources";
 import { useMount, useSize } from "ahooks";
-import React, {
-  ReactNode,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { ReactNode, useCallback, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { SysDict } from "@src/mvc/SysDict";
-import { gitToken, ThirdAccountDto, UserDetailVo } from "@src/mvc/SysUser";
-import { FormVo, model, javaModel } from "@src/mvc/model/Form";
-import { SysResources } from "@src/mvc/SysResources";
+import { all, SysDict } from "@src/api/SysDict";
+import {
+  currUser,
+  gitToken,
+  ThirdAccountDto,
+  UserDetailVo,
+  login as userLogin,
+} from "@src/api/SysUser";
+import { FormVo, model, javaModel, formPageReq } from "@src/api/Form";
+import { SysResources } from "@src/api/SysResources";
 import { useEffect } from "react";
-
+import { listAll, SysGroup } from "@src/api/SysGroup";
 export const localStorageKey = "__auth_provider_token__";
+
+export interface dictObj {
+  [key: string]: {
+    data: {
+      value: string | undefined;
+      label: string;
+      color:
+        | "amber"
+        | "blue"
+        | "cyan"
+        | "green"
+        | "grey"
+        | "indigo"
+        | "light-blue"
+        | "light-green"
+        | "lime"
+        | "orange"
+        | "pink"
+        | "purple"
+        | "red"
+        | "teal"
+        | "violet"
+        | "yellow"
+        | "white";
+    }[];
+    label: string;
+  };
+}
 /**
  * 上次登录的用户名,清除token不会清除它
  */
 export const localHistoryLoginUserName = "__local_history_login_username__";
-//全局状态类型定义，初始化为undefiend ,注意这里返回的是Pomise函数
+//全局状态和函数
 const AuthContext = React.createContext<
   | {
-      //返回模型信息(旧待删除)
-      getModelInfo: (modelName: string) => Promise<ModelInfo | undefined>;
-      //模型信息
-      getFormInfo: (
-        modelName: string,
-        uiType: "save" | "vo" | "list" | "req"
-      ) => Promise<FormVo | undefined>;
+      /**1 attr */
       //当前用户
       user: UserDetailVo | undefined;
       //所有模型
       models: any;
-      getIcon: (key: string) => string;
-      login: (form: AuthForm) => void;
+      //当前屏幕大小
+      screenSize?: { width: number; height: number; sizeKey: string };
+      // 所有字典信息
+      dicts: dictObj;
+      //全局错误信息
+      error: string | null | undefined;
+      //所有权限组
+      groups: { [id: string]: SysGroup };
+      /**2 funs */
+      //java模型信息
+      getModelInfo: (modelName: string) => Promise<ModelInfo | undefined>;
+      //db模型信息
+      getFormInfo: (params: formPageReq) => Promise<FormVo | undefined>;
+      //模型缓存信息清除
+      clearModelInfo: (modelName?: string) => void;
+      //登录(可以移除到一般service里)
+      login: (form: { password: string; username: string }) => void;
       giteeLogin: (code: string) => Promise<ThirdAccountDto | undefined>;
       loginOut: () => void;
-      screenSize?: { width: number; height: number; sizeKey: string }; //当前屏幕大小
-      //获得字典信息,如果codes不传，则返回一级字典
-      getDict: (obj: { emptyLabel?: string; codes?: string[] }) => TranDict[];
-      dicts: {
-        [key: string]: {
-          data: { value: string; label: string }[];
-          label: string;
-        };
-      };
+      //指定key字典信息
+      getDict: (obj: { emptyLabel?: string; codes?: string[] }) => TranDict[]; //如果codes不传，则返回字典类目
       //按钮权限认证
       checkBtnPermission: (code: string) => boolean; //检查按钮权限
-      error: string | null | undefined;
     }
   | undefined
 >(undefined);
@@ -77,86 +103,99 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [models, setModels] = useState<any>({});
 
   const [javaModels, setJavaModels] = useState<any>({});
+  /** 数据库结构的字典信息 */
+  const [dbDicts, setDbDicts] = useState<SysDict[]>([]);
 
-  const [dicts, setDicts] = useState<SysDict[]>([]);
-  /** 全量字典信息 */
-  const [dictObj, setDictObj] = useState<{
-    [key: string]: { data: { value: string; label: string }[]; label: string };
-  }>({});
+  /** 权限组集合 */
+  const [groups, setGroups] = useState<{ [key: string]: SysGroup }>({});
+
+  /**封装好的全量字典信息 */
+  const [dicts, setDicts] = useState<dictObj>({});
   const [error, setError] = useState<string | null>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { pathname } = location;
-  const { data: currUser, runAsync: runCurruser } = useCurrUser();
+  // const { data: currUser, runAsync: runCurruser } = useCurrUser();
   const { runAsync: asyncResources } = useAllResources();
 
-  const { runAsync: userLogin } = useLogin();
-  const { data: allDict, runAsync } = useAllDict();
+  // const { runAsync: userLogin } = useLogin();
+  // const { data: allDict, runAsync } = useAllDict();
+
+  /**
+   * 字典数据加载则更新
+   */
+  useEffect(() => {
+    const obj: dictObj = {};
+    dbDicts.forEach((d) => {
+      if (obj[d.code] === undefined) {
+        if (d.val === null) {
+          obj[d.code] = { label: d.title, data: [] };
+        } else {
+          obj[d.code] = {
+            label: "",
+            data: [{ label: d.title, value: d.val, color: d.color }],
+          };
+        }
+      } else {
+        if (d.val === null) {
+          obj[d.code].label = d.title;
+        } else {
+          obj[d.code].data.push({
+            label: d.title,
+            value: d.val,
+            color: d.color,
+          });
+        }
+      }
+    });
+    obj["vlife"] = {
+      label: "字典类目",
+      data: dbDicts
+        .filter((d) => d.val === null)
+        .map((d) => {
+          return { value: d.code, label: d.title, color: d.color };
+        }),
+    };
+    setDicts(obj);
+  }, [dbDicts]);
+
+  /**
+   * 登录成功后数据数据提取初始化
+   */
+  const datasInit = useCallback(() => {
+    //字典初始化
+    all().then((res) => {
+      if (res.data) {
+        setDbDicts(res.data);
+      }
+    });
+    //同步拉取全量资源信息
+    asyncResources({}).then((d) => {
+      setAllResources(d.data);
+    });
+    //角色组全量提取
+    listAll().then((t) => {
+      let obj: { [id: string]: SysGroup } = {};
+      t.data?.forEach((d) => {
+        obj[d.id] = d;
+      });
+      setGroups({ ...obj });
+    });
+  }, [groups]);
+
   //不刷新则只加载一次
   useMount(() => {
     //拉取用户信息的同步拉拉取字典信息
     const token = window.localStorage.getItem(localStorageKey);
+    //取到token情况下，加载缓存数据
     if (token) {
-      runCurruser().then((res) => {
+      currUser().then((res) => {
         setUser(res.data);
-        runAsync().then((res) => {
-          if (res.data) {
-            setDicts(res.data);
-            const obj: any = {};
-
-            res.data.forEach((d) => {
-              if (obj[d.code] === undefined) {
-                if (d.val === null) {
-                  obj[d.code] = { label: d.title, data: [] };
-                } else {
-                  obj[d.code] = {
-                    label: "",
-                    data: [{ label: d.title, value: d.val }],
-                  };
-                }
-              } else {
-                if (d.val === null) {
-                  obj[d.code].label = d.title;
-                } else {
-                  obj[d.code].data.push({ label: d.title, value: d.val });
-                }
-              }
-            });
-
-            obj["vlife"] = {
-              lable: "字典类目",
-              data: res.data
-                .filter((d) => d.val === null)
-                .map((d) => {
-                  return { value: d.code, label: d.title };
-                }),
-            };
-            setDictObj(obj);
-          }
-        });
-      });
-      //同步拉取全量资源信息
-      asyncResources({}).then((d) => {
-        setAllResources(d.data);
+        datasInit();
       });
     }
   });
 
-  const getIcon = useCallback(
-    (key: string): string => {
-      if (allResources) {
-        const icons = allResources?.filter((r) => r.resourcesCode === key);
-        if (icons && icons.length > 0) {
-          return icons[0].icon;
-        }
-      }
-      return "";
-    },
-    [allResources]
-  );
-
   /**
-   * 获得后台Java内存里的模型原始信息
+   * 获得后台Java内存里的所有模型原始信息
    * @param modelName
    */
   async function getModelInfo(
@@ -178,86 +217,89 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  async function getFormInfo(
-    modelName: string,
-    uiType: "save" | "vo" | "list" | "req"
-  ): Promise<FormVo | undefined> {
-    if (models[modelName + uiType] === undefined) {
-      //简写
-      let form = await (await model({ uiType, modelName })).data;
-      setModels({ ...models, [modelName + uiType]: { ...form } });
-      return form;
-      //组件设置json转对象
-      // const fields = form?.fields.map((f) => {
-      //   return {
-      //     ...f,
-      //     componentSetting: f.componentSettingJson
-      //       ? JSON.parse(f.componentSettingJson)
-      //       : {},
-      //   };
-      // });
-      // setModels({ ...models, [modelName + uiType]: { ...form, fields } });
-      // return { ...form, fields };
-    } else {
-      return models[modelName + uiType];
+  /**
+   *
+   * @param modelName 清除model缓存信息
+   */
+  function clearModelInfo(modelName?: string) {
+    if (modelName === undefined) {
+      setModels({});
+    } else if (models[modelName]) {
+      setModels({ ...models, [modelName]: undefined });
     }
   }
-
-  // /**
-  //  * 获得模型信息，modelN
-  //  * @param modelName
-  //  * @returns
-  //  */
-  // const getModelInfo11= (entityName:string,modelName:string):ModelInfo | undefined=>{
-  //   let modelResult =undefined;
-  //   if(models[modelName]===undefined){
-  //        modelResult = ( modelInfo(modelName,entityName)).data
-  //       // setModels({...models,modelName:modelResult.data})
-  //     }
-  //   return modelResult;
-  // }
+  //从缓存里取模型信息
+  async function getFormInfo(params: formPageReq): Promise<FormVo | undefined> {
+    if (params.type) {
+      if (models[params.type] === undefined) {
+        //简写(promise形式返回数据出去)
+        let form = await (await model(params)).data;
+        // console.log("form", form);
+        setModels({
+          ...models,
+          [params.type]: { ...form },
+        });
+        return form;
+        //组件设置json转对象
+        // const fields = form?.fields.map((f) => {
+        //   return {
+        //     ...f,
+        //     componentSetting: f.componentSettingJson
+        //       ? JSON.parse(f.componentSettingJson)
+        //       : {},
+        //   };
+        // });
+        // setModels({ ...models, [modelName + uiType]: { ...form, fields } });
+        // return { ...form, fields };
+      } else {
+        return models[params.type];
+      }
+    }
+    return undefined;
+  }
 
   /**
    * @param codes 多条字典信息
    * @returns
    */
-  const getDict = ({
-    emptyLabel = "全部",
-    codes,
-  }: {
-    emptyLabel?: string;
-    codes?: string[];
-  }): TranDict[] => {
-    let tranDicts: TranDict[] = [];
-    if (dicts) {
-      if (codes) {
-        //指定的字典
-        codes.forEach((code) => {
+  const getDict = useCallback(
+    ({
+      emptyLabel = "全部",
+      codes,
+    }: {
+      emptyLabel?: string;
+      codes?: string[];
+    }): TranDict[] => {
+      let tranDicts: TranDict[] = [];
+      if (dbDicts) {
+        if (codes) {
+          //指定的字典
+          codes.forEach((code) => {
+            const codeDicts: Pick<SysDict, "title" | "val">[] = [];
+            codeDicts.push({ val: undefined, title: emptyLabel });
+            codeDicts.push(
+              ...dbDicts.filter((sysDict) => {
+                return sysDict.code === code && sysDict.val;
+              })
+            );
+            tranDicts.push({ column: code, sysDict: codeDicts });
+          });
+        } else {
+          //一级字典
           const codeDicts: Pick<SysDict, "title" | "val">[] = [];
           codeDicts.push({ val: undefined, title: emptyLabel });
           codeDicts.push(
-            ...dicts.filter((sysDict) => {
-              return sysDict.code === code && sysDict.val;
+            ...dbDicts.filter((sysDict) => {
+              return sysDict.val === undefined || sysDict.val === null;
             })
           );
-
-          tranDicts.push({ column: code, sysDict: codeDicts });
-        });
-      } else {
-        //一级字典
-        const codeDicts: Pick<SysDict, "title" | "val">[] = [];
-        codeDicts.push({ val: undefined, title: emptyLabel });
-        codeDicts.push(
-          ...dicts.filter((sysDict) => {
-            return sysDict.val === undefined || sysDict.val === null;
-          })
-        );
-
-        tranDicts.push({ column: "", sysDict: codeDicts });
+          tranDicts.push({ column: "", sysDict: codeDicts });
+        }
       }
-    }
-    return tranDicts;
-  };
+      return tranDicts;
+    },
+    [dbDicts]
+  );
 
   //giteelogin 方式登录】
   const giteeLogin = useCallback(
@@ -266,17 +308,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // alert(JSON.stringify(result));
         if (result.code == "200" && result.data) {
           window.localStorage.setItem(localStorageKey, result.data.token);
-          // window.localStorage.setItem(
-          //   localHistoryLoginUserName,
-          //   result.data.username
-          // );
-          runCurruser().then((res) => {
+          currUser().then((res) => {
             setUser(res.data);
-            runAsync().then((res) => {
-              if (res.data) {
-                setDicts(res.data);
-              }
-            });
+            datasInit();
           });
         } else {
           setError(result.msg);
@@ -287,7 +321,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     []
   );
 
-  const login = useCallback((from: AuthForm) => {
+  const login = useCallback((from: { username: string; password: string }) => {
     userLogin(from).then((result) => {
       if (result.code == "200" && result.data) {
         window.localStorage.setItem(localStorageKey, result.data);
@@ -295,13 +329,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           localHistoryLoginUserName,
           from.username || ""
         );
-        runCurruser().then((res) => {
+        currUser().then((res) => {
           setUser(res.data);
-          runAsync().then((res) => {
-            if (res.data) {
-              setDicts(res.data);
-            }
-          });
+          datasInit();
         });
       } else {
         setError(result.msg);
@@ -315,10 +345,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    */
   const checkBtnPermission = useCallback(
     (code: string): boolean => {
-      // if (user?.username === "manage") {
-      //   return true;
-      // }
-      //按钮有模块和key就校验权限
+      //超级管理员
+      if (user?.username === "manage") {
+        return true;
+      }
+      //按钮有code,且code是权限范围内的
       if (user && user.resourceCodes && code) {
         return user?.resourceCodes?.includes(code);
       }
@@ -361,18 +392,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         children={children}
         value={{
           user,
-          login,
-          giteeLogin,
-          error,
-          loginOut,
-          getIcon,
-          dicts: dictObj,
-          getDict,
-          checkBtnPermission,
-          getModelInfo,
-          getFormInfo,
           models,
           screenSize,
+          dicts,
+          error,
+          groups,
+          getModelInfo,
+          getFormInfo,
+          clearModelInfo,
+          login,
+          giteeLogin,
+          loginOut,
+          getDict,
+          checkBtnPermission,
         }}
       />
     </div>

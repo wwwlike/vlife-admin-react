@@ -1,13 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { localHistoryLoginUserName, useAuth } from "@src/context/auth-context";
 import "./login.css";
-import { useForm } from "@src/hooks/useForm";
+import { useForm, useUrlQueryParam } from "@src/hooks/useForm";
 import { useNavigate } from "react-router-dom";
-import { AuthForm } from "@src/provider/userProvider";
-import { useUrlQueryParam } from "@src/utils/lib";
-import loginBg from "@src/image/loginBg.jpg";
 import { Notification, Spin } from "@douyinfe/semi-ui";
-import { IconEyeOpened } from "@douyinfe/semi-icons";
+import RegExp from "@src/util/expression";
 import {
   checkEmail,
   RegisterDto,
@@ -16,10 +13,9 @@ import {
   ThirdAccountDto,
   giteeUrl,
   openCheckCode,
-} from "@src/mvc/SysUser";
-import { Result } from "@src/mvc/base";
+} from "@src/api/SysUser";
+import { Result } from "@src/api/base";
 import { useDebounceEffect, useInterval } from "ahooks";
-import { emailReg } from "@src/utils/regexp";
 import { Modal } from "@douyinfe/semi-ui";
 
 const Index: React.FC = () => {
@@ -27,10 +23,10 @@ const Index: React.FC = () => {
   const { user, login, error, giteeLogin } = useAuth();
   const second: number = 99;
   const navigate = useNavigate();
-  const { values, errors, setFieldValue } = useForm<AuthForm>(
-    { username: localUsername || "", password: "" },
-    null
-  );
+  const { values, errors, setFieldValue } = useForm<{
+    username: string;
+    password: string;
+  }>({ username: localUsername || "", password: "" }, null);
 
   const [count, setCount] = useState(0);
   // const [interval, setInterval] = useState<number | undefined>(1000);
@@ -84,7 +80,7 @@ const Index: React.FC = () => {
           flag: false,
           msg: "邮箱不能为空",
         };
-      } else if (registerData.email && !emailReg.test(registerData.email)) {
+      } else if (registerData.email && !RegExp.isEmail(registerData.email)) {
         f = { flag: false, msg: "邮箱格式错误" };
       } else if (pwdEmpty) {
         f = {
@@ -223,7 +219,7 @@ const Index: React.FC = () => {
 
       <div
         style={{ width: "432px" }}
-        className=" relative left-1/2 bg-white p-8 pt-16 pb-20  my-10 rounded-2xl shadow-2xl"
+        className=" relative left-1/2 top-24 bg-white p-8 pt-16 pb-20 rounded-2xl shadow-2xl"
       >
         <div className="gitee" onClick={gitLogin}>
           <div className="switch-tip">Gitee快捷登录</div>
@@ -444,7 +440,7 @@ const Index: React.FC = () => {
                   </span> */}
                 </div>
 
-                {open ? (
+                {open && (
                   <div className="mb-6 pt-2 rounded flex">
                     <input
                       type="text"
@@ -504,31 +500,25 @@ const Index: React.FC = () => {
                         }
                       }}
                     >
-                      {registerFlag.email && registerFlag.email === "ing" ? (
+                      {registerFlag.email && registerFlag.email === "ing" && (
                         <>
                           发送中
                           <Spin size="small" />
                         </>
-                      ) : (
-                        <></>
                       )}
 
                       {registerFlag.email &&
-                      registerFlag.email !== "ing" &&
-                      count > 0
-                        ? `重新发送${count}`
-                        : ""}
+                        registerFlag.email !== "ing" &&
+                        count > 0 &&
+                        `重新发送${count}`}
 
-                      {(count === 0 &&
+                      {((count === 0 &&
                         registerFlag.email &&
                         registerFlag.email !== "ing") ||
-                      registerFlag.email === undefined
-                        ? `发送邮件`
-                        : ""}
+                        registerFlag.email === undefined) &&
+                        `发送邮件`}
                     </button>
                   </div>
-                ) : (
-                  ""
                 )}
                 {/* {JSON.stringify(registerFlag)} */}
                 <button

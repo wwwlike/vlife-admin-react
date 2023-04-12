@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import semi from "vite-plugin-semi-theme";
+
+import SemiPlugin from "vite-plugin-semi-theme";
 import { resolve } from "path";
 
 // https://vitejs.dev/config/
@@ -13,10 +14,12 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    semi({
-      //semi-theme-universedesign 飞书
-      //semi-theme-doucreator  抖音
+    SemiPlugin({
+      // 飞书 semi-theme-universedesign
+      //  抖音 semi-theme-doucreator
+      // vlife定制款 semi-theme-vlife
       theme: "@semi-bot/semi-theme-universedesign",
+      // include :"~@semi-bot/semi-theme-vlife/scss/index.scss"
     }),
   ],
   css: {

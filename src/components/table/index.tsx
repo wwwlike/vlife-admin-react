@@ -1,26 +1,21 @@
-import {
-  Button,
-  Popover,
-  Select,
-  Space,
-  Table,
-  Tag,
-  Tooltip,
-} from "@douyinfe/semi-ui";
+import { Space, Table, Tag } from "@douyinfe/semi-ui";
 import {
   ColumnProps,
   RowSelection,
   TableProps,
 } from "@douyinfe/semi-ui/lib/es/table";
 import { useAuth } from "@src/context/auth-context";
-import { TranDict } from "@src/mvc/base";
-import { FormVo } from "@src/mvc/model/Form";
-import { FormFieldVo } from "@src/mvc/model/FormField";
-import { SysFile } from "@src/mvc/SysFile";
-import { formatDate } from "@src/utils/utils";
-import React, { useEffect, useMemo, useState } from "react";
-import SelectIcon from "../vlifeComponent/SelectIcon";
-import VfImage from "../vlifeComponent/VfImage";
+// import { checkLineNumber, VfButton } from "@src/datas/ButtonDatas";
+import { IdBean } from "@src/api/base";
+import { FormVo } from "@src/api/Form";
+import { FormFieldVo } from "@src/api/FormField";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { sourceType } from "@src/dsl/schema/base";
+import { formatDate } from "@src/util/func";
+import VfImage from "@src/components/VfImage";
+import SelectIcon from "@src/components/SelectIcon";
+import VlifeButton, { VFButtonPorps } from "@src/components/vlifeButton";
+import { checkLineNumber, VfButton } from "@src/dsl/schema/button";
 
 /**
  * > 目前使用semi的组件进行vlife的table的二次封装、
@@ -30,84 +25,63 @@ import VfImage from "../vlifeComponent/VfImage";
  * 3. 表及列按钮渲染（显隐/可用状态/不可用提示）
  * 4. 单选/多选展示，与特定按钮状态进行绑定
  */
-
 /**
- * 按钮计算属性
+ * <T> 行数据类型
  */
-export type BtnMemoProp = {
-  title?: string; //如存在则覆盖父级title
-  disable?: boolean; //禁用状态
-  prompt?: string; //提示语言
-};
-/**
- * 按钮状态
- */
-export interface VfButton {
-  title: string; //按钮名称
-  entityName?: string; //按钮所属模块
-  icon?: string; //按钮图标
-  key?: string; //按钮Key，权限判定时使用
-  tableBtn?: boolean; //是否是表的bmtn
-  index?: number; //排序索引
-  loading?: boolean; //是否是加载状态
-  attr?: (...objs: any) => BtnMemoProp; //按钮动态属性，禁用、不能用提醒内容，覆盖上一级的title(loading时候可以用，`进行中`)
-  //-------------------
-  model?: string; //按钮触发调用的视图弹出层名称或者对象,说明需要弹框
-  readView?: boolean; //预览模式
-  okFun?: (...record: any) => void; //最后确认回调方法
-  click?: (btn: VfButton, line: number, ...record: any) => void; //按钮点击事件
-}
-
-export interface ListProps extends TableProps {
+export interface ListProps<T extends IdBean> extends TableProps {
   //模型信息
   model: FormVo;
-  //行点击
-  lineClick?: (obj: any) => void;
-  //按钮信息
-  tableBtn?: VfButton[];
+  //行点击事件触发
+  lineClick?: (obj: T) => void;
+  //表格按钮信息
+  //行按钮
+  lineBtn?: VfButton<T>[];
   // 手工传入要显示的列,配置设置的无效
   column?: string[];
-  //字典字段
-  sysDict?: TranDict[];
   //外键数据
   fkMap?: any; //外键数据的键值对
   parentMap?: any; //上级单位的键值对
   // 能否选择多选
   select_more?: boolean; // undefined|false|true ->无勾选框|单选|多选
+  checkedBottomShow?: boolean; //选中的数据在下方展示
   // 选中后下方现实的列
-  select_show_field?: string; //选中时进行展示的字段，不传则不展示
+  // select_show_field?: string; //选中时进行展示的字段，不传则不展示
   //选中后的回调事件
-  onSelected?: (selecteds: selectType[]) => void;
+  onSelected?: (selecteds: T[]) => void;
   // 已经选中的数据
-  selected?: any[]; //进入之前选中的数据信息
+  // selected?: T[]; //进入之前选中的数据信息
 }
 
-type selectType = { id: string; name: string };
-export default ({
+const TableIndex = <T extends IdBean>({
   lineClick,
   model,
-  tableBtn,
-  sysDict,
+  lineBtn,
   dataSource,
   fkMap,
   column,
   parentMap,
   select_more = true,
-  select_show_field,
   onSelected,
-  selected,
+  // selected,
+  checkedBottomShow,
   children,
   ...props
-}: ListProps) => {
+}: ListProps<T>) => {
   const { dicts } = useAuth();
-  const [selectedRow, setSelectedRow] = useState<selectType[]>(
-    selected ? [...selected] : []
-  );
-  const selectIds = useMemo<(string | number)[]>(() => {
-    return selectedRow.map((row) => {
-      return row.id;
-    });
-  }, [selectedRow]);
+  // 选中的行记录
+  const [selectedRow, setSelectedRow] = useState<T[]>([]);
+
+  const select_show_field = useMemo(() => {
+    const field: FormFieldVo[] = model.fields;
+    if (field.filter((f) => f.fieldName === "label").length > 0) return "label";
+    if (field.filter((f) => f.fieldName === "title").length > 0) return "title";
+    if (field.filter((f) => f.fieldName === "name").length > 0) return "name";
+    return "id";
+  }, [model]);
+
+  // useEffect(() => {
+  //   setSelectedRow(selected ? selected : []);
+  // }, [selected]);
 
   useEffect(() => {
     if (onSelected) {
@@ -115,25 +89,58 @@ export default ({
     }
   }, [selectedRow]);
 
-  //行按钮
-  const lineMemoBtns = useMemo<VfButton[]>(() => {
-    return (
-      tableBtn?.filter((btn) => {
-        return !btn.tableBtn;
-      }) || []
-    );
-  }, [tableBtn]);
+  //选中的id
+  const selectIds = useMemo<string[]>(() => {
+    const s: string[] = [];
+    selectedRow.forEach((line) => {
+      if (line.id) s.push(line.id);
+    });
+    return s;
+  }, [selectedRow]);
 
   /**
-   * 表按钮
+   * 按钮状态检查
    */
-  const tableMemoBtns = useMemo(() => {
-    return (
-      tableBtn?.filter((btn) => {
-        return btn.tableBtn;
-      }) || []
-    );
-  }, [tableBtn]);
+  const btnCheck = useCallback(
+    (item: VfButton<T>, ...record: T[]): Partial<VFButtonPorps> => {
+      let checkResult: Partial<VFButtonPorps> = {};
+      let msg: string | void = undefined;
+      //1.长度校验
+      if (item.enable_recordNum) {
+        msg = checkLineNumber(item.enable_recordNum, ...record);
+      }
+      //2.对象match=>eq匹配校验,
+      const matchObj: any = item.enable_match;
+      if (matchObj) {
+        Object.keys(matchObj).forEach((key: string) => {
+          if (
+            key in matchObj &&
+            key in record[0] &&
+            record.filter((r: any) => r[key] === matchObj[key]).length !==
+              record.length
+          ) {
+            msg = `${
+              model.fields.filter((f) => f.fieldName === key)[0].title
+            }不满足`;
+          }
+        });
+      }
+      //check函数校验( 最灵活)
+      if (msg === undefined && item.statusCheckFunc) {
+        msg = item.statusCheckFunc(...record);
+      }
+      if (msg) {
+        if (item.disable_hidden === true) {
+          checkResult.hidden = true;
+        } else {
+          checkResult.disabled = true;
+          checkResult.tooltip = msg;
+        }
+      }
+      return checkResult;
+    },
+    []
+  );
 
   //列信息
   const memoColumns = useMemo((): ColumnProps<any>[] => {
@@ -170,49 +177,65 @@ export default ({
           });
       }
 
-      // step2 字典转换
-      // columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
-      //   sysDict?.forEach((d) => {
-      //     if (m.dictCode?.toLowerCase() === d.column.toLowerCase()) {
-      //       m["render"] = (text, record, index) => {
-      //         return (
-      //           d.sysDict.find((dd) => {
-      //             return dd.val + "" === text + "";
-      //           })?.title || "-"
-      //         );
-      //       };
-      //     }
-      //   });
-      // });
-
-      //Boolean,外键，Pcode翻译处理
+      //字典 ，Boolean,外键，Pcode翻译处理
       columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
         if (
           m.pageComponentPropDtos &&
-          m.pageComponentPropDtos.filter((f) => f.sourceType === "dict")
-            .length > 0
+          m.pageComponentPropDtos.filter(
+            (f) => f.sourceType === sourceType.dict
+          ).length > 0 &&
+          dicts
         ) {
           const dictCode = m.pageComponentPropDtos.filter(
-            (f) => f.sourceType === "dict"
+            (f) => f.sourceType === sourceType.dict
           )[0].propVal;
 
           m["render"] = (text, record, index) => {
             if (text === "" || text === null || text === undefined) {
               return "-";
             }
-            return dicts[dictCode || "vlife"].data?.filter(
-              (d) => d.value + "" === text + ""
-            )[0].label;
+            return dicts[dictCode || "vlife"] &&
+              dicts[dictCode || "vlife"].data ? (
+              dicts[dictCode || "vlife"].data?.filter(
+                (d) => d.value + "" === text + ""
+              ).length > 0 ? (
+                dicts[dictCode || "vlife"].data?.filter(
+                  (d) => d.value + "" === text + ""
+                )[0].color ? (
+                  <Tag
+                    color={
+                      dicts[dictCode || "vlife"].data?.filter(
+                        (d) => d.value + "" === text + ""
+                      )[0].color
+                    }
+                  >
+                    {
+                      dicts[dictCode || "vlife"].data?.filter(
+                        (d) => d.value + "" === text + ""
+                      )[0].label
+                    }
+                  </Tag>
+                ) : (
+                  dicts[dictCode || "vlife"].data?.filter(
+                    (d) => d.value + "" === text + ""
+                  )[0].label
+                )
+              ) : (
+                "-"
+              )
+            ) : (
+              "-"
+            );
           };
         } else if (m.type === "boolean") {
           m["render"] = (text, record, index) => {
             return text === null ? "-" : text ? "是" : "否";
           };
-        } else if (m.entityFieldName === "id") {
+        } else if (m.entityFieldName === "id" && fkMap) {
           m["render"] = (text, record, index) => {
             return fkMap[text];
           };
-        } else if (m.fieldName === "pcode") {
+        } else if (m.fieldName === "pcode" && parentMap) {
           m["render"] = (text, record, index) => {
             return parentMap[text];
           };
@@ -246,45 +269,45 @@ export default ({
       });
 
       //行按钮添加
-      if (lineMemoBtns.length > 0) {
+      if (lineBtn && lineBtn.length > 0) {
         columnshow?.push({
           title: "操作",
           fieldName: "operate",
           render: (text, record, index) => {
             return (
               <Space>
-                {lineMemoBtns.map((item) => {
-                  let prop: BtnMemoProp = {};
-                  if (item?.attr) {
-                    prop = item?.attr(record);
-                  }
-                  //icon={<Icon name={item.key||''} />}
+                {lineBtn.map((item: VfButton<T>, index: number) => {
+                  let checkResult: Partial<VFButtonPorps> = btnCheck(
+                    item,
+                    record
+                  );
+                  // alert(JSON.stringify(checkResult));
                   const button = (
-                    <Button
-                      key={"_" + item.model + item.key + "_" + record.id}
-                      disabled={prop.disable}
+                    <VlifeButton
+                      btnType="text"
+                      key={
+                        index +
+                        "_" +
+                        item.model?.entityType +
+                        item.model?.type +
+                        item.code +
+                        "_" +
+                        record.id
+                      }
+                      code={item.code}
                       theme="borderless"
                       type="primary"
+                      tooltip={item.tooltip}
+                      // hidden={true}
                       onClick={() => {
-                        item.click && item.click(item, index, record);
+                        if (item.click) item.click(item, index, record);
                       }}
+                      {...checkResult}
                     >
                       {item.title}
-                    </Button>
+                    </VlifeButton>
                   );
-                  if (prop.prompt) {
-                    return (
-                      <Tooltip
-                        key={"prop_" + item.model + item.key + "_" + record.id}
-                        content={prop.prompt}
-                      >
-                        {/* {JSON.stringify(record)} */}
-                        {button}
-                      </Tooltip>
-                    );
-                  } else {
-                    return button;
-                  }
+                  return button;
                 })}
               </Space>
             );
@@ -294,20 +317,35 @@ export default ({
       return columnshow;
     }
     return [];
-  }, [model, lineMemoBtns, sysDict, column]);
+  }, [model, lineBtn, column, fkMap, lineBtn, dataSource]);
 
   const onRow = useMemo(
     () => (record: any, index: any) => {
-      return {
-        onClick: (e: any) => {
-          if (lineClick) {
-            lineClick(record);
-          }
-        },
-      };
+      // 给偶数行设置斑马纹
+      if (index % 2 === 1) {
+        return {
+          style: {
+            background: "var(--semi-color-fill-0)",
+          },
+          onClick: (e: any) => {
+            if (lineClick) {
+              lineClick(record);
+            }
+          },
+        };
+      } else {
+        return {
+          onClick: (e: any) => {
+            if (lineClick) {
+              lineClick(record);
+            }
+          },
+        };
+      }
     },
     []
   );
+
   const rowSelection = useMemo((): RowSelection<any> => {
     return {
       disabled: !select_more, //全局选中按钮
@@ -315,18 +353,19 @@ export default ({
       onSelect: (record: any, selected: any) => {
         if (select_more == false) {
           if (selected == true) {
-            if (select_show_field) {
-              setSelectedRow([
-                { id: record.id, name: record[select_show_field] },
-              ]);
-            } else {
-              setSelectedRow([record]);
-            }
+            setSelectedRow([record]);
+
+            // if (select_show_field) {
+            //   setSelectedRow([
+            //     { id: record.id, name: record[select_show_field] },
+            //   ]);
+            // } else {
+            //   setSelectedRow([record]);
+            // }
           } else {
             setSelectedRow([]);
           }
         }
-        //console.log(`select row: ${selected}`, record);
       },
       // onSelectAll: (selected:any, selectedRows:any[]) => {
       //     console.log(`select all rows: ${selected}`, selectedRows);
@@ -352,79 +391,60 @@ export default ({
     };
   }, [selectedRow]);
 
-  return (
-    <>
-      {tableMemoBtns.map((item) => {
-        let prop: BtnMemoProp = {};
-        if (item?.attr) {
-          prop = item?.attr(...selectedRow);
-        }
-        const button = (
-          <Button
-            icon={<SelectIcon size="default" value={item.icon} read />}
-            loading={item.loading}
-            key={item.entityName + "_" + item.model + "_" + item.key}
-            onClick={() => {
-              if (item.click) {
-                //-1 表示全局表的按钮
-                item.click(item, -1, ...selectedRow);
-              }
-              setSelectedRow([]);
-            }}
-            disabled={prop?.disable}
-          >
-            {/* {JSON.stringify(item)} */}
-            {!prop.disable && prop.title ? prop.title : item.title}
-          </Button>
-        );
+  const handleRow = (record: any, index: any) => {
+    // 给偶数行设置斑马纹
+    if (index % 2 === 0) {
+      return {
+        style: {
+          background: "var(--semi-color-fill-0)",
+        },
+      };
+    } else {
+      return {};
+    }
+  };
 
-        if (prop.prompt) {
-          return (
-            <Popover
-              visible={prop.prompt ? false : true}
-              key={"prop" + item.entityName + "_" + item.key}
-              showArrow
-              content={prop.prompt}
-            >
-              {button}
-            </Popover>
-          );
-        } else {
-          return button;
-        }
-      })}
-      {children}
-      <>
-        {/* {JSON.stringify(parentMap)} */}
-        <Table
-          rowKey={"id"}
-          dataSource={dataSource}
-          columns={memoColumns}
-          onRow={onRow}
-          rowSelection={select_more != undefined ? rowSelection : undefined}
-          {...props}
-        />
-      </>
-      {select_show_field &&
-        selectedRow.map((one) => {
-          return (
-            <Tag
-              key={one.id}
-              avatarShape="circle"
-              size="large"
-              closable={true}
-              onClose={() => {
-                setSelectedRow([
-                  ...selectedRow.filter((row) => {
-                    return row.id !== one.id;
-                  }),
-                ]);
-              }}
-            >
-              {one.name}
-            </Tag>
-          );
-        })}
-    </>
+  return (
+    <div>
+      {/* <div className=" space-x-0.5"> {tableButtonMemo}</div> */}
+      <Table
+        showHeader={true}
+        // style={{ lineHeight: "24px" }}
+        bordered={true}
+        rowKey={"id"}
+        dataSource={dataSource}
+        columns={memoColumns}
+        // onRow={onRow}
+        // title={<div className=" absolute top-0">{children}</div>}
+        size="middle"
+        rowSelection={select_more != undefined ? rowSelection : undefined}
+        {...props}
+      />
+      {select_show_field && checkedBottomShow && (
+        <div className=" space-x-2">
+          {selectedRow.map((one: any) => {
+            return (
+              <Tag
+                key={one.id}
+                avatarShape="circle"
+                size="large"
+                closable={true}
+                onClose={() => {
+                  setSelectedRow([
+                    ...selectedRow.filter((row) => {
+                      return row.id !== one.id;
+                    }),
+                  ]);
+                }}
+              >
+                {one[select_show_field]}
+              </Tag>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
+
+export default TableIndex;

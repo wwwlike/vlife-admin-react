@@ -31,7 +31,7 @@
 - typescript4
 - react-router
 - react-redux
-- tailwindcss 原子化 css 方案植入
+- tailwindcss 原子化 css 方案
 - axios(http 请求模块，可用于前端任何场景，很强大 👍)
 - ahooks ：alibaba 自定义 hooks 最佳实践
 - formily： alibaba 表单解决方案，根据配置产生动态表单
@@ -42,6 +42,8 @@
 - screenfull(全屏插件)
 - animate.css(css 动画库)
 - react-loadable(代码拆分，按需加载，预加载，样样都行)
+- react-syntax-highlighter 代码高亮
+-
 
 其他小细节省略
 

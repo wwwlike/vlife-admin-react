@@ -4,17 +4,10 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import RenderRouter from "./router";
 import "./App.scss";
+import _ from "lodash";
 
-// import { AppProviders } from "@src/context";
-// import { useSize } from "ahooks";
-// import { useAuth } from "./context/auth-context";
 function App() {
-  // const { setScreenSize } = useAuth();
-  // const ref = useRef(null);
-  // // const size = useSize(ref);
-  // useEffect(() => {
-  //   // if (size) setScreenSize(size);
-  // }, [size?.width, size?.height]);
+  const body = document.body;
   return (
     <BrowserRouter>
       <RenderRouter />

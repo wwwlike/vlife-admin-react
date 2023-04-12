@@ -1,128 +1,348 @@
+import Table from "@src/components/table";
+import { useAuth } from "@src/context/auth-context";
+import { IdBean, PageQuery, PageVo, Result } from "@src/api/base";
+import { FormVo } from "@src/api/Form";
+import { find, useDetail, useRemove, useSave } from "@src/api/base/baseService";
 import { useNiceModal } from "@src/store";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  find,
-  useDetail,
-  usePage,
-  useRemove,
-  useSave,
-} from "@src/provider/baseProvider";
-import Table, { BtnMemoProp, ListProps, VfButton } from "@src/components/table";
-import { useAuth } from "@src/context/auth-context";
-import { useLocation } from "react-router-dom";
-import { PageQuery, PageVo, Result } from "@src/mvc/base";
-import { Input } from "@douyinfe/semi-ui";
-import { FormVo } from "@src/mvc/model/Form";
-import { FormFieldVo } from "@src/mvc/model/FormField";
-/**
- * 待写个文档
- */
-export type modelProps = {
-  name: string;
-  fieldsCover?: (Partial<FormFieldVo> & { fieldName: string })[];
-  // 下面的字段应该要整合到fieldsCover里成为各个字段的属性
-};
+import { FormFieldVo } from "@src/api/FormField";
+import { IconDeleteStroked, IconPlusStroked } from "@douyinfe/semi-icons";
+import apiClient from "@src/api/base/apiClient";
+import CheckModel from "@src/pages/sysConf/model/checkModel";
+import { BtnType, RecordNum, VfButton } from "@src/dsl/schema/button";
+import TableToolbar from "@src/components/table/component/TableToolbar";
+const defaultPageSize = import.meta.env.VITE_APP_PAGESIZE;
+const mode = import.meta.env.VITE_APP_MODE;
 
-/*页面自带的按钮信息 */
-type btnList = {
-  disable: boolean; //全部禁用
-  edit: boolean;
-  add: boolean;
-  rm: boolean;
-  batchRm: boolean;
-  view: boolean;
-};
-/**
- * 业务融合page模块(模块-> 简化页面调用)
- * 1. 列头信息请求封装
- * 2. 数据信息请求
- * 3. table属性透传
- * 4. save,edit,delete,默认调用方法提供
- */
-export interface tablePageProps extends ListProps {
-  entityName: string; //实体模型名称
-  listModel: string; //列表模型信息,为空则=entityName
-  loadData: <T extends PageQuery>(any: T) => Promise<Result<PageVo<any>>>; //异步加载数据的地址，替换 listModel原本地址
-  editModel: string; // 编辑视图模型，为空则=entityName
-  viewModel: string; //视图查看模型，为空则=entityName
-  initData: object; //新增时初始化的默认数据，不可改
-  reload: boolean; //发生变化则刷新
-  simpleSearchField?: string; //简单搜索条件,如果传则渲染一个input
-  req: any; //搜索form待入的条件
-  btnEnable: Partial<btnList>; //页面自带按钮进行开关
-  customBtns: VfButton[]; //页面传入的个性化按钮
-  onGetData: (datas: any[]) => void; //列表数据加载完成事件,把数据传出去
-  datas: any[]; //外部传入的数据，如果传入，则本页不做任何分页和数据加载
-  // onEditCallBack?:(id:string)=>Promise<any>,//编辑之前取得其他非表单外键之外需要传入的数据
-  // onAddCallBack?:()=>Promise<any>,//新增之前取得传入表单的数据
+type PageFuncType<T extends IdBean> = <L extends PageQuery>(
+  req: any
+) => Promise<Result<PageVo<T>>>;
+
+export interface TablePageProps<T extends IdBean> {
+  entityType: string; //模块
+  listType: string; //list模型名称
+  editType: string; //编辑模型
+  formVo: FormVo;
+  req: any; //查询条件
+  pageSize: number; //分页数量
+  //异步加载数据的地址，
+  check: { [key: string]: () => void };
+  loadData: PageFuncType<T>;
+  tableBtn: VfButton<T>[]; //表按钮
+  lineBtn: VfButton<T>[]; //行按钮
+  btnHide: true | BtnType[]; //隐藏的按钮
+  design: true | undefined; //true则是设计器模式
+  dataSource: T[];
+  onGetData: (datas: T[]) => void; //列表数据加载完成事件,把数据传出去
+  onAfterSave: (key: string, data: any) => void; //数据保存后的回调事件
+  onValidate: { [key: string]: (data: any) => string | void }; //各类操作进行之前的数据校验
+  onFormModel: (formVo: FormVo) => void; //列表数据加载完成事件,把数据传出去
+  onHttpError: (error: {
+    code: number;
+    msg: string;
+    url: string;
+    method: string;
+  }) => void; //异常信息传出，设计阶段时接口没有会用到
+  // table需要的字段
+  select_more?: boolean; // undefined|false|true ->无勾选框|单选|多选
+  onSelected?: (selecteds: T[]) => void;
+  selected?: T[]; //进入之前选中的数据信息
+  select_show_field?: string; //选中时进行展示的字段，不传则不展示
+  column?: string[]; //手工列表展示字段
+  lineClick?: (obj: T) => void;
+  children?: any;
 }
-
-/**
- * # page粒度较大通用业务模块页面级别的组件，它将接口和无状态的组件粘合起来
- * 1. 优势，业务 方便页面调用，在页面代码里不用写大量与vlife相关的接口交互，以及逻辑封装的前端代码
- * ## tablePage 分页列表及按钮功能模块级组件
- * 1. 取得字典及字段模型信息
- * 2. 透传
- * 3. 封装table里的按钮回调事件方法
- * 4. 编辑和查看时如果和listModel不是一个模型，那么需要去取数据给到模型。
- * 5. view的模型可以直接查询到进行展示。
- * 6. edit取数据如果editvo模型也是view模型那么可以用，如果不是则需要去取数据。
- */
-
-export const TablePage = ({
-  entityName,
-  listModel = entityName,
-  editModel = entityName,
-  viewModel = entityName,
+const TablePage = <T extends IdBean>({
+  formVo,
+  // entityType,
+  // listType = entityType,
+  // editType = listType, //list如果是vo则不能编辑
+  entityType,
+  editType = entityType,
+  listType = editType,
   req,
+  dataSource,
+  pageSize,
+  loadData,
+  lineBtn,
+  tableBtn,
+  btnHide,
   onGetData,
-  reload,
-  initData,
-  customBtns,
-  datas, //外部传入数据
-  btnEnable = {
-    disable: false,
-    edit: true,
-    add: true,
-    rm: true,
-    batchRm: true,
-    view: true,
-  }, //read==true,后面都无效
+  onFormModel,
+  onHttpError,
+  onAfterSave,
+  children,
   ...props
-}: Partial<tablePageProps> & { entityName: string }) => {
-  // 当前列表数据
-  const [tableData, setTableData] = useState<any>();
-
-  useEffect(() => {
-    if (datas) setTableData({ data: { result: datas } });
-  }, [datas]);
-
+}: Partial<TablePageProps<T>> & { entityType: string }) => {
   //加载弹出表单modal
   const formModal = useNiceModal("formModal");
   // 弹出提醒modal
   const confirmModal = useNiceModal("confirmModal");
-  const { getDict, user, getIcon, checkBtnPermission, getFormInfo } = useAuth();
-  //外键信息
-  const [fkMap, setFkMap] = useState<any>({});
-  // pcode的name集合
-  const [parentMap, setParentMap] = useState<any>({});
-  // 模型信息(待转成formVO)
-  const [modelInfo, setModelInfo] = useState<FormVo>();
-  //加载模型数据
+  const { user, getFormInfo } = useAuth();
+  //查询函数
+  const [pageFunc, setPageFunc] = useState<PageFuncType<T> | undefined>(
+    loadData ? () => loadData : undefined
+  );
+  //模型数据
+  const [tableModel, setTableModel] = useState<FormVo | undefined>(formVo);
+  const [selected, setSelected] = useState<T[]>();
+  //列表数据
+  const [tableData, setTableData] = useState<PageVo<T>>();
+  //当前页数
+  const [pager, setPager] = useState<{ size: number; page: number }>();
+
+  //翻页参数初始化
   useEffect(() => {
-    getFormInfo(listModel, "save").then((data) => {
-      setModelInfo(data);
-    });
-  }, [entityName, listModel]);
+    if (
+      tableModel !== undefined &&
+      tableModel !== null &&
+      pager === undefined
+    ) {
+      setPager({
+        size: pageSize
+          ? pageSize
+          : tableModel.pageSize
+          ? tableModel.pageSize
+          : defaultPageSize,
+        page: 1,
+      });
+    }
+  }, [pageSize, tableModel]);
+
+  const page = useCallback(
+    (refesh?: true | undefined) => {
+      if (pageFunc && (dataSource === undefined || refesh === true)) {
+        const filterObj = { ...req, pager: pager };
+        pageFunc(filterObj)
+          .then((data: Result<PageVo<T>>) => {
+            setTableData(data.data);
+            if (onGetData) {
+              onGetData(data.data?.result || []);
+            }
+          })
+          .catch((data) => {
+            if (onHttpError) {
+              onHttpError(data);
+            } else {
+              console.error("table error " + data.code + data.msg);
+            }
+          });
+      }
+    },
+    [pageFunc, JSON.stringify(req), JSON.stringify(pager), dataSource]
+  );
 
   /**
-   * 根据行数据校验按钮的可操作属性(enable)
+   * 监听的内容有变化则加载数据
+   */
+  useEffect(() => {
+    if (pageFunc && pager) {
+      page();
+    }
+  }, [pageFunc, JSON.stringify(req), JSON.stringify(pager)]);
+
+  const defaultFunc = (listFormModel: FormVo): PageFuncType<T> => {
+    const { type, entityType } = listFormModel;
+    return (params: PageQuery): Promise<Result<PageVo<T>>> => {
+      return apiClient.get(
+        `/${entityType}/page${entityType !== type ? "/" + type : ""}`,
+        { params }
+      );
+    }; //空则使用该默认值
+  };
+
+  //执行一次加载模型信息
+  useEffect(() => {
+    const func = async (api: string) => {
+      try {
+        const ts: any = await import(api.split(":")[0]);
+        if (api.split(":").length === 1 || api.split(":")[1] in ts) {
+          setPageFunc(() => {
+            return ts[api.split(":")[1]];
+          });
+        } else {
+          throw api + "接口配置不正确";
+        }
+      } catch (e) {
+        alert(e);
+      }
+    };
+
+    if (tableModel === undefined) {
+      getFormInfo({ entityType, type: listType, design: props.design }).then(
+        (f: FormVo | undefined) => {
+          setTableModel(f);
+          if (onFormModel && f) {
+            onFormModel(f);
+          }
+          //数据提取函数加载
+          if (pageFunc === undefined) {
+            if (f) {
+              if (f.listApiPath) {
+                func(f.listApiPath);
+              } else {
+                if (f) {
+                  setPageFunc(() => defaultFunc(f));
+                }
+              }
+            }
+          }
+          return f;
+        }
+      );
+    } else if (pageFunc === undefined && tableModel) {
+      if (tableModel.listApiPath) {
+        func(tableModel.listApiPath);
+      } else {
+        setPageFunc(() => defaultFunc(tableModel));
+      }
+    }
+  }, []);
+
+  /**
+   * 分页数据
+   */
+  const pagination = useMemo(() => {
+    if (tableData?.total && pager) {
+      return {
+        pagination: {
+          // formatPageText: props.select_more !== undefined,
+          currentPage: tableData.page,
+          pageSize: pager?.size,
+          total: tableData.total,
+          onPageChange: (page: number) => {
+            setPager({ ...pager, page });
+          },
+        },
+      };
+    }
+    return {};
+  }, [tableData]);
+
+  //数据明细
+  const { runAsync: getDetail } = useDetail({
+    entityType,
+  });
+  //数据保存的方法
+  const { runAsync: baseSave } = useSave({});
+  //数据删除方法
+  const { runAsync: rm } = useRemove({ entityType });
+
+  /**
+   * 通用保存方法调用
+   */
+  const save = useCallback((entityType: string, type?: string) => {
+    return (data: any): Promise<any> => baseSave(data, entityType, type);
+  }, []);
+
+  const apiFunc = useCallback((func: (data: any) => Promise<Result<any>>) => {
+    return (data: any): Promise<any> => func(data);
+  }, []);
+
+  /**
+   *
+   * @param btn 模型的按钮点击事件
+   * @param index 行号 ，-1 标识全局table按钮点击
+   * @param record 当前操作的数据
+   */
+  const modalShow = useCallback(
+    (btn: VfButton<T>, index: number, ...record: T[]) => {
+      // alert(btn?.modal?.type);
+      if (
+        btn?.model?.type !== listType &&
+        record &&
+        record.length > 0 &&
+        record[0].id
+      ) {
+        getDetail(record[0].id, btn?.model?.type).then((data: Result<any>) => {
+          formModal
+            .show({
+              ...btn.model, //配置
+              formData: data.data, //数据
+              saveFun: btn.model?.formApi,
+              validate: btn.model?.validate, //自定义校验
+            })
+            .then((saveData) => {
+              if (onAfterSave) {
+                onAfterSave(btn.key, saveData);
+              }
+              page(true); //
+            });
+        });
+      } else {
+        formModal
+          .show({
+            ...btn.model, //配置
+            formData: record ? record[0] : undefined, //undefined 新增
+            saveFun: btn.model?.formApi,
+          })
+          .then((saveData) => {
+            if (onAfterSave) {
+              onAfterSave(btn.key, saveData);
+            }
+            page(true); //
+          });
+      }
+    },
+    [formModal, page, pageFunc, JSON.stringify(req), pager]
+  );
+
+  /**
+   * 非表单的操作，提取ID给到接口
+   */
+  const confirmShow = useCallback(
+    (btn: VfButton<T>, index: number, ...record: T[]) => {
+      if (pageFunc) {
+        confirmModal
+          .show({
+            saveFun: () => {
+              const ids: string[] = record.map((r) => r.id);
+              return btn.tableApi && btn.tableApi(...ids);
+            },
+            title: `确认${btn.title}${record.length}条记录`,
+          })
+          .then((data: any) => {
+            if (data.code === 200) {
+              page(true);
+
+              if (onAfterSave) {
+                onAfterSave(btn.key, data);
+              }
+              // setSelected([]);
+            } else {
+              alert(data.msg);
+            }
+          });
+      }
+    },
+    [confirmModal, pageFunc, JSON.stringify(pager), page]
+  );
+
+  //计算资源权限code
+  const resourceKey = ({
+    entityType,
+    action,
+    type,
+  }: {
+    entityType: string; //模块
+    type?: string; //模型
+    action: string; //操作
+  }): string => {
+    const code: string =
+      entityType +
+      (":" + action) +
+      (entityType === type ? "" : type ? ":" + type : "");
+    return code;
+  };
+
+  /**
+   * 根据行数据校验按钮的可操作属性记录
    */
   const checkUser = useCallback(
-    (records: any[]): boolean => {
+    (...records: any[]): boolean => {
       return (
         records.filter(
-          (record) =>
+          (record: any) =>
             record.createId === user?.id ||
             record.modifyId === user?.id || //2个字段等于当前用户id
             ("createId" in record == false && "modifyId"! in record == false) || //没有这2个字段
@@ -133,435 +353,307 @@ export const TablePage = ({
     [user?.id]
   );
 
-  const editCheck = useCallback((...data: any): BtnMemoProp => {
-    if (!checkUser(data)) {
-      return { disable: true, prompt: "无权修改他人创建的数据" };
-    } else if (
-      "sys" in data[0] &&
-      [...data].filter((d) => {
-        return d.sys === true;
-      }).length > 0
-    ) {
-      return { disable: true, prompt: "系统数据不能修改" };
-    }
-    return { disable: false };
-  }, []);
-
   /**
-   * 新增按钮的可操作权限和外部数据关联,
-   * 当前时能看见新增按钮，就能处理
+   * 全局按钮组装
    */
-  const addCheck = useCallback((...data: any): BtnMemoProp => {
-    return { disable: false };
-  }, []);
-
-  /**
-   * 删除按钮逻辑控制
-   */
-  const batchRmCheck = useCallback((...data: any): BtnMemoProp => {
-    if (data.length === 0) {
-      return { disable: true, prompt: "请选中至少一条记录" };
-    } else if (!checkUser(data)) {
-      return { disable: true, prompt: "无权删除他人创建的数据" };
-    } else if (
-      "sys" in data[0] &&
-      [...data].filter((d) => {
-        return d.sys === true;
-      }).length > 0
-    ) {
-      return { disable: true, prompt: "系统数据不能删除" };
-    }
-    return { disable: false };
-  }, []);
-
-  // 通用逻辑的列表数据加载使用ahook
-  const {
-    run: page,
-    refresh: pageRefresh,
-    data,
-  } = usePage({
-    entityName,
-    listModel,
-    loadData: props.loadData,
-    onSuccess: (data) => {
-      setTableData(data);
-      if (onGetData) {
-        onGetData(data.data?.result || []);
-      }
-    },
-  });
-
-  //数据保存的方法
-  const { runAsync: baseSave } = useSave({});
-  //获得数据明细的方法，??xxDetail如何传参
-  const { runAsync: getDetail } = useDetail({ entityName });
-  //
-
-  const { runAsync: rm } = useRemove({ entityName });
-  //监听组件外部查询条件的变化
-  useEffect(() => {
-    // console.log('req-> search组件会引起req搜索两次，第一次search空，第二次 undefiend，需要解决',req);
-    // 弹出table目前没有做搜索条件,故无req入参]
-    if (datas === undefined) {
-      page({ ...req });
-    }
-  }, [req, reload]);
-
-  /**
-   * 提取外键字段信息
-   */
-  const fkInfos = useMemo(() => {
-    //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
-    if (modelInfo && listModel && entityName && listModel === entityName) {
-      return modelInfo?.fields.filter((f: FormFieldVo) => {
-        return (
-          (f.x_hidden === undefined || f.x_hidden === false) &&
-          f.entityFieldName === "id" &&
-          entityName !== f.entityType
-          // !props.hideColumns?.includes(f.fieldName)
-        );
-      });
-    }
-    return [];
-  }, [modelInfo]);
-
-  /**
-   * 上级的code
-   */
-  const pcodeField = useMemo((): FormFieldVo | undefined => {
-    //列表模型是实体模型则去取外键信息；视图模型可以自己封装应该封装好不用去取
-    if (modelInfo) {
-      return modelInfo?.fields.find((f) => {
-        return f.fieldName === "pcode";
-      });
-    }
-    return undefined;
-  }, [modelInfo]);
-
-  /**
-   * 获得本页外键字段的id,name的键值集合
-   */
-  useEffect(() => {
-    fkInfos?.forEach((f) => {
-      const ids: string[] =
-        tableData?.data?.result.map((d: any) => d[f.fieldName] as string) || [];
-      if (ids.length > 0) {
-        find(f.entityType, "id", ids).then((data) => {
-          data.data?.forEach((e: any) => {
-            fkMap[e.id] = e.name;
-            setFkMap({ ...fkMap });
-          });
-        });
-      }
-    });
-  }, [fkInfos, tableData]);
-
-  useEffect(() => {
-    if (pcodeField) {
-      const codes: string[] =
-        tableData?.data?.result.map(
-          (d: any) => d[pcodeField.fieldName] as string
-        ) || [];
-      if (codes.length > 0) {
-        find(pcodeField.entityType, "code", codes).then((data) => {
-          data.data?.forEach((e: any) => {
-            parentMap[e.code] = e.name;
-            setParentMap({ ...parentMap });
-          });
-        });
-      }
-    }
-  }, [pcodeField, tableData]);
-
-  /**
-   * 分页数据数据拉取
-   */
-  const setPage = useCallback(
-    (pageNo: number) => {
-      page({ ...req, ...{ pager: { page: pageNo } } });
-    },
-    [req]
-  );
-
-  /**
-   * 分页数据
-   */
-  const pagination = useMemo(() => {
-    if (tableData?.data?.total) {
-      return {
-        pagination: {
-          formatPageText: props.select_more !== undefined,
-          currentPage: tableData?.data?.page,
-          pageSize: tableData?.data?.size,
-          total: tableData?.data?.total,
-          onPageChange: setPage,
-        },
-      };
-    }
-  }, [tableData?.data]);
-
-  /**
-   * 过滤列表模型里的字段里是字段类型的字典key集合
-   */
-  const dictKeys: string[] = useMemo(() => {
-    if (modelInfo) {
-      const r: (string | undefined)[] = modelInfo.fields.map((f) => {
-        return f.dictCode;
-      });
-      const s: string[] = [];
-      r.forEach((str) => {
-        if (str != undefined) s.push(str);
-      });
-      return s;
-    }
-    return [];
-  }, [modelInfo]);
-
-  /**
-   * @param read  展现形式
-   * @param model 模型信息
-   * @param record 初始数据
-   * @param save 确认按钮触发的方法m
-   */
-  const modalShow = (
-    read: boolean,
-    model: string | modelProps,
-    record: any,
-    save?: any
-  ) => {
-    const modelName = typeof model == "string" ? model : model.name;
-    formModal
-      .show({
-        //这里因为是any,所以show无提示，不优雅,
-        entityName,
-        modelName,
-        initData: record,
-        saveFun: save,
-        type: "save",
-        //模型传的是复杂类型(modelProps),则需要数据内容打散透传给modal
-        ...(typeof model !== "string" ? model : undefined),
-        read,
-      })
-      .then((saveData) => {
-        pageRefresh();
-      });
-  };
-
-  /**
-   * 弹出层
-   * @param modelName 弹出层的数据model
-   * @param fun 弹出层里点保存的回调方法
-   * @param view 是否是read视图 true时 fun是可以为空的
-   * @param record  弹出层的数据m
-   */
-  const showDiv = (
-    model: string | modelProps,
-    isView: boolean,
-    record?: any,
-    fun?: any
-  ) => {
-    const modelName = typeof model == "string" ? model : model.name;
-    // 列表模型和编辑模型如果不同，需要去后台取编辑模型数据后在打开弹出框
-    if (model !== listModel && record && record.id) {
-      getDetail(record.id, modelName).then((data) => {
-        modalShow(isView, model, data.data, fun);
-      });
-    } else {
-      modalShow(isView, model, record ? record : initData, fun);
-    }
-  };
-
-  /**
-   * 点击按钮统一触发的方法
-   * @param btn 按钮信息
-   * @param record 按钮所在行数据或者复选框选择的所有数据
-   */
-  const btnClick = (btn: VfButton, line: number, ...record: any) => {
-    if (btn.model) {
-      const isView = btn.readView === undefined ? false : btn.readView;
-      showDiv(btn.model, isView, record ? record[0] : undefined, btn.okFun);
-    } else if (btn.okFun !== undefined) {
-      confirmModal
-        .show({
-          saveFun: () => {
-            return (
-              btn.okFun &&
-              btn.okFun(
-                record.length > 0
-                  ? [...record].map((d: any) => d.id)
-                  : undefined
-              )
-            );
-          },
-          title: `确认${btn.title}${record.length}条记录`,
-        })
-        .then((data) => {
-          pageRefresh();
-        });
-    }
-  };
-
-  /**
-   * 通用保存方法调用
-   */
-  const save = useCallback(
-    (entityName: string, mName?: string | modelProps) => {
-      const modelName = mName
-        ? typeof mName == "string"
-          ? mName
-          : mName.name
-        : undefined;
-      return (data: any) => baseSave(data, entityName, modelName);
-    },
-    []
-  );
-
-  const local = useLocation();
-  const tableBtn = useMemo((): VfButton[] => {
-    const memoBtns: VfButton[] = [];
-    const addDefBtn: VfButton = {
+  const tableBtnMemo = useMemo((): VfButton<T>[] => {
+    const memoBtns: VfButton<T>[] = [];
+    const addDefBtn: VfButton<T> = {
       title: "新增",
-      entityName,
-      model: editModel,
-      tableBtn: true,
+      icon: <IconPlusStroked />,
       key: "save",
-      okFun: save(entityName, editModel),
-      click: btnClick,
-      attr: addCheck,
+      code: resourceKey({ entityType, type: editType, action: "save" }),
+      model: {
+        entityType,
+        type: editType,
+        formApi: save(entityType, editType),
+      }, //操作的模型
+      click: (btn) => modalShow(btn, -1), //点击触发的事件
     };
-    const rmDefBtn: VfButton = {
+    const batchRmBtn: VfButton<T> = {
       title: "删除",
-      entityName,
-      tableBtn: false,
       key: "remove",
-      click: btnClick,
-      okFun: rm,
-      attr: batchRmCheck,
-    };
-    const batchRmDefBtn: VfButton = {
-      title: "删除",
-      entityName,
-      tableBtn: true,
-      key: "remove",
-      click: btnClick,
-      okFun: rm,
-      attr: batchRmCheck,
-    };
-    const editDefBtn: VfButton = {
-      title: "修改",
-      entityName,
-      model: editModel,
-      tableBtn: false,
-      key: "save",
-      okFun: save(entityName, editModel),
-      click: btnClick,
-      attr: editCheck,
-    };
-    const detailDefBtn: VfButton = {
-      title: "查看",
-      entityName,
-      readView: true,
-      model: viewModel,
-      tableBtn: false,
-      key: "detail",
-      click: btnClick,
-    };
+      icon: <IconDeleteStroked />,
+      code: resourceKey({ entityType, action: "remove" }),
+      enable_recordNum: RecordNum.MORE,
+      click: confirmShow,
+      tableApi: (...ids: string[]) => {
+        return rm(ids);
+      },
+      statusCheckFunc: (...record: T[]) => {
+        if (record.filter((r) => checkUser(r) !== null).length > 0) {
+          return "无权删除他人创建的数据";
+        }
+        if (
+          record.filter((r) =>
+            "sys" in r && (r as any).sys === true ? true : false
+          ).length > 0
+        ) {
+          return "系统数据不能删除";
+        }
 
-    //fromTmp 是模板页面template 当前先不进行权限判断
-    // 当前add 和 save 是一个权限
-    const fromTmp = local.pathname.includes("/template/");
-    if (btnEnable.disable === undefined || btnEnable.disable === false) {
-      const resourcesKey =
-        addDefBtn.entityName +
-        ":" +
-        addDefBtn.key +
-        (addDefBtn.entityName === addDefBtn.model ? "" : ":" + addDefBtn.model);
-      if (btnEnable.add && (fromTmp || checkBtnPermission(resourcesKey))) {
-        addDefBtn.icon = getIcon(resourcesKey);
+        // record.forEach((r) => {
+        //   if (!checkUser(r)) {
+        //     return "无权删除他人创建的数据";
+        //   }
+        //   if ("sys" in r && (r as any).sys === true) {
+        //     return "系统数据不能删除";
+        //   }
+        // });
+      },
+    };
+    if (btnHide !== true) {
+      if (!btnHide?.includes(BtnType.ADD)) {
         memoBtns.push(addDefBtn);
       }
-      if (
-        btnEnable.batchRm &&
-        (fromTmp ||
-          checkBtnPermission(
-            batchRmDefBtn.entityName + ":" + batchRmDefBtn.key
-          ))
-      ) {
-        rmDefBtn.icon = getIcon(
-          batchRmDefBtn.entityName + ":" + batchRmDefBtn.key
-        );
-        batchRmDefBtn.icon = getIcon(
-          batchRmDefBtn.entityName + ":" + batchRmDefBtn.key
-        );
-        memoBtns.push(rmDefBtn, batchRmDefBtn);
-      }
-      if (
-        btnEnable.edit &&
-        (fromTmp ||
-          checkBtnPermission(
-            editDefBtn.entityName +
-              ":" +
-              editDefBtn.key +
-              (editDefBtn.entityName === editDefBtn.model
-                ? ""
-                : ":" + editDefBtn.model)
-          ))
-      ) {
-        memoBtns.push(editDefBtn);
-      }
-      if (btnEnable.view) {
-        memoBtns.push(detailDefBtn);
+      if (!btnHide?.includes(BtnType.RM)) {
+        memoBtns.push(batchRmBtn);
       }
     }
-    customBtns?.forEach((cus) => {
-      const btnKey =
-        cus.entityName && cus.model && cus.key
-          ? `${cus.entityName}:${cus.key}:${cus.model}`
-          : cus.entityName && cus.key
-          ? `${cus.entityName}:${cus.key}`
-          : cus.key;
-      if (btnKey === undefined || checkBtnPermission(btnKey)) {
-        //自定义按钮如果没有传入点击事件，则用默认本页自带的逻辑
-        if (cus.click === undefined) {
-          cus.click = btnClick;
+    //自定义按钮
+    if (tableBtn) {
+      tableBtn.forEach((customBtn) => {
+        if (customBtn.model) {
+          customBtn.click = modalShow;
+          customBtn.model.formApi = save(
+            customBtn.model.entityType,
+            customBtn.model.type
+          );
+        } else if (customBtn.tableApi) {
+          customBtn.click = confirmShow;
         }
-        //确认保存的方法如果没有设置，也使用baseProvider里的
-        if (cus.okFun === undefined && cus.model) {
-          cus.okFun = save(cus.entityName || entityName, cus.model);
-        }
-        memoBtns.push(cus);
-      }
-    });
+        memoBtns.push(customBtn);
+      });
+    }
     return memoBtns;
-  }, [customBtns, user?.resourceCodes, btnEnable, local]);
+  }, [
+    tableBtn,
+    btnHide,
+    pageFunc,
+    formModal,
+    confirmModal,
+    req,
+    JSON.stringify(pager),
+  ]);
 
+  /**
+   * 列表行按钮组装
+   */
+  const lineBtnMemo = useMemo((): VfButton<T>[] => {
+    if (tableModel) {
+      const { entityType, type } = tableModel;
+      const memoBtns: VfButton<T>[] = [];
+      const rmDefBtn: VfButton<T> = {
+        key: "remove",
+        title: "删除",
+        code: resourceKey({ entityType, action: "remove" }),
+        click: confirmShow,
+        tableApi: (...ids: string[]) => {
+          return rm(ids);
+        },
+        statusCheckFunc: (record: T) => {
+          if (!checkUser(record)) {
+            return "无权删除他人创建的数据";
+          }
+          if ("sys" in record && (record as any).sys === true) {
+            return "系统数据不能删除";
+          }
+        },
+      };
+      if (editType) {
+        const editDefBtn: VfButton<T> = {
+          title: "修改",
+          key: "save",
+          code: resourceKey({
+            entityType: entityType,
+            type: editType,
+            action: "save",
+          }),
+          model: {
+            entityType,
+            type: editType,
+            formApi: save(entityType, editType),
+          },
+          click: modalShow,
+          statusCheckFunc: (record: T) => {
+            if (!checkUser(record)) {
+              return "无权修改他人创建的数据";
+            }
+            if ("sys" in record && (record as any).sys === true) {
+              return "系统数据不能修改";
+            }
+          },
+        };
+        const detailDefBtn: VfButton<T> = {
+          title: "查看",
+          key: "view",
+          model: { entityType, type: editType, readPretty: true },
+          click: modalShow,
+        };
+
+        if (btnHide !== true && !btnHide?.includes(BtnType.EDIT) && editType) {
+          memoBtns.push(editDefBtn);
+        }
+        if (btnHide !== true && !btnHide?.includes(BtnType.VIEW)) {
+          memoBtns.push(detailDefBtn);
+        }
+      }
+
+      if (btnHide !== true) {
+        if (!btnHide?.includes(BtnType.RM)) {
+          memoBtns.push(rmDefBtn);
+        }
+      }
+      //自定义按钮
+      if (lineBtn) {
+        lineBtn.forEach((customBtn) => {
+          if (customBtn.model) {
+            customBtn.click = modalShow;
+            customBtn.model.formApi = save(
+              customBtn.model.entityType,
+              customBtn.model.type
+            );
+          } else if (customBtn.tableApi) {
+            customBtn.click = confirmShow;
+          }
+          memoBtns.push(customBtn);
+        });
+      }
+      return memoBtns;
+    }
+    return [];
+  }, [lineBtn, btnHide, formModal, tableModel, pager]);
+
+  //关联数据对象，在本页一次查询到
+  const [relationMap, setRealationMap] = useState<{
+    fkObj: any; //外键对象信息
+    parentObj: any; //父级对象信息
+  }>();
+
+  const getFkObj = async (tableData: T[], tableModel: FormVo): Promise<any> => {
+    let fkObj: any = {};
+    const fkField = tableModel?.fields.filter((f: FormFieldVo) => {
+      return (
+        (f.x_hidden === undefined || f.x_hidden === false) &&
+        f.entityFieldName === "id" &&
+        entityType !== f.entityType
+      );
+    });
+    return Promise.all(
+      fkField.map((f) => {
+        const ids: string[] =
+          tableData.map((d: any) => d[f.fieldName] as string) || [];
+        if (ids.length > 0) {
+          const d = async () =>
+            await find(f.entityType, "id", ids).then((data) => {
+              data.data?.forEach((e: any) => {
+                fkObj[e.id] = e.name || e.title;
+              });
+              return fkObj;
+            });
+          return d();
+        }
+      })
+    ).then((r) => {
+      return fkObj;
+    });
+  };
+
+  const getParentObj = async (
+    tableData: T[],
+    tableModel: FormVo
+  ): Promise<any> => {
+    const parentObj: any = {};
+    if (
+      tableModel &&
+      tableModel.fields.filter(
+        (f) => f.fieldName === "pcode" || f.fieldName === "code"
+      ).length === 2
+    ) {
+      const codes: string[] =
+        tableData?.map((d: any) => d["pcode"] as string) || [];
+      if (codes.length > 0) {
+        await find(entityType, "code", codes).then((data) => {
+          data.data?.forEach((e: any) => {
+            parentObj[e.code] = e.name;
+          });
+        });
+      }
+    }
+    return parentObj;
+  };
+
+  /**
+   * 设置外键，设置上级名称
+   */
+  useEffect(() => {
+    if (tableData && tableModel) {
+      const relation = async () => {
+        const fkObj: any = await getFkObj(tableData.result, tableModel);
+        const parentObj: any = await getParentObj(tableData.result, tableModel);
+        setRealationMap({ fkObj, parentObj });
+      };
+
+      relation();
+    }
+  }, [tableData, tableModel]);
+
+  // console.log("555555");
+
+  const table = useMemo(() => {
+    if (tableModel) {
+      return (
+        <>
+          <TableToolbar<T>
+            tableModel={tableModel}
+            tableBtn={tableBtnMemo}
+            selectedRow={selected || []}
+          ></TableToolbar>
+          <Table<T>
+            key={tableModel.type + pageSize + pager?.page}
+            model={tableModel}
+            dataSource={dataSource ? dataSource : tableData?.result}
+            lineBtn={lineBtnMemo}
+            // selected={selected}
+            onSelected={(data: T[]) => {
+              setSelected(data);
+            }}
+            fkMap={{ ...relationMap?.fkObj }}
+            parentMap={relationMap?.parentObj}
+            {...pagination}
+            {...props}
+          ></Table>
+        </>
+      );
+    } else {
+      return <>模型无法解析，请检查名称是否准确</>;
+    }
+  }, [
+    JSON.stringify(pager),
+    tableModel,
+    tableData,
+    lineBtnMemo,
+    tableBtnMemo,
+    relationMap,
+    selected,
+  ]);
+  // console.log("1");
   return (
     <>
-      {/* 简单搜索条件，待优化 */}
-      {props.simpleSearchField ? (
-        <Input
-          onChange={(v) => {
-            page({ ...{ [props.simpleSearchField || ""]: v } });
-          }}
-        />
+      {mode === "pro" ? (
+        <>{table}</>
       ) : (
-        ""
-      )}
-      {modelInfo ? (
-        <Table
-          model={modelInfo}
-          sysDict={getDict({ emptyLabel: "-", codes: [...dictKeys] })}
-          dataSource={datas ? datas : tableData?.data?.result}
-          tableBtn={tableBtn}
-          fkMap={fkMap}
-          parentMap={parentMap}
-          {...pagination}
-          {...props}
-        ></Table>
-      ) : (
-        ""
+        <>
+          <CheckModel
+            modelName={[entityType, listType, editType]}
+            buttons={lineBtn}
+          >
+            {table}
+          </CheckModel>
+        </>
       )}
     </>
   );
 };
+
 export default TablePage;

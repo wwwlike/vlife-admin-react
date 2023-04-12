@@ -1,10 +1,10 @@
 // 根据FormReaction信息返回对应的 formReaction对象
-
 import { SchemaReaction } from "@formily/react";
-import { FormEventVo } from "@src/mvc/model/FormEvent";
-import { FormReactionVo } from "@src/mvc/model/FormReaction";
-import { FormFieldVo } from "@src/mvc/model/FormField";
-import { attrs } from "@src/pages/design/event/event";
+import { FormEventVo } from "@src/api/FormEvent";
+import { FormReactionVo } from "@src/api/FormReaction";
+import { FormFieldDto, FormFieldVo } from "@src/api/FormField";
+import { attrs } from '@src/pages/sysConf/formEvent/event';
+// import { attrs } from "@src/pages/design/event/event";
 
 /**
  * 事件触发字符串
@@ -75,7 +75,7 @@ const fulfillObj = (prop: string, val: any): any => {
   }
 };
 //1. Boolean类型，取反;
-const otherwiseObj = (prop: string, val: any, field: FormFieldVo): any => {
+const otherwiseObj = (prop: string, val: any, field: FormFieldDto): any => {
   if (attrs[prop].type === "boolean") {
     return fulfillObj(prop, val === "false" ? true : false);
   }
@@ -106,13 +106,15 @@ const whenEl = (prop: string, eventType: string, val: any): string => {
  */
 export const eventReaction = (
   events: FormEventVo[], //联动信息
-  fields: FormFieldVo[] //所有字段信息
+  fields: FormFieldDto[] //所有字段信息
 ): SchemaReaction[] => {
   let obj: SchemaReaction[] = [];
+  if(events){
   events.forEach((event) => {
+    if(event.reactions&& event.reactions.length>0){
     obj = [
       ...obj,
-      ...event.reactions.map((reaction) => {
+      ...event.reactions?.map((reaction) => {
         return {
           target: `${reaction.fieldName}`,
           // when: `{{$self.value==="${event.val}"}}`,
@@ -129,9 +131,10 @@ export const eventReaction = (
           ),
         };
       }),
-    ];
-  });
+    ];}
+  });}
   return obj;
+    
 };
 
 export const loadDeps = (dynamic: any, entityType: String): any => {
