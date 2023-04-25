@@ -139,10 +139,10 @@ export const remove = (id: string): Promise<Result<number>> => {
 };
 ```
 
-## 联系帮助
+### 商业服务
 
-- QQ 讨论群：786134846
-  ![](http://vlife.wwwlike.cn/static/img/qq_qun_786134846.png)
+> 如果需要商业服务，请微信联系 vlifeboot
 
-- 微信：vlifeBoot
-  <img src="http://oa.wwwlike.cn/wx.jpg" width=150 height=150 />
+### 反馈与共建
+
+![反馈与共建](https://wwwlike.gitee.io/vlife-img/link.png)
