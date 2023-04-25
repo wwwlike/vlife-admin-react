@@ -54,7 +54,7 @@ const FieldComponentSetting = ({
     return field;
   }, [fieldName, fields]);
   // type list basic
-  const { getModelInfo } = useAuth();
+  const { getFormInfo } = useAuth();
 
   /** 字段类型能够使用的模型信息对象 */
   const usableComponents = useMemo((): ComponentInfo[] => {
@@ -106,7 +106,7 @@ const FieldComponentSetting = ({
                   currField.fieldType !== "date" &&
                   currField.fieldType !== "boolean"
                 ) {
-                  await getModelInfo(currField.fieldType).then((d) => {
+                  await getFormInfo({ type: currField.fieldType }).then((d) => {
                     const matchs = d?.parentsName.filter((dd) => {
                       if (componentMatch?.dataModel instanceof Array) {
                         return (

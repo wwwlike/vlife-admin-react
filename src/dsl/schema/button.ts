@@ -32,12 +32,12 @@
    disable_hidden?:boolean,//检查不通过是否隐藏按钮
    statusCheckFunc?:((...record:T[])=>(string|void));
    // 进行模型编辑，一般时modal的展现形式 他和api,click 3选1. 优先级 
-   model?: Partial<FormPageProps> & {
+   model?: Partial<FormPageProps<any>> & {
      //弹框的参数
      entityType: string; //所属模块
      type: string; //模型名称 dto,entity
-     validate?:{[fieldName:string]:(val:object,formVal:object)=>string|Promise<any>|void},
-     formApi?:(record: T)=>Promise<Result<T>>//点计较按钮需要的API
+    //  validate?:{[fieldName:string]:(val:object,formVal:object)=>string|Promise<any>|void},
+     formApi?:(record: T)=>Promise<Result<T>>//提交按钮需要的API
    };
    //非模型直接在列表上修改数据的api
    tableApi?:(

@@ -24,6 +24,10 @@ export interface ITree extends IdBean {
   name: string;
 }
 
+export interface INo extends IdBean {
+  no: string;
+}
+
 //export interface IModel<T extends IdBean>{}
 /**
  * 所有模型bean基类，空实现
@@ -102,19 +106,5 @@ export enum ItemType{
   vo="vo",
   basic="basic",
   list="list",
-}
-
-// export interface ModelBase extends  {
-
-// }
-/**
- * 模型信息,非数据库
- */
-export interface ModelInfo extends IdBean {
-  title: string; //模型名称
-  type: string;  //模型标识
-  itemType: ItemType; //模型类别
-  entityType: string; //模型关联实体的标识
-  parentsName:string[];//继承和实现的类的名称
 }
 

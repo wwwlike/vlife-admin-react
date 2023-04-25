@@ -9,7 +9,7 @@ import { FormPageProps } from "../formPage";
  * 1. 动态取数据，页面提供配置，然后存到前端 reactQuery方式缓存
  */
 export interface ConfirmModalProps
-  extends Omit<FormPageProps, "setFormData" | "formData"> {
+  extends Omit<FormPageProps<any>, "setFormData" | "formData"> {
   saveFun?: () => Promise<number>;
   title?: string; //默认删除的内容
 }

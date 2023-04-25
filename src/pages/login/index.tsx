@@ -194,18 +194,19 @@ const Index: React.FC = () => {
 
   return (
     <div
-      className=" bg-no-repeat bg-bottom bg-contain min-h-screen pt-12 md:pt-20 pb-6 px-2 md:px-0 "
+      className=" bg-fixed bg-cover bg-center  w-full
+      flex items-center h-screen
+      "
       style={{
         backgroundColor: `#00c1c1`,
-        backgroundImage: `url(https://img.bosszhipin.com/static/file/2022/zlqc2m9fao1667185843533.png) `,
+        backgroundImage: `url(https://wwwlike.gitee.io/vlife-img/vlife.jpg) `,
       }}
     >
-      {/* background: `#00c1c1 url(https://img.bosszhipin.com/static/file/2022/zlqc2m9fao1667185843533.png) bottom/100% no-repeat`, */}
-      <div className=" absolute  left-36 top-1/4 ">
+      {/* <div className=" absolute  left-36 top-1/4 ">
         <h1 className=" text-6xl font-bold text-white text-center">
           vlife低代码研发平台
         </h1>
-      </div>
+      </div> */}
 
       {/* <div className="relative flex left-1/3 w-4/12  h-px-96  bg-white     rounded-3xl shadow-3xl">
         <div
@@ -217,10 +218,7 @@ const Index: React.FC = () => {
         <div>22222222222222</div>
       </div> */}
 
-      <div
-        style={{ width: "432px" }}
-        className=" relative left-1/2 top-24 bg-white p-8 pt-16 pb-20 rounded-2xl shadow-2xl"
-      >
+      <div className="main-container login-wrapper ">
         <div className="gitee" onClick={gitLogin}>
           <div className="switch-tip">Gitee快捷登录</div>
         </div>

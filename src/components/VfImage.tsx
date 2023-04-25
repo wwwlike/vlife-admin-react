@@ -36,7 +36,7 @@ const VfImage = ({
 
   const viewSize = useMemo((): { width: number; height: number } => {
     if (size === "small") {
-      return { width: 50, height: 50 };
+      return { width: 35, height: 35 };
     } else if (size === "large") {
       return { width: 150, height: 150 };
     } else {

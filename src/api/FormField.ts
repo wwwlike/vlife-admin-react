@@ -6,24 +6,10 @@ import { FormReactionVo } from "./FormReaction";
 import { DataType } from '@src/dsl/schema/base';
 import { PageComponentPropDto } from '@src/api/PageComponentProp';
 
-// 数据类别
-// enum DataType{
-//   basic="basic",  //基础数据类型
-//   object="object", //对象 vo,dto,entity
-//   list="list" //集合数组
-// }
-
-
-
-
-// const v:Partial<Project>={};
-// const t:Partial<FormField>={
-//   fieldType:class;
-// }
-
 // 列表字段
 export interface FormField extends DbEntity {
-  name: string; // ==title
+  title: string; // 客户端设置标题
+  javaTitle: string; //java注释标题
   dataType:DataType ; // 数据类型
   fieldType:string; // 字段类别
   formId: string; // 所属表单
@@ -36,7 +22,6 @@ export interface FormField extends DbEntity {
   componentType: string; //组件类型（基础组件，业务组件）
   description: string; // 描述
   sort: number; // 顺序
-  title: string; // 标题
   required: boolean; // 必填
   initialValues: string; // 默认值
   x_component: string; // 采用组件
@@ -73,7 +58,6 @@ export interface FormFieldDto extends FormField {
   //字段对应组件属性设置信息集合
   pageComponentPropDtos?: Partial<PageComponentPropDto>[];
 }
-
 
 /**
  * 字段模型属性

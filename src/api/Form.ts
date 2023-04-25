@@ -1,5 +1,5 @@
 import apiClient from "@src/api/base/apiClient";
-import { DbEntity, ItemType,  ModelInfo, Result, SaveBean, VoBean } from "@src/api/base";
+import { DbEntity, ItemType,  Result, SaveBean, VoBean } from "@src/api/base";
 
 import {  FormFieldDto, FormFieldVo } from "@src/api/FormField";
 import { FormTabDto } from '@src/api/FormTab';
@@ -7,7 +7,7 @@ import { FormTabDto } from '@src/api/FormTab';
 /**
  * DB的模型信息
  */
-export interface Form extends DbEntity,ModelInfo {
+export interface Form extends DbEntity {
   title: string; //模型名称
   type: string; //标识
   itemType: ItemType// 类型
@@ -21,6 +21,7 @@ export interface Form extends DbEntity,ModelInfo {
   version:number;  //模型版本
   listApiPath:string; //列表请求ts方法地址
   saveApiPath:string; //数据保存ts方法地址
+  prefixNo:string;//编号前缀
 }
 
 /**
@@ -36,7 +37,8 @@ export interface FormDto extends SaveBean,Form{
  * 1. java模型 modelInfo
  * 2. 关联表数据 FormDto
  */
-export interface FormVo extends VoBean,Omit<FormDto,"fields">,ModelInfo  {
+export interface FormVo extends VoBean,Omit<FormDto,"fields">  {
+  parentsName:string[];//继承和实现的类的名称
   fields: FormFieldVo[]; //字段信息
 }
 
@@ -62,7 +64,6 @@ export interface formPageReq{
   design?:boolean //当前表单是否处于设计模式
 }
 
-
 /**
  * 指定模型及接口的TS代码
  */
@@ -77,24 +78,24 @@ export const model = (params:formPageReq): Promise<Result<FormVo>> => {
   return apiClient.get(`/form/model`, { params });
 };
 
-/**
- * 原始模型信息
- */
-export const javaModel = (
-  modelName: string
-): Promise<Result<ModelInfo>> => {
-  return apiClient.get(`/form/javaModel/${modelName}`);
-};
+// /**
+//  * 原始模型信息
+//  */
+// export const javaModel = (
+//   modelName: string
+// ): Promise<Result<ModelInfo>> => {
+//   return apiClient.get(`/form/javaModel/${modelName}`);
+// };
 
 
-/**
- * 原始模型信息
- */
- export const javaModels = (
- req:formPageReq
-): Promise<Result<ModelInfo[]>> => {
-  return apiClient.get(`/form/javaModels`,{params:req});
-};
+// /**
+//  * 原始模型信息
+//  */
+//  export const javaModels = (
+//  req:formPageReq
+// ): Promise<Result<ModelInfo[]>> => {
+//   return apiClient.get(`/form/javaModels`,{params:req});
+// };
 
 
 /**

@@ -1,6 +1,7 @@
 import {
   Button,
   ButtonGroup,
+  Empty,
   Layout,
   Nav,
   Space,
@@ -33,6 +34,7 @@ import FormTab from "./component/formTab";
 import FieldSelect from "./component/fieldSelect";
 import CompDesign from "../compDesign";
 import VfTour from "@src/components/VfTour";
+import Scrollbars from "react-custom-scrollbars";
 const { Content, Sider } = Layout;
 
 // 临时态数据结构
@@ -91,11 +93,8 @@ export default () => {
    */
   const type = useMemo<string>(() => {
     const length = local.pathname.split("/").length;
-    const model = local.pathname.split("/")[length - 1];
-    if (model === "list" || model === "filter") {
-      return local.pathname.split("/")[length - 2];
-    }
-    return model;
+    // const model = local.pathname.split("/")[length - 1];
+    return local.pathname.split("/")[length - 2];
   }, [params]);
 
   //当前字段
@@ -171,10 +170,9 @@ export default () => {
               };
             }),
           });
-
+          setCurrField(model.fields[0]);
           const length = local.pathname.split("/").length;
           const pathEnd = local.pathname.split("/")[length - 1];
-
           if (
             pathEnd === Mode.form ||
             pathEnd === Mode.list ||
@@ -243,7 +241,6 @@ export default () => {
       } else {
         setCurrField(undefined);
       }
-
       if (currModel) {
         //当前字段替换
         setCurrModel({
@@ -310,360 +307,375 @@ export default () => {
     }
   }, [currModel]);
   return (
-    // <VfTour
-    //   // every={true}
-    //   steps={[
-    //     {
-    //       selector: ".fieldSelectTour",
-    //       content: "选择表单需要的字段，并且进行排序",
-    //     },
-    //     {
-    //       selector: ".formSettingTour",
-    //       content: "对表单布局进行整体设置",
-    //     },
-    //   ]}
-    // >
-    <div>
-      <Layout className="layout-page">
-        <Layout.Header
-          className="layout-header shadow"
-          style={{ height: "50px" }}
-        >
-          <Nav
-            mode="horizontal"
-            header={
-              <div className=" flex items-center">
-                <div
-                  className="left-0"
-                  style={{
-                    backgroundColor: "var(--semi-color-bg-1)",
-                    minWidth: "190px",
-                  }}
-                >
-                  <span className=" font-bold">{`${currModel?.title}(${currModel?.type})`}</span>
-                </div>
-                {/* 1 .场景选择 */}
-                <div className=" ml-4 semi-form-field-label-text semi-form-field-label">
-                  <label> 场景</label>
-                </div>
-                <ButtonGroup className=" mr-4">
-                  {currModel?.itemType !== "req" ? (
-                    <>
+    <VfTour
+      code="abcd"
+      // every={true}
+      steps={[
+        {
+          selector: ".fieldSelectTour",
+          content: "选择表单需要的字段，并且进行排序",
+        },
+        {
+          selector: ".formSettingTour",
+          content: "对表单布局进行整体设置",
+        },
+        {
+          selector: ".compSetting",
+          content: "对单个字段进行设置",
+        },
+      ]}
+    >
+      <div>
+        <Layout className="layout-page">
+          <Layout.Header
+            className="layout-header shadow"
+            style={{ height: "50px" }}
+          >
+            <Nav
+              mode="horizontal"
+              header={
+                <div className=" flex items-center">
+                  <div
+                    className="left-0"
+                    style={{
+                      backgroundColor: "var(--semi-color-bg-1)",
+                      minWidth: "190px",
+                    }}
+                  >
+                    <span className=" font-bold">{`${currModel?.title}(${currModel?.type})`}</span>
+                  </div>
+                  {/* 1 .场景选择 */}
+                  <div className=" ml-4 semi-form-field-label-text semi-form-field-label">
+                    <label> 场景</label>
+                  </div>
+                  <ButtonGroup className=" mr-4">
+                    {currModel?.itemType !== "req" ? (
+                      <>
+                        <VlifeButton
+                          tooltip={"设计表单"}
+                          type={
+                            params.mode === Mode.form ? "primary" : "tertiary"
+                          }
+                          icon={<IconKanban />}
+                          onClick={() =>
+                            setParams({ ...params, mode: Mode.form })
+                          }
+                        ></VlifeButton>
+                        <VlifeButton
+                          tooltip={"设计列表"}
+                          type={
+                            params.mode === Mode.list ? "primary" : "tertiary"
+                          }
+                          className=" w-25"
+                          onClick={() =>
+                            setParams({ ...params, mode: Mode.list })
+                          }
+                          icon={<IconList />}
+                        ></VlifeButton>
+                      </>
+                    ) : (
                       <VlifeButton
-                        tooltip={"设计表单"}
-                        type={
-                          params.mode === Mode.form ? "primary" : "tertiary"
-                        }
-                        icon={<IconKanban />}
-                        onClick={() =>
-                          setParams({ ...params, mode: Mode.form })
-                        }
-                      ></VlifeButton>
-                      <VlifeButton
-                        tooltip={"设计列表"}
-                        type={
-                          params.mode === Mode.list ? "primary" : "tertiary"
-                        }
+                        tooltip={"过滤条件"}
+                        type={"primary"}
                         className=" w-25"
                         onClick={() =>
-                          setParams({ ...params, mode: Mode.list })
+                          setParams({ ...params, mode: Mode.filter })
                         }
-                        icon={<IconList />}
+                        icon={<IconFilter />}
                       ></VlifeButton>
-                    </>
-                  ) : (
-                    <VlifeButton
-                      tooltip={"过滤条件"}
-                      type={"primary"}
-                      className=" w-25"
-                      onClick={() =>
-                        setParams({ ...params, mode: Mode.filter })
-                      }
-                      icon={<IconFilter />}
-                    ></VlifeButton>
-                  )}
-                </ButtonGroup>
-
-                {/* 2 场景模型设置 */}
-                <FormSetting
-                  className="formSettingTour"
-                  mode={params.mode || Mode.form}
-                  onDataChange={(data: any, fieldName: string) => {
-                    //不同mode key可能重复，重复则在key前面加上mode+"_"的前缀
-                    //本次需要修改的值
-                    const val = data[fieldName];
-                    //真实要修改的字段
-                    if (
-                      params.mode &&
-                      fieldName.startsWith(params.mode + "_")
-                    ) {
-                      fieldName = fieldName.substring(params.mode.length + 1);
-                    }
-                    // 1. 修改state
-                    if (Object.keys(params).includes(fieldName)) {
-                      setParams({ ...params, [fieldName]: data[fieldName] });
-                    }
-                    // 2. 修改currModel
-                    if (
-                      currModel &&
-                      Object.keys(currModel).includes(fieldName)
-                    ) {
-                      setCurrModel({ ...currModel, [fieldName]: val });
-                    }
-                    // 3. 修改所有字段
-                    if (
-                      currModel &&
-                      Object.keys(currModel?.fields[0]).includes(fieldName)
-                    ) {
-                      updateModelsyncField({
-                        ...currModel,
-                        fields: currModel.fields.map((f) => {
-                          return { ...f, [fieldName]: val };
-                        }),
-                      });
-                    }
-                  }}
-                  data={{ ...currModel, ...params }}
-                  schema={modelSchemaDef}
-                ></FormSetting>
-                {currModel && params.mode === Mode.form && (
-                  <FormTab
-                    formVo={currModel}
-                    onDataChange={(d: FormVo) => {
-                      updateModelsyncField(d);
-                    }}
-                  />
-                )}
-              </div>
-            }
-            footer={
-              <Space>
-                {currModel && currModel.id && (
-                  <>
-                    <VlifeButton
-                      code="form:save:formDto"
-                      icon={<IconSave />}
-                      onClick={saveForm}
-                    >
-                      保存
-                    </VlifeButton>
-                    <Button
-                      icon={<IconPlayCircle />}
-                      onClick={() => {
-                        formModal.show({
-                          type: type,
-                          title: "预览",
-                          readPretty:
-                            currModel.itemType == "vo" ? true : params.formRead,
-                          modelInfo: currModel,
-                        });
-                      }}
-                    >
-                      预览
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // alert(JSON.stringify(navigate));
-                        // window.history.back();
-                        navigate(-1);
-                      }}
-                    >
-                      返回
-                    </Button>
-                  </>
-                )}
-              </Space>
-            }
-          />
-        </Layout.Header>
-        <Layout>
-          <Sider
-            style={{
-              backgroundColor: "var(--semi-color-bg-1)",
-              minWidth: "210px",
-            }}
-          >
-            {currModel && currModel.fields && (
-              <FieldSelect
-                className="fieldSelectTour"
-                key={currModel.type + "_fieldSelect"}
-                fields={currModel.fields}
-                mode={params.mode || Mode.form}
-                selectedField={currField?.fieldName}
-                del={currModel.itemType === "req" ? false : true}
-                onDataChange={(fields1: FormFieldVo[]) => {
-                  // alert("1");
-                  updateModelsyncField({ ...currModel, fields: fields1 });
-                }}
-                onSelect={(fieldName: string) => {
-                  updateFieldSyncModel({
-                    ...currModel.fields.filter(
-                      (f) => f.fieldName === fieldName
-                    )[0],
-                  });
-                }}
-              />
-            )}
-          </Sider>
-          <Content className="layout-content">
-            {currModel && currModel.id && params.mode !== Mode.list ? (
-              <Tabs>
-                <TabPane className="" tab={`实时预览`} itemKey={"FormView"}>
-                  {/* <>
-                    {JSON.stringify(
-                      currModel.fields[0].x_decorator_props$gridSpan
                     )}
-                  </> */}
-                  <FormPage
-                    design={true}
-                    key={
-                      currModel.type + currModel.modelSize
-                      // currField?.fieldName
-                      // JSON.stringify(currModel.fields)
-                    }
-                    className={` center rounded-md bg-white  p-4 pt-6 m-2 ${
-                      currModel.modelSize === undefined ||
-                      currModel.modelSize === 4
-                        ? "w-full"
-                        : currModel.modelSize === 3
-                        ? "w-10/12"
-                        : currModel.modelSize === 2
-                        ? "w-8/12"
-                        : "w-1/2"
-                    } min-w-1/2`}
-                    readPretty={
-                      currModel.itemType == "vo" ? true : params.formRead
-                    }
-                    // type={currModel.itemType === "req" ? "req" : "save"}
-                    highlight={currField?.fieldName}
-                    // entityType={currModel.entityType}
-                    type={currModel.type}
-                    // itemType={currModel.itemType}
-                    modelInfo={{ ...currModel }}
-                    formData={params.formRead ? writeData : formData}
-                    onDataChange={(d) => {
-                      setWriteData(d);
-                    }}
-                    //组件div点击回调
-                    onClickFieldComponent={(
-                      fieldName: string,
-                      opt: "click" | "must" | "delete"
-                    ) => {
-                      let fff: any = currModel.fields.filter(
-                        (f) => f.fieldName === fieldName
-                      )[0];
-                      if (opt === "click") {
-                        updateFieldSyncModel({ ...fff });
+                  </ButtonGroup>
+
+                  {/* 2 场景模型设置 */}
+                  <FormSetting
+                    className="formSettingTour"
+                    mode={params.mode || Mode.form}
+                    onDataChange={(data: any, fieldName: string) => {
+                      //不同mode key可能重复，重复则在key前面加上mode+"_"的前缀
+                      //本次需要修改的值
+                      const val = data[fieldName];
+                      //真实要修改的字段
+                      if (
+                        params.mode &&
+                        fieldName.startsWith(params.mode + "_")
+                      ) {
+                        fieldName = fieldName.substring(params.mode.length + 1);
                       }
-                      if (opt === "delete") {
+                      // 1. 修改state
+                      if (Object.keys(params).includes(fieldName)) {
+                        setParams({ ...params, [fieldName]: data[fieldName] });
+                      }
+                      // 2. 修改currModel
+                      if (
+                        currModel &&
+                        Object.keys(currModel).includes(fieldName)
+                      ) {
+                        setCurrModel({ ...currModel, [fieldName]: val });
+                      }
+                      // 3. 修改所有字段
+                      if (
+                        currModel &&
+                        Object.keys(currModel?.fields[0]).includes(fieldName)
+                      ) {
                         updateModelsyncField({
                           ...currModel,
-                          fields: currModel.fields.map((ff): any => {
-                            // 初始化组件类型
-                            return ff.fieldName === fieldName
-                              ? { ...ff, x_hidden: true }
-                              : ff;
+                          fields: currModel.fields.map((f) => {
+                            return { ...f, [fieldName]: val };
                           }),
                         });
-                        updateFieldSyncModel(undefined);
-                      } else if (opt === "must") {
-                        fff = { ...fff, required: !fff.required };
-                        updateModelsyncField({
-                          ...currModel,
-                          fields: currModel.fields.map((ff): any => {
-                            // 初始化组件类型
-                            return ff.fieldName === fieldName ? fff : ff;
-                          }),
-                        });
-                        // setCurrField(fff);
                       }
                     }}
-                  />
-                </TabPane>
-                {/* {params.mode === Mode.form && (
-                  <TabPane tab="事件响应" itemKey="eventTab">
-                    <EventTabPage
-                      onChange={(model) => {
-                        updateModelsyncField({ ...model });
+                    data={{ ...currModel, ...params }}
+                    schema={modelSchemaDef}
+                  ></FormSetting>
+                  {currModel && params.mode === Mode.form && (
+                    <FormTab
+                      formVo={currModel}
+                      onDataChange={(d: FormVo) => {
+                        updateModelsyncField(d);
                       }}
-                      currModel={currModel}
-                    ></EventTabPage>
-                  </TabPane>
-                )} */}
-              </Tabs>
-            ) : (
-              <div className="center rounded-md bg-white h-full p-4">
-                <div className=" flex m-2">
-                  <div className="text-md items-start">列表设计</div>
-                  <div className=" absolute right-2">
-                    <Button onClick={showFormApiModal}>接口设置</Button>
-                  </div>
-                  {/* {params.httpError?.code === 4404 ? (
+                    />
+                  )}
+                </div>
+              }
+              footer={
+                <Space>
+                  {currModel && currModel.id && (
+                    <>
+                      <VlifeButton
+                        code="form:save:formDto"
+                        icon={<IconSave />}
+                        onClick={saveForm}
+                      >
+                        保存
+                      </VlifeButton>
+                      <Button
+                        icon={<IconPlayCircle />}
+                        onClick={() => {
+                          formModal.show({
+                            type: type,
+                            title: "预览",
+                            readPretty:
+                              currModel.itemType == "vo"
+                                ? true
+                                : params.formRead,
+                            modelInfo: currModel,
+                          });
+                        }}
+                      >
+                        预览
+                      </Button>
+
+                      <Button
+                        onClick={() => {
+                          // alert(JSON.stringify(navigate));
+                          // window.history.back();
+                          navigate(-1);
+                        }}
+                      >
+                        返回
+                      </Button>
+                    </>
+                  )}
+                </Space>
+              }
+            />
+          </Layout.Header>
+          <Layout>
+            <Sider
+              style={{
+                backgroundColor: "var(--semi-color-bg-1)",
+                minWidth: "210px",
+              }}
+            >
+              {currModel && currModel.fields && (
+                <FieldSelect
+                  className="fieldSelectTour"
+                  key={currModel.type + "_fieldSelect"}
+                  fields={currModel.fields}
+                  mode={params.mode || Mode.form}
+                  selectedField={currField?.fieldName}
+                  del={currModel.itemType === "req" ? false : true}
+                  onDataChange={(fields1: FormFieldVo[]) => {
+                    updateModelsyncField({ ...currModel, fields: fields1 });
+                  }}
+                  onSelect={(fieldName: string) => {
+                    updateFieldSyncModel({
+                      ...currModel.fields.filter(
+                        (f) => f.fieldName === fieldName
+                      )[0],
+                    });
+                  }}
+                />
+              )}
+            </Sider>
+            <Content className="grid h-full p-2 m-2">
+              <Scrollbars autoHide={true}>
+                {currModel && currModel.id && params.mode !== Mode.list ? (
+                  <>
+                    <FormPage
+                      type="form"
+                      formData={currModel}
+                      onDataChange={(model) => {
+                        setCurrModel({ ...model });
+                      }}
+                      className={` center rounded-md h-20 w-8/12 bg-white p-4 pt-6 m-2`}
+                    />
+                    <FormPage
+                      design={true}
+                      key={currModel.type + currModel.modelSize}
+                      className={` center rounded-md bg-white  p-4 m-2 ${
+                        currModel.modelSize === undefined ||
+                        currModel.modelSize === 4
+                          ? "w-full"
+                          : currModel.modelSize === 3
+                          ? "w-10/12"
+                          : currModel.modelSize === 2
+                          ? "w-8/12"
+                          : "w-1/2"
+                      } min-w-1/2`}
+                      readPretty={
+                        currModel.itemType == "vo" ? true : params.formRead
+                      }
+                      // type={currModel.itemType === "req" ? "req" : "save"}
+                      highlight={currField?.fieldName}
+                      // entityType={currModel.entityType}
+                      type={currModel.type}
+                      // itemType={currModel.itemType}
+                      modelInfo={{ ...currModel }}
+                      formData={params.formRead ? writeData : formData}
+                      onDataChange={(d) => {
+                        setWriteData(d);
+                      }}
+                      //组件div点击回调
+                      onClickFieldComponent={(
+                        fieldName: string,
+                        opt: "click" | "must" | "delete"
+                      ) => {
+                        let fff: any = currModel.fields.filter(
+                          (f) => f.fieldName === fieldName
+                        )[0];
+                        if (opt === "click") {
+                          updateFieldSyncModel({ ...fff });
+                        }
+                        if (opt === "delete") {
+                          updateModelsyncField({
+                            ...currModel,
+                            fields: currModel.fields.map((ff): any => {
+                              // 初始化组件类型
+                              return ff.fieldName === fieldName
+                                ? { ...ff, x_hidden: true }
+                                : ff;
+                            }),
+                          });
+                          // updateFieldSyncModel(undefined);
+                        } else if (opt === "must") {
+                          fff = { ...fff, required: !fff.required };
+                          updateModelsyncField({
+                            ...currModel,
+                            fields: currModel.fields.map((ff): any => {
+                              // 初始化组件类型
+                              return ff.fieldName === fieldName ? fff : ff;
+                            }),
+                          });
+                          // setCurrField(fff);
+                        }
+                      }}
+                    />
+                  </>
+                ) : (
+                  // // <Tabs>
+                  //   {/* <TabPane tab={`实时预览`} itemKey={"FormView"}> */}
+
+                  //   {/* </TabPane> */}
+
+                  //   {/* <TabPane tab={`模型设置`} itemKey={"formModelSetting"}>
+                  //     <FormPage type="form" formData={} />
+                  //   </TabPane> */}
+                  //   {/* {params.mode === Mode.form && (
+                  //   <TabPane tab="事件响应" itemKey="eventTab">
+                  //     <EventTabPage
+                  //       onChange={(model) => {
+                  //         updateModelsyncField({ ...model });
+                  //       }}
+                  //       currModel={currModel}
+                  //     ></EventTabPage>
+                  //   </TabPane>
+                  // )} */}
+                  // // </Tabs>
+                  <div className="center rounded-md bg-white h-full p-4">
+                    <div className=" flex m-2">
+                      <div className="text-md items-start">列表设计</div>
+                      <div className=" absolute right-2">
+                        <Button onClick={showFormApiModal}>接口设置</Button>
+                      </div>
+                      {/* {params.httpError?.code === 4404 ? (
                     <Button onClick={showFormApiModal}>接口设置</Button>
                   ) : (
                     <Button onClick={showFormApiModal}>接口设置</Button>
                   )} */}
-                </div>
+                    </div>
 
-                {currModel && (
-                  <TablePage
-                    key={`table${JSON.stringify(currModel)}`}
-                    design={true}
-                    pageSize={currModel?.pageSize}
-                    req={{}}
-                    entityType={currModel?.entityType || ""}
-                    listType={currModel?.type}
-                    editType={currModel?.type}
-                    // select_more={true}
-                    formVo={currModel}
-                    btnHide={true}
-                    onHttpError={(error: httpError) => {
-                      setParams({ ...params, httpError: error });
-                    }}
-                    // customBtns={customBtns}
-                  />
+                    {currModel && (
+                      <TablePage
+                        key={`table${JSON.stringify(currModel)}`}
+                        design={true}
+                        pageSize={currModel?.pageSize}
+                        req={{}}
+                        entityType={currModel?.entityType || ""}
+                        listType={currModel?.type}
+                        editType={currModel?.type}
+                        // select_more={true}
+                        formVo={currModel}
+                        btnHide={true}
+                        onHttpError={(error: httpError) => {
+                          setParams({ ...params, httpError: error });
+                        }}
+                        // customBtns={customBtns}
+                      />
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-          </Content>
-          <Sider
-            className="shadow-lg"
-            style={{
-              padding: "10px",
-              backgroundColor: "var(--semi-color-bg-1)",
-              minWidth: "320px",
-              maxWidth: "320px",
-            }}
-          >
-            {currField &&
-              currModel &&
-              (params.mode === Mode.form || params.mode === Mode.filter) && (
-                <CompDesign
-                  mode={params.mode}
-                  key={currField.fieldName}
-                  form={currModel}
-                  onDataChange={(data: FormFieldVo) => {
-                    updateFieldSyncModel({ ...data });
-                  }}
-                  field={currField}
-                ></CompDesign>
+              </Scrollbars>
+            </Content>
+            <Sider
+              className="shadow-lg"
+              style={{
+                padding: "10px",
+                backgroundColor: "var(--semi-color-bg-1)",
+                minWidth: "320px",
+                maxWidth: "320px",
+              }}
+            >
+              {currField &&
+                currModel &&
+                (params.mode === Mode.form || params.mode === Mode.filter) && (
+                  <div className="compSetting">
+                    <CompDesign
+                      mode={params.mode}
+                      key={currField.fieldName}
+                      form={currModel}
+                      onDataChange={(data: FormFieldVo) => {
+                        updateFieldSyncModel({ ...data });
+                      }}
+                      field={currField}
+                    ></CompDesign>
+                  </div>
+                )}
+              {currField && currModel && params.mode === Mode.list && (
+                <></>
+                // <FormSetting
+                //   layout={"vertical"}
+                //   data={currField}
+                //   schema={listSchemaDef}
+                //   mode={Mode.list}
+                //   onDataChange={(data, fieldName) => {}}
+                // />
               )}
-
-            {currField && currModel && params.mode === Mode.list && (
-              <></>
-              // <FormSetting
-              //   layout={"vertical"}
-              //   data={currField}
-              //   schema={listSchemaDef}
-              //   mode={Mode.list}
-              //   onDataChange={(data, fieldName) => {}}
-              // />
-            )}
-          </Sider>
+            </Sider>
+          </Layout>
         </Layout>
-      </Layout>
-    </div>
-    // </VfTour>
+      </div>
+    </VfTour>
   );
 };

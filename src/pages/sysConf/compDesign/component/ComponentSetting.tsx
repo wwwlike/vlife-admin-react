@@ -151,7 +151,7 @@ const ComponentSetting = ({
           .map((key) => (
             <Collapse.Panel
               key={`panel` + key}
-              header={key + propInfos[key].label}
+              header={propInfos[key].label}
               itemKey={"collapse" + key}
             >
               {/* 对象属性*/}

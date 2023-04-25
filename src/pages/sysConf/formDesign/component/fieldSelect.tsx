@@ -4,7 +4,7 @@
  * 2. 最新field信息返回出去
  */
 
-import { Badge, Divider, Tag, Tooltip } from "@douyinfe/semi-ui";
+import { Divider, Tag } from "@douyinfe/semi-ui";
 import { FormFieldVo } from "@src/api/FormField";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -50,8 +50,6 @@ const FieldSelect = ({
   const [content, setContent] = useState<LayoutDataType[]>();
   const [selectField, setSelectField] = useState<string | undefined>();
 
-  const showHideField = useMemo(() => {}, [mode]);
-
   useEffect(() => {
     setSelectField(selectedField);
   }, [selectedField]);
@@ -63,8 +61,11 @@ const FieldSelect = ({
    */
   const onLayoutChange = useCallback(
     (divLayout: LayoutDataType[]) => {
-      //divLayout div删除后就减少了
+      // alert(JSON.stringify(content) === JSON.stringify(divLayout));
+      //divLdivayout div删除后就减少了
       setContent(divLayout);
+      // alert(fields);
+      // if (content !== undefined) {
       onDataChange(
         fields.map((f) => {
           const filterdivs = divLayout.filter(
@@ -77,6 +78,7 @@ const FieldSelect = ({
         })
       );
     },
+    // },
     [fields]
   );
 
@@ -131,7 +133,7 @@ const FieldSelect = ({
           onLayoutChange={onLayoutChange} // 布局改变事件
           isResizable={false}
           isDraggable={draggable}
-          // breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          // className=" hover:bg-slate-500"
           cols={{ lg: 1, md: 1, sm: 1, xs: 1, xxs: 1 }}
           rowHeight={1}
           // width={130}
@@ -146,10 +148,10 @@ const FieldSelect = ({
             .map((field: FormFieldVo, index: number) => {
               return (
                 <div
-                  style={{ width: "80px" }}
+                  // style={{ width: "80px" }}
                   id={field.fieldName}
                   key={field.fieldName}
-                  className=" static  group flex space-x-2 items-center w-10 left-4
+                  className=" relative  group flex space-x-2 items-center w-10 left-4
                    hover:border hover:rounded-md hover:border-blue-500 border-dashed
                   "
                   data-grid={{
@@ -160,42 +162,20 @@ const FieldSelect = ({
                     h: 36,
                   }}
                 >
-                  <div className=" w-4">
-                    {draggable ? (
-                      <div>
-                        {ComponentInfos[field.x_component]?.icon ? (
-                          <SelectIcon
-                            tooltip={"拖拽改变顺序"}
-                            className="cursor-move"
-                            read
-                            value={ComponentInfos[field.x_component]?.icon}
-                          ></SelectIcon>
-                        ) : (
-                          <IconHandle className="  cursor-move"></IconHandle>
-                        )}
-                      </div>
-                    ) : field.events && field.events.length > 0 ? (
-                      <></>
-                    ) : (
-                      // <Tooltip
-                      //   content={
-                      //     <div>
-                      //       {field.events.map((m, index) => (
-                      //         <div key={field.fieldName + index}>{m.name}</div>
-                      //       ))}
-                      //     </div>
-                      //   }
-                      // >
-                      //   <Badge
-                      //     count={field.events.length}
-                      //     type="tertiary"
-                      //     // theme="light"
-                      //   />
-                      //   {/* <IconList className=" cursor-pointer text-blue-500" /> */}
-                      // </Tooltip>
-                      <IconEyeOpened className="  text-blue-500" />
-                    )}
-                  </div>
+                  {draggable && (
+                    <div>
+                      {ComponentInfos[field.x_component]?.icon ? (
+                        <SelectIcon
+                          tooltip={"拖拽改变顺序"}
+                          className="cursor-move"
+                          read
+                          value={ComponentInfos[field.x_component]?.icon}
+                        ></SelectIcon>
+                      ) : (
+                        <IconHandle className="  cursor-move"></IconHandle>
+                      )}
+                    </div>
+                  )}
 
                   <Tag
                     className=" cursor-pointer "
@@ -216,67 +196,60 @@ const FieldSelect = ({
               );
             })}
         </ResponsiveReactGridLayout>
-        {/* {JSON.stringify(fields.map((f) => f.fieldName))} */}
         {/* 创一个和拖拽div高度一致的按钮容器div */}
-
-        {draggable ? (
-          <div className=" h-full border-blue-600 space-y-2 ">
-            <ResponsiveReactGridLayout
-              key={JSON.stringify(fields.map((f) => f.fieldName))}
-              margin={[0, 0]} //div之间的间距
-              allowOverlap={false} //是否可以重叠 false 默认不能重叠
-              isResizable={false}
-              cols={{ lg: 1, md: 1, sm: 1, xs: 1, xxs: 1 }}
-              rowHeight={1}
-              isDraggable={false}
-              style={{ width: "80px" }}
-            >
-              {fields
-                .sort((f, t) => f.sort - t.sort)
-                ?.filter((f) => f.x_hidden !== true)
-                .map((field: FormFieldVo, index: number) => {
-                  return (
-                    <div
-                      style={{ width: "80px" }}
-                      id={field.fieldName}
-                      key={field?.fieldName + "_btn"}
-                      className=" static group flex space-x-2 items-center w-10 left-4"
-                      data-grid={{
-                        ...field,
-                        x: 10,
-                        y: index * 18,
-                        w: 20,
-                        h: 36,
-                      }}
-                    >
-                      {selectField !== field.fieldName && del ? (
-                        <>
-                          {/* {field.fieldName + field.sort} */}
-
-                          <VlifeButton
-                            type="tertiary"
-                            theme="borderless"
-                            // tooltip="字段隐藏"
-                            onClick={() => {
-                              quickField([{ ...field, x_hidden: true }]);
-                            }}
-                            className={` text-blue-500`}
-                            icon={<IconDeleteStroked />}
-                            style={{ margin: 12 }}
-                          ></VlifeButton>
-                        </>
-                      ) : (
-                        ""
-                        // <>{field.fieldName + field.sort}</>
-                      )}
-                    </div>
-                  );
-                })}
-            </ResponsiveReactGridLayout>
-          </div>
-        ) : (
-          ""
-        )}
+        {
+          // draggable && (
+          //     <div className=" h-full border-blue-600 space-y-2 ">
+          //       <ResponsiveReactGridLayout
+          //         key={JSON.stringify(fields.map((f) => f.fieldName))}
+          //         margin={[0, 0]} //div之间的间距
+          //         allowOverlap={false} //是否可以重叠 false 默认不能重叠
+          //         isResizable={false}
+          //         cols={{ lg: 1, md: 1, sm: 1, xs: 1, xxs: 1 }}
+          //         rowHeight={1}
+          //         isDraggable={false}
+          //         style={{ width: "80px" }}
+          //       >
+          //         {fields
+          //           .sort((f, t) => f.sort - t.sort)
+          //           ?.filter((f) => f.x_hidden !== true)
+          //           .map((field: FormFieldVo, index: number) => {
+          //             return (
+          //               <div
+          //                 style={{ width: "80px" }}
+          //                 id={field.fieldName}
+          //                 key={field?.fieldName + "_btn"}
+          //                 className=" static group flex space-x-2 items-center w-10 left-4"
+          //                 data-grid={{
+          //                   ...field,
+          //                   x: 10,
+          //                   y: index * 18,
+          //                   w: 20,
+          //                   h: 36,
+          //                 }}
+          //               >
+          //                 {selectField !== field.fieldName && del && (
+          //                   <>
+          //                     {/* {field.fieldName + field.sort} */}
+          //                     <VlifeButton
+          //                       type="tertiary"
+          //                       theme="borderless"
+          //                       onClick={() => {
+          //                         quickField([{ ...field, x_hidden: true }]);
+          //                       }}
+          //                       className={` text-blue-500`}
+          //                       icon={<IconDeleteStroked />}
+          //                       style={{ margin: 12 }}
+          //                     ></VlifeButton>
+          //                   </>
+          //                 )}
+          //               </div>
+          //             );
+          //           })}
+          //       </ResponsiveReactGridLayout>
+          //     </div>
+          //   )
+        }
       </div>
       {fields?.filter((f) => f.x_hidden === true).length > 0 ? (
         <>

@@ -1,7 +1,6 @@
-import { Button, Empty } from "@douyinfe/semi-ui";
+import { Button, Tooltip } from "@douyinfe/semi-ui";
 import { useAuth } from "@src/context/auth-context";
-import { ModelInfo } from "@src/api/base";
-import { Form, save, javaModels, list, FormVo } from "@src/api/Form";
+import { Form, list } from "@src/api/Form";
 import { useNiceModal } from "@src/store";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -32,18 +31,9 @@ import { listAll, SysMenu } from "@src/api/SysMenu";
  */
 const Model = () => {
   const [menus, setMenus] = useState<SysMenu[]>();
-  const [models, setModels] = useState<ModelInfo[]>();
   const [dbEntitys, setDbEntitys] = useState<Form[]>();
   const navigate = useNavigate();
-
   useEffect(() => {
-    javaModels({ itemType: "entity" }).then((d) => {
-      if (d.data) {
-        setModels(d.data);
-      } else {
-        setModels([]);
-      }
-    });
     list({ itemType: "entity" }).then((d) => {
       if (d.data) {
         setDbEntitys(d.data);
@@ -60,14 +50,16 @@ const Model = () => {
   const card = useCallback((e: Form, index: number) => {
     return (
       <div className=" group relative block w-full h-24 border-2 border-gray-300 border-dashed rounded-lg p-2 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-        <Button
-          size="small"
-          className=" rounder-br-lg absolute bottom-0 right-0"
-          onClick={() => {
-            navigate("/sysConf/modelCode/" + e.type);
-          }}
-          icon={<IconCode />}
-        />
+        <Tooltip content="前端代码">
+          <Button
+            size="small"
+            className=" rounder-br-lg absolute bottom-0 right-0"
+            onClick={() => {
+              navigate("/sysConf/modelCode/" + e.type);
+            }}
+            icon={<IconCode />}
+          />
+        </Tooltip>
         <span className="mt-2 block text-sm font-medium text-gray-900">
           {e.title}
         </span>
@@ -81,7 +73,7 @@ const Model = () => {
               navigate("/sysConf/modelDetail/entity/" + e.type);
             }}
           >
-            模型
+            模型管理
           </Button>
         </div>
       </div>
@@ -104,7 +96,7 @@ const Model = () => {
                   );
                 })
                 .map((d, index) => (
-                  <div key={"model_" + index} className="mt-3 min-h-">
+                  <div key={"model_" + index} className="">
                     <div className="hidden sm:block">
                       <div className="flex items-center border-b border-gray-200">
                         <a
@@ -144,7 +136,7 @@ const Model = () => {
                   </div>
                 ))}
 
-            <div key={"model_other"} className="mt-3 min-h-">
+            <div key={"model_other"} className="">
               <div className="hidden sm:block">
                 <div className="flex items-center border-b border-gray-200">
                   <a
@@ -152,7 +144,7 @@ const Model = () => {
                     aria-current="page"
                     className={`border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                   >
-                    {"未启用模块"}
+                    {"其他模块"}
                   </a>
                 </div>
                 <div>

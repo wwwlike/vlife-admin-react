@@ -87,7 +87,9 @@ export default ({
                       lineHeight: "20px",
                     }}
                   >
-                    <span className="">名称为"{e}"的模型不存在</span>
+                    <span className="">
+                      {e ? `名称为"${e}”的模型不存在` : "当前没有传模型名称"}
+                    </span>
                   </div>
                 }
                 description={

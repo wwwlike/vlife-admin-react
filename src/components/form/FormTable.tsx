@@ -4,18 +4,17 @@ import FormPage from "@src/pages/common/formPage";
 import TablePage from "@src/pages/common/tablePage";
 import { useUpdateEffect } from "ahooks";
 import { useState } from "react";
-import { IconTextStroked } from "@douyinfe/semi-icons";
+import { IconTextStroked, IconPlusStroked } from "@douyinfe/semi-icons";
 import { FormVo } from "@src/api/Form";
 import { VfBaseProps } from "@src/dsl/schema/component";
 import { VfButton } from "@src/dsl/schema/button";
 
 /**
- * 支持临时保存的数据列表 (用作1对多子表单使用)
- * 表单里的列表批量编辑组件
- * 待办：可以加入假分页
+ * 1对多，子表数据列表展示
  */
 interface FormTableProps extends VfBaseProps<any[], FormVo> {
   type: string; //字段类型
+  ignores?: string[]; //忽略不展示的字段
 }
 
 export default ({
@@ -23,6 +22,8 @@ export default ({
   value,
   onDataChange,
   read,
+  ignores,
+  entityType,
   ...props
 }: FormTableProps) => {
   //当前编辑行号，有值则弹出框弹出
@@ -58,11 +59,12 @@ export default ({
     <div>
       {!read ? (
         <Button
+          icon={<IconPlusStroked />}
           onClick={() => {
             setIndex(-1);
           }}
         >
-          +
+          添加新行
         </Button>
       ) : (
         ""
@@ -94,19 +96,22 @@ export default ({
         <FormPage
           key={"formPage_" + index}
           formData={formData}
+          ignoredFields={ignores}
           onDataChange={setFormData}
           type={type}
         />
       </Modal>
-      {/* {JSON.stringify(value)} */}
-      <TablePage<any>
-        btnHide={true}
-        key={"table_sub" + props.fieldName + tableData.length}
-        dataSource={tableData}
-        entityType={type}
-        // lineBtn={lineButton}
-        lineBtn={!read ? lineButton : undefined}
-      ></TablePage>
+      <>
+        <TablePage<any>
+          btnHide={true}
+          key={"table_sub" + props.fieldName + tableData.length}
+          dataSource={tableData}
+          entityType={type}
+          // read={true}
+          lineBtn={!read ? lineButton : undefined}
+          ignores={ignores}
+        ></TablePage>
+      </>
     </div>
   );
 };

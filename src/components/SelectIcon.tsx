@@ -967,13 +967,13 @@ const SelectIcon = ({
   const VfIcon = useMemo(() => {
     if (selected && read) {
       const IconComponent = icons[selected];
-      return <IconComponent {...props} />;
+      return <IconComponent size={size} {...props} />;
     } else if (selected) {
       const IconComponent = icons[selected];
       return (
         <div className=" space-x-3">
           <Tooltip content="点击替换">
-            <IconComponent {...props} />
+            <IconComponent size={size} {...props} />
           </Tooltip>
         </div>
       );
@@ -1021,7 +1021,7 @@ const SelectIcon = ({
                   }}
                 >
                   <Tooltip content={key}>
-                    <IconComponent {...props} />
+                    <IconComponent size={size} {...props} />
                   </Tooltip>
                 </li>
               );

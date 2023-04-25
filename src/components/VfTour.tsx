@@ -3,26 +3,29 @@
  * 1. 先记录是否引导内容到localStroge里（后期记录到数据库），避免每次提醒
  * 2. 一个包裹组件，定义
  */
-import { Button } from "@douyinfe/semi-ui";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import Tour from "reactour";
-
 interface VfTourProps {
+  code: string;
   children: any;
   every?: boolean; //是否
   steps: { selector: string; content: any }[];
 }
 
-const VfTour = ({ steps, every = false, children, ...props }: VfTourProps) => {
-  const { pathname } = useLocation();
+const VfTour = ({
+  steps,
+  code,
+  every = false,
+  children,
+  ...props
+}: VfTourProps) => {
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    if (localStorage.getItem(`tour${pathname}`) === null || every) {
+    if (localStorage.getItem(`tour${code}`) === null || every) {
       setTimeout(() => {
         setOpen(true);
       }, 1000);
-      localStorage.setItem(`tour${pathname}`, "tour");
+      localStorage.setItem(`tour${code}`, "tour");
     }
   }, []);
   return (
@@ -39,14 +42,6 @@ const VfTour = ({ steps, every = false, children, ...props }: VfTourProps) => {
           setOpen(false);
         }}
       />
-      {/* <Button
-        onClick={() => {
-          setOpen(true);
-        }}
-      >
-        {" "}
-        222222
-      </Button> */}
     </>
   );
 };

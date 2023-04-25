@@ -102,6 +102,8 @@ export interface PropDef {
     datas: D;
     // 表态只读状态
     read: boolean;
+    //当前实体类
+    entityType:string;
     //样式
     className:string;
     // 以下考虑移除，不和字段信息绑定，做纯粹的组件

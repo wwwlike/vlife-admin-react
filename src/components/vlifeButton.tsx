@@ -20,22 +20,27 @@ export default ({
   ...prop
 }: VFButtonPorps) => {
   const { checkBtnPermission } = useAuth();
-  useEffect(() => {
-    // console.log("prop", prop);
-  }, [prop.disabled]);
 
   return hidden === true ? (
     <></>
   ) : tooltip ? (
     (code && checkBtnPermission(code)) || code === undefined ? (
-      <Tooltip content={tooltip}>
-        {btnType === "button" && <Button {...prop}></Button>}
-        {btnType === "text" && (
+      btnType === "button" ? (
+        <Tooltip content={tooltip}>
+          <Button {...prop}></Button>
+          {/* {btnType === "text" && (
+            <div className=" text-gray-400 hover:text-blue-500  cursor-pointer">
+              <span>{prop.children}</span>
+            </div>
+          )} */}
+        </Tooltip>
+      ) : (
+        <Tooltip content={tooltip}>
           <div className=" text-gray-400 hover:text-blue-500  cursor-pointer">
             <span>{prop.children}</span>
           </div>
-        )}
-      </Tooltip>
+        </Tooltip>
+      )
     ) : (
       <></>
     )

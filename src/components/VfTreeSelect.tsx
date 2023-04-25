@@ -108,7 +108,6 @@ const VfTreeSelect = ({
       {value ? (
         <div className="flex ">
           <div>
-            已选择：
             <Label>{datas.filter((d: any) => d.code === value)[0].name}</Label>
           </div>
           <div className=" absolute right-0 ">
@@ -124,7 +123,7 @@ const VfTreeSelect = ({
           </div>
         </div>
       ) : (
-        <div>请选择：</div>
+        <div></div>
       )}
       <Tree
         expandAll={true}

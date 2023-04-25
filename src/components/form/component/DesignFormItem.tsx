@@ -1,5 +1,5 @@
 import { IconEyeClosedSolid, IconSun } from "@douyinfe/semi-icons";
-import { Divider } from "@douyinfe/semi-ui";
+import { Divider, Tooltip } from "@douyinfe/semi-ui";
 import { FormItem, IFormItemProps } from "@formily/semi";
 import React from "react";
 
@@ -47,29 +47,33 @@ export default ({
             >
               {itemType !== "req" && (
                 <div className=" absolute  right-0 -bottom-2 bg-white rounded-3xl w-15 p-1 flex space-x-1">
-                  <IconEyeClosedSolid
-                    size="small"
-                    className={`text-blue-500`}
-                    onClick={(event) => {
-                      event.cancelable = true; //阻止事件冒泡
-                      onClick(fieldName, "delete");
-                      event.stopPropagation();
-                      //删除
-                    }}
-                  />
+                  <Tooltip content="隐藏">
+                    <IconEyeClosedSolid
+                      size="small"
+                      className={`text-blue-500`}
+                      onClick={(event) => {
+                        event.cancelable = true; //阻止事件冒泡
+                        onClick(fieldName, "delete");
+                        event.stopPropagation();
+                        //删除
+                      }}
+                    />
+                  </Tooltip>
                   <Divider layout="vertical" />
-                  <IconSun
-                    size="small"
-                    className={`${
-                      required ? "text-red-500" : " text-gray-500"
-                    }`} //选中就是红色
-                    onClick={(event) => {
-                      event.cancelable = true; //阻止事件冒泡
-                      onClick(fieldName, "must");
-                      event.stopPropagation();
-                      //必填
-                    }}
-                  />
+                  <Tooltip content="必填">
+                    <IconSun
+                      size="small"
+                      className={`${
+                        required ? "text-red-500" : " text-gray-500"
+                      }`} //选中就是红色
+                      onClick={(event) => {
+                        event.cancelable = true; //阻止事件冒泡
+                        onClick(fieldName, "must");
+                        event.stopPropagation();
+                        //必填
+                      }}
+                    />
+                  </Tooltip>
                 </div>
               )}
             </div>

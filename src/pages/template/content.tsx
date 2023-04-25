@@ -77,7 +77,7 @@ const Content = <T extends IdBean>({
         node: "item",
         name: "表单配置",
         onClick: () => {
-          navigate(`/sysConf/modelDesign/${editType}`);
+          navigate(`/sysConf/modelDesign/${editType}/form`);
         },
       },
       { node: "divider" },
@@ -86,6 +86,13 @@ const Content = <T extends IdBean>({
         name: "权限资源",
         onClick: () => {
           navigate(`/sysConf/resources`);
+        },
+      },
+      {
+        node: "item",
+        name: "模型管理",
+        onClick: () => {
+          navigate(`/sysConf/modelDetail/${entityType}`);
         },
       },
       {
@@ -133,7 +140,7 @@ const Content = <T extends IdBean>({
 
   return (
     <div className="h-full">
-      {filterType ? (
+      {filterType && (
         <div className="h-full w-72 float-left ">
           <Card
             title={`${title ? title : model ? model.title : ""}管理`}
@@ -162,7 +169,7 @@ const Content = <T extends IdBean>({
             {/* 排序 */}
             {model?.fields && showOrder && (
               <>
-                <Divider className=" m-2">请选择排序字段</Divider>
+                <Divider className=" m-2">请选择排序条件</Divider>
                 <OrderPage
                   filterType={filterType}
                   fields={model.fields}
@@ -174,8 +181,6 @@ const Content = <T extends IdBean>({
             )}
           </Card>
         </div>
-      ) : (
-        ""
       )}
       <div className="h-full md:min-w-3/4">
         <Card
@@ -202,19 +207,6 @@ const Content = <T extends IdBean>({
                 </Dropdown>
               </SplitButtonGroup>
             )
-
-            // <Tooltip content="模型设置">
-            //   <IconSetting
-            //     onClick={() => {
-            //       navigate(
-            //         `/conf/design/${
-            //           listModelName ? listModelName : entityType
-            //         }/list`
-            //       );
-            //     }}
-            //     className=" cursor-pointer  hidden group-hover:block "
-            //   />
-            // </Tooltip>
           }
           headerLine={false}
           bordered={false}

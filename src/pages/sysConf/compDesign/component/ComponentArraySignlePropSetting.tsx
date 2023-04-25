@@ -85,8 +85,8 @@ const ComponentArraySignlePropSetting = ({
       </div>
       {num.map((n, index) => {
         return (
-          <div className=" flex space-x-2" key={propName + n}>
-            <span className="block">{index + 1}.</span>
+          <div className=" flex space-x-2 items-center" key={propName + n}>
+            <div className="block">{index + 1}.</div>
             <ComponentPropSetting
               propName={propName}
               propInfo={data}
@@ -98,7 +98,7 @@ const ComponentArraySignlePropSetting = ({
               }}
               fields={fields}
             />
-            <span className="block"></span>
+            {/* <span className="block"></span> */}
           </div>
         );
       })}

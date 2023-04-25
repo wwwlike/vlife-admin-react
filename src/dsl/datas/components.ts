@@ -8,6 +8,7 @@
   TextArea as SemiTextArea,
   Select as SemiSelect,
   Checkbox,
+  Switch,
 } from "@douyinfe/semi-ui";
 import { connect, mapReadPretty } from '@formily/react';
 import {
@@ -35,6 +36,7 @@ import VfTreeInput from '@src/components/VfTreeInput';
 import VfTreeSelect from '@src/components/VfTreeSelect';
 import { DataType, Mode, sourceType, TsType } from '@src/dsl/schema/base';
 import { ComponentDef } from '@src/dsl/schema/component';
+import VfCheckbox from '@src/components/VfCheckbox';
 // import SearchInput from '@src/life-ui/components/SearchInput';
 const Input = connect(SemiInput, mapReadPretty(PreviewText.Input))
 const Select = connect(SemiSelect, mapReadPretty(VfText))
@@ -55,15 +57,12 @@ export const ComponentInfos: ComponentDef = {
       dataModel:TsType.string},
     // target:[{entityType:"project",fieldName:"name"}]
   },
-  // Checkbox:{
-  //   component:Checkbox,
-  //   icon:"IconFont",
-  //   label:"复选框",
-  //   match:{ dataType:DataType.basic,dataModel:TsType.boolean},
-  //   propInfo:{
-  //     value:true
-  //   }
-  // },
+  VfCheckbox:{
+    component:VfCheckbox,
+    icon:"IconFont",
+    label:"复选框",
+    match:{ dataType:DataType.basic,dataModel:TsType.boolean},
+  },
   TextArea:{
     icon:"IconWholeWord",
     component:TextArea,
@@ -294,6 +293,13 @@ VfImage: {
         label:"实体类",
         dataType:DataType.basic,
         dataModel:TsType.string
+      },
+      ignores:{
+        label:"列表忽略字段",
+        dataType:DataType.array,
+        dataModel:TsType.string,
+        sourceType:sourceType.fixed
+        // sys:{key:'entityType'},
       }
     }
   }

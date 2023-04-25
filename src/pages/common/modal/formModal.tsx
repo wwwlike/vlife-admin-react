@@ -7,7 +7,7 @@ import FormPage, { FormPageProps } from "../formPage";
 /**
  * 使用弹出层必须有modelInfo,需要确定弹框大小
  */
-export interface FormModalProps extends FormPageProps {
+export interface FormModalProps extends FormPageProps<any> {
   //modal宽度，传则采用
   width?: number;
   //是否补充title,传入的title是动作，补充的是动作+模型名称
@@ -44,12 +44,14 @@ export const FormModal = createNiceModal(
     const [errors, setErrors] = useState<IFormFeedback[]>([]);
     const [formVo, setFormVo] = useState<FormVo | undefined>(modelInfo);
     const title = useMemo(() => {
+      formVo;
+      const no = formData?.no || "";
       if (props.title) return props.title;
       if (props.readPretty) {
-        return formVo?.title + "详情";
+        return formVo?.title + "详情" + no;
       } else {
         if (formData && formData.id) {
-          return formVo?.title + "编辑";
+          return formVo?.title + "编辑" + no;
         } else {
           return "新建(" + formVo?.title + ")";
         }

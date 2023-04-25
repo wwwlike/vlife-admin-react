@@ -44,7 +44,7 @@ const ComponentPropSetting = ({
   onDataChange,
   fields,
 }: PropSettingProps) => {
-  const { dicts, getModelInfo } = useAuth();
+  const { dicts, getFormInfo } = useAuth();
 
   const propData = useMemo((): Partial<PageComponentPropDto> => {
     if (propObj) {
@@ -188,7 +188,7 @@ const ComponentPropSetting = ({
   //满足条件的异步接口分析
   //去查询模型信息里 dataModel 扩展开的
   useEffect(() => {
-    if (propInfo.dataModel) {
+    if (propInfo.dataModel && propInfo.sourceType === sourceType.api) {
       Promise.all(
         Object.keys(ApiInfo).map((key) => {
           const modelName = ApiInfo[key].dataModel; //接口支持的数据模型
@@ -198,12 +198,14 @@ const ComponentPropSetting = ({
             !propInfo.dataModel.includes(modelName) //一致的 在 typeEqOption里处理了
           ) {
             const d = async (): Promise<number> => {
-              const len: number = await getModelInfo(modelName).then((d) => {
-                return (
-                  d?.parentsName.filter((name) => propInfo.dataModel === name)
-                    .length || 0
-                );
-              });
+              const len: number = await getFormInfo({ type: modelName }).then(
+                (d) => {
+                  return (
+                    d?.parentsName.filter((name) => propInfo.dataModel === name)
+                      .length || 0
+                  );
+                }
+              );
               return len;
             };
             return d().then((len) => {
@@ -225,7 +227,7 @@ const ComponentPropSetting = ({
         );
       });
     }
-  }, [typeEqOption, propInfo]);
+  }, [propInfo]);
 
   /**
    * api侧滑面板控制属性
@@ -298,11 +300,11 @@ const ComponentPropSetting = ({
             style={{ width: "100%" }}
             showClear
             value={propData.propVal}
-            optionList={[{ label: "字段所在实体类名", value: "entityType" }]}
+            optionList={[{ label: "字段所在的实体模型", value: "entityType" }]}
             onChange={onPropValChange}
           />
         )}
-        {/* 4  api选择,api调整后，需要把参数设置的全部给清空(目前没有做) */}
+        {/* 4  api选择;  (api调整后，需要把参数设置的全部给清空(目前没有做) )*/}
         {propInfo.sourceType === sourceType.api && (
           <Select
             showClear

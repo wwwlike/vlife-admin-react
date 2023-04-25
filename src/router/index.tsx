@@ -7,9 +7,11 @@ import {
 } from "./config";
 import { AppProviders } from "@src/context";
 // 下一步做动态组件提取
+//桌面
+// import DemoPage from "@src/pages/demo";
+import DashboardPage from "@src/pages/dashboard";
 //示例
 import ExamplePage from "@src/pages/example";
-import DemoPage from "@src/pages/demo";
 //系统管理
 import UserPage from "@src/pages/sysManage/user";
 import DeptPage from "@src/pages/sysManage/dept";
@@ -27,6 +29,14 @@ import DictPage from "@src/pages/sysConf/dict";
 import LoginPage from "@src/pages/login";
 import LayoutPage from "@src/pages/layout";
 
+//erp
+import LinkManPage from "@src/pages/erp/linkman";
+import SupplierPage from "@src/pages/erp/supplier";
+import CustomerPage from "@src/pages/erp/customer";
+import ProductPage from "@src/pages/erp/product";
+import OrderPurchasePage from "@src/pages/erp/orderPurchase";
+import OrderSalePage from "@src/pages/erp/orderSale";
+
 export const allRoute: any[] = [
   //系统业务
   {
@@ -42,7 +52,11 @@ export const allRoute: any[] = [
       {
         path: "dashboard/workbeach",
         element: (
-          <WrapperRouteComponent element={<DemoPage />} titleId="工作台" auth />
+          <WrapperRouteComponent
+            element={<DashboardPage />}
+            titleId="工作台"
+            auth
+          />
         ),
       },
     ],
@@ -176,6 +190,75 @@ export const allRoute: any[] = [
       },
     ],
   },
+
+  {
+    path: "/erp",
+    element: (
+      <WrapperRouteComponent element={<LayoutPage />} titleId="进销存" auth />
+    ),
+    children: [
+      {
+        path: "linkman",
+        element: (
+          <WrapperRouteComponent
+            element={<LinkManPage />}
+            titleId="联系人"
+            auth
+          />
+        ),
+      },
+      {
+        path: "supplier",
+        element: (
+          <WrapperRouteComponent
+            element={<SupplierPage />}
+            titleId="供应商"
+            auth
+          />
+        ),
+      },
+      {
+        path: "customer",
+        element: (
+          <WrapperRouteComponent
+            element={<CustomerPage />}
+            titleId="客户"
+            auth
+          />
+        ),
+      },
+      {
+        path: "product",
+        element: (
+          <WrapperRouteComponent
+            element={<ProductPage />}
+            titleId="产品"
+            auth
+          />
+        ),
+      },
+      {
+        path: "orderPurchase",
+        element: (
+          <WrapperRouteComponent
+            element={<OrderPurchasePage />}
+            titleId="采购单"
+            auth
+          />
+        ),
+      },
+      {
+        path: "orderSale",
+        element: (
+          <WrapperRouteComponent
+            element={<OrderSalePage />}
+            titleId="销售单"
+            auth
+          />
+        ),
+      },
+    ],
+  },
   {
     path: "/example",
     element: (
@@ -194,6 +277,7 @@ export const allRoute: any[] = [
       },
     ],
   },
+
   {
     path: "login",
     element: <LoginPage />,

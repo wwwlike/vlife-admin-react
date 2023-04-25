@@ -5,7 +5,7 @@
  * https://zhuanlan.zhihu.com/p/577439561
  * 组件化
  */
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   registerValidateLocale,
   createForm,
@@ -29,7 +29,7 @@ import {
   ArrayTable,
   FormTab,
 } from "@formily/semi";
-import { Result, TranDict } from "@src/api/base";
+import { IdBean, Result, TranDict } from "@src/api/base";
 import { FormVo } from "@src/api/Form";
 import { eventReaction } from "./reactions";
 import { FormFieldVo } from "@src/api/FormField";
@@ -39,82 +39,55 @@ import {
   fetchStaticPropObj, //组件静态数据提取
 } from "@src/components/form/view";
 import { PageComponentPropDto } from "@src/api/PageComponentProp";
-import DesignFormItem from "@src/components/form/DesignFormItem";
-
-import { DataType, sourceType } from "@src/dsl/schema/base";
+import DesignFormItem from "@src/components/form/component/DesignFormItem";
+import GroupLabel from "@src/components/form/component/GroupLabel";
+import { DataType } from "@src/dsl/schema/base";
 import { exist } from "@src/api/base/baseService";
 import { ComponentInfos } from "@src/dsl/datas/components";
-import { PropInfo } from "@src/dsl/schema/component";
+import SelectIcon from "../SelectIcon";
 
-// const useAsyncDataSource = (service) => (field: FormFieldVo) => {
-//   field.loading = true;
-//   service(field).then(
-//     action.bound((data: Result<FormVo>) => {
-//       field.componentProps.datas = data.data;
-//       // alert(field.componentProps.datas.length);
-//       field.loading = false;
-//     })
-//   );
-// };
+interface fieldSettingProps<T> {
+  validate?: (formData: T, formVo: FormVo) => string | Promise<any> | void;
+  hidden?: (formData: T, formVo: FormVo) => boolean;
+}
 
-// const load1 = async (field: Field) => {
-//   const componentSetting: ComponentSetting =
-//     field.componentProps.componentSetting;
-//   if (componentSetting) {
-//     const props = Object.keys(componentSetting);
-//     //对组件的属性进行遍历
-//     props.map((oneProp) => {
-//       const sourceType = componentSetting[oneProp].sourceType;
-//       const apiModel = ApiInfo[componentSetting[oneProp].api];
-//       //只要固定有值，不管选择的是不是固定的
-//       if (componentSetting[oneProp].fixed) {
-//         //给字段级组件指定prop传固定值
-//         field.componentProps[oneProp] = componentSetting[oneProp].fixed;
-//       } else if (sourceType.startsWith("api") && apiModel && apiModel.api) {
-//         //接口是否有入参判断，有则要取值
-//         const params = apiModel.params;
-//         const argument = {};
-//         let mustFlag = true;
-//         if (params) {
-//           Object.keys(params).forEach((k) => {
-//             //当前接口的一个参数
-//             const currParam = componentSetting[oneProp].apiParams
-//               ? componentSetting[oneProp].apiParams[k]
-//               : undefined;
-//             if (currParam) {
-//               if (
-//                 currParam.fixed &&
-//                 (currParam.sourceType === "fixed" ||
-//                   currParam.sourceType === undefined)
-//               ) {
-//                 argument[k] = currParam.fixed;
-//               } else if (
-//                 currParam.sourceType === "field" &&
-//                 field.query(currParam.field).get("value")
-//               ) {
-//                 argument[k] = field.query(currParam.field).get("value");
-//               }
-//             }
-//             //应该有值，但是没有值
-//             if (params[k].must === true && (!currParam || !argument[k])) {
-//               mustFlag = false;
-//             }
-//           });
-//         }
-//         // return { prop: oneProp, service: apiModel.api(argument) };
-//         //必填的字段must有值，那么就去调用接口
-//         if (mustFlag) {
-//           // 所有动态加载数据的组件使用的接口都会传name, id, entityName;
-//           apiModel
-//             .api({ ...argument, ...field.componentProps.apiCommonParams })
-//             .then((data) => {
-//               field.componentProps[oneProp] = data.data;
-//             });
-//         }
-//       }
-//     });
-//   }
-// };
+//表信息
+export interface FormProps<T> {
+  key?: string;
+  className?: string;
+  modelInfo: FormVo; //模型信息
+  formData?: any; // 表单数据/默认初始化数据
+  design?: boolean; //自定义表单设计模式（设计模式采用的是FormItem）
+  highlight?: string; //高亮字段(当前聚焦需要高亮的)
+  readPretty?: true; //显示模式
+  dicts?: TranDict[]; //所有用到的字典信息(没有从authContext里取，避免耦合)
+  ignoredFields?: string[]; //排除不展示的字段
+  fkMap?: any; // 外键对象信息{ID,NAME}
+  //单字段模式，只显示fieldMode里的一个字段
+  fieldMode?: string;
+  //页面字段手工设置,页面初始化，和页面任何数据有变化都会触发这里
+  fieldSetting?: {
+    [field: string]: fieldSettingProps<T>;
+  };
+  validate?: {
+    //指定[key]字段的校验函数;校验函数： (val字段值：formData:整个表单数据)=>
+    [key: string]: (val: any, formData: T) => string | Promise<any> | void;
+  };
+  //手工数据联动计算函数,watchFields 不传则监听整个表单的变化
+  dataComputer?: { funs: (data: any) => any; watchFields?: string[] };
+  //表单数据回传
+  onDataChange?: (data: any, field?: string) => void;
+  //formily信息回传(formModal使用)
+  onForm?: (form: Form) => void;
+  // 将最新错误信息传输出去 formModal使用
+  onError?: (error: IFormFeedback[]) => void;
+  //design触发的相关操作回调事件
+  onClickFieldComponent?: (
+    fieldName: string,
+    opt: "click" | "must" | "delete" //点击区域
+  ) => void; //当前聚焦字段点击的字段，设计器时才会触发
+  //覆盖model.fileds里的数据，也可以对field里没有的信息可以进行补充
+}
 
 //异步加载数据，联动数据
 const load1 = async (field: Field) => {
@@ -137,35 +110,7 @@ const load1 = async (field: Field) => {
 };
 // reaction
 //https://react.formilyjs.org/zh-CN/api/shared/schema#schemareactions
-//表信息
-export interface FormProps {
-  key?: string;
-  className?: string;
-  modelInfo: FormVo; //模型信息
-  formData?: any; // 表单数据/默认初始化数据
-  design?: boolean; //自定义表单设计模式（设计模式采用的是FormItem）
-  highlight?: string; //高亮字段(当前聚焦需要高亮的)
-  readPretty?: true; //显示模式
-  dicts?: TranDict[]; //所有用到的字典信息(没有从authContext里取，避免耦合)
-  fkMap?: any; // 外键对象信息{ID,NAME}
-  //单字段模式，只显示fieldMode里的一个字段
-  fieldMode?: string;
-  validate?: {
-    [key: string]: (val: any, formData: object) => string | Promise<any> | void;
-  };
-  //表单数据回传
-  onDataChange?: (data: any, field?: string) => void;
-  //formily信息回传(formModal使用)
-  onForm?: (form: Form) => void;
-  // 将最新错误信息传输出去 formModal使用
-  onError?: (error: IFormFeedback[]) => void;
-  //design触发的相关操作回调事件
-  onClickFieldComponent?: (
-    fieldName: string,
-    opt: "click" | "must" | "delete" //点击区域
-  ) => void; //当前聚焦字段点击的字段，设计器时才会触发
-  //覆盖model.fileds里的数据，也可以对field里没有的信息可以进行补充
-}
+
 const formTab = FormTab.createFormTab?.("tab1");
 
 registerValidateLocale({
@@ -174,7 +119,7 @@ registerValidateLocale({
   },
 });
 
-export default ({
+export default <T extends IdBean>({
   className,
   dicts,
   formData,
@@ -187,9 +132,12 @@ export default ({
   highlight,
   onClickFieldComponent,
   fieldMode,
+  ignoredFields,
+  dataComputer,
   validate,
+  fieldSetting,
   design = false,
-}: FormProps) => {
+}: FormProps<T>) => {
   const { getDict, dicts: allDict, getFormInfo } = useAuth();
 
   //
@@ -216,6 +164,20 @@ export default ({
             }
           });
 
+          if (fieldSetting) {
+            Object.keys(fieldSetting).forEach((fieldName) => {
+              onFieldValueChange(fieldName, (field) => {
+                const fSet: fieldSettingProps<T> = fieldSetting[fieldName];
+                if (fSet.validate) {
+                }
+
+                if (fSet.hidden) {
+                  fSet.hidden(field.form.values, modelInfo);
+                }
+              });
+            });
+          }
+
           // validate 外部数据校验函数，
           if (validate) {
             Object.keys(validate).forEach((fieldName) => {
@@ -233,6 +195,7 @@ export default ({
                       messages: [message],
                     });
                   } else {
+                    //异步校验方式
                     message.then((d) => {
                       field.setFeedback({
                         code: "ValidateError",
@@ -269,41 +232,17 @@ export default ({
                 });
               });
           });
-
-          // onFieldValueChange("state", (field) => {
-          //   field.setFeedback({
-          //     code: "ValidateError",
-          //     type: "error",
-          //     messages: ["异常state"],
-          //   });
-          // });
-          // onFieldValueChange("name", (field) => {
-          //   field.setFeedback({
-          //     code: "ValidateError",
-          //     type: "error",
-          //     messages: ["异常"],
-          //   });
-          // });
-          // onFieldValueChange("name", (field) => {});
           onFormInit((form) => {}),
             onFormValuesChange((form) => {
               if (form.errors.length > 0 && onError !== undefined) {
                 setTimeout(() => onError(form.errors), 200);
               }
-              //去掉字符串"""
-              // const formVal = Object.keys(form.values).reduce(
-              //   (acc: any, key) => {
-              //     const value = form.values[key];
-              //     if (value !== "" && value !== undefined) {
-              //       acc[key] = value;
-              //     }
-              //     return acc;
-              //   },
-              //   {}
-              // );
               //表单数据传输出去
               if (onDataChange !== undefined) {
                 onDataChange(form.values);
+              }
+              if (dataComputer && dataComputer.watchFields === undefined) {
+                form.setValues(dataComputer.funs(form.values));
               }
               //表达formily信息传输出去
               if (onForm != undefined) {
@@ -336,6 +275,7 @@ export default ({
           FormTab,
           ArrayTable,
           DesignFormItem,
+          GroupLabel,
         },
       }
       // },
@@ -411,6 +351,13 @@ export default ({
       if (fieldMode) {
         fields = modelInfo.fields.filter((f) => f.fieldName === fieldMode);
       }
+
+      if (ignoredFields) {
+        fields = modelInfo.fields.filter(
+          (f) => !ignoredFields.includes(f.pathName)
+        );
+      }
+
       fields
         .sort((a, b) => {
           return a.sort - b.sort;
@@ -421,7 +368,7 @@ export default ({
             if (f.divider) {
               pp[f.fieldName + "_divider"] = {
                 type: "object",
-                "x-component": "Section",
+                "x-component": "GroupLabel",
                 "x-decorator": "FormItem",
                 "x-component-props": {
                   text: f.dividerLabel,
@@ -467,7 +414,16 @@ export default ({
               });
             //隐藏标签
             if (prop.hideLabel) {
-              prop.title = "";
+              if (design) {
+                prop.title = (
+                  <>
+                    {prop.title}
+                    <SelectIcon value="IconEyeClosedSolid" read size="small" />
+                  </>
+                );
+              } else {
+                prop.title = "";
+              }
             }
 
             // prop.error = [
@@ -637,7 +593,7 @@ export default ({
                 fieldInfo: {
                   ...f, //把字段信息全放入
                 },
-
+                entityType: modelInfo.entityType,
                 //组件设置信息做什么的？
                 componentSetting: f.componentSetting,
 
@@ -817,40 +773,6 @@ export default ({
       },
     },
   };
-
-  const config = {
-    type: "object",
-    properties: {
-      aaa: {
-        type: "void",
-        "x-decorator": "FormItem",
-        "x-component": "Section",
-        "x-component-props": {
-          text: "checkbox area",
-        },
-        // "x-content": "apple",
-        properties: {
-          aaa: {
-            type: "string",
-            title: "checkbox",
-            // len: 5,
-            minLength: 5,
-            // "x-validator": {
-            //   len: 5,
-            //   // exclusiveMinimum: 5,
-            // },
-            "x-decorator": "FormItem",
-            "x-component": "Input",
-            // "x-content": "apple",
-          },
-        },
-      },
-    },
-  };
-
-  // useEffect(() => {
-  // alert(“1”)
-  // }, [form]);
 
   return schema ? (
     <div className={`${className} relative`}>

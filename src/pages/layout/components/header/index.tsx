@@ -20,6 +20,7 @@ import {
   UserPasswordModifyDto,
 } from "@src/api/SysUser";
 import { useNavigate } from "react-router-dom";
+import Label from "@douyinfe/semi-ui/lib/es/form/label";
 
 const { Header } = Layout;
 
@@ -61,13 +62,33 @@ const Index: FC = () => {
         mode="horizontal"
         className=""
         header={
-          <Empty
-            className=" relative top-2"
-            image={
-              <img src={logo} style={{ width: 30, height: 30, top: 10 }} />
-            }
-          ></Empty>
+          <div className=" flex items-center">
+            <Empty
+              className=" relative top-2"
+              image={
+                <img src={logo} style={{ width: 30, height: 30, top: 10 }} />
+              }
+            ></Empty>
+            <span className=" text-blue-500 font-bold font-sans text-3xl"></span>
+          </div>
         }
+        // children={
+        //   <Nav
+        //     // bodyStyle={{ height: 320 }}
+        //     defaultOpenKeys={["job"]}
+        //     items={[
+        //       { itemKey: "user", text: "用户管理" },
+        //       { itemKey: "union", text: "活动管理" },
+        //       {
+        //         itemKey: "union-management",
+        //         text: "任务管理",
+        //       },
+        //       { itemKey: "job", text: "任务平台" },
+        //     ]}
+        //     onSelect={(data) => console.log("trigger onSelect: ", data)}
+        //     onClick={(data) => console.log("trigger onClick: ", data)}
+        //   />
+        // }
         footer={
           <>
             <Button

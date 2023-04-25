@@ -19,37 +19,52 @@ type PageFuncType<T extends IdBean> = <L extends PageQuery>(
 ) => Promise<Result<PageVo<T>>>;
 
 export interface TablePageProps<T extends IdBean> {
-  entityType: string; //模块
+  className: string;
+  // check: { [key: string]: () => void };
+  entityType: string; //实体模块
   listType: string; //list模型名称
   editType: string; //编辑模型
-  formVo: FormVo;
-  req: any; //查询条件
+  formVo: FormVo; //模型信息(主动传入)
+  req: any; //查询条件obj
+  column?: string[]; // 手工传入要显示的列,配置设置的无效
   pageSize: number; //分页数量
-  //异步加载数据的地址，
-  check: { [key: string]: () => void };
-  loadData: PageFuncType<T>;
+  loadData: PageFuncType<T>; //异步加载数据的地址，
   tableBtn: VfButton<T>[]; //表按钮
   lineBtn: VfButton<T>[]; //行按钮
   btnHide: true | BtnType[]; //隐藏的按钮
   design: true | undefined; //true则是设计器模式
-  dataSource: T[];
+  dataSource: T[]; //table数据
+  select_more: boolean; // undefined|false|true ->无勾选框|单选|多选
+  selected: T[]; //进入之前选中的数据信息
+  select_show_field: string; //选中时进行展示的字段，不传则不展示
+  ignores?: string[]; //忽略不展示的字段
+  onLineClick: (obj: T) => void; //行点击事件(未启用)
+  onSelected: (selecteds: T[]) => void; //选中回调
   onGetData: (datas: T[]) => void; //列表数据加载完成事件,把数据传出去
-  onAfterSave: (key: string, data: any) => void; //数据保存后的回调事件
-  onValidate: { [key: string]: (data: any) => string | void }; //各类操作进行之前的数据校验
-  onFormModel: (formVo: FormVo) => void; //列表数据加载完成事件,把数据传出去
+  onFormModel: (formVo: FormVo) => void; //请求到模型信息，数据传出
   onHttpError: (error: {
     code: number;
     msg: string;
     url: string;
     method: string;
   }) => void; //异常信息传出，设计阶段时接口没有会用到
-  // table需要的字段
-  select_more?: boolean; // undefined|false|true ->无勾选框|单选|多选
-  onSelected?: (selecteds: T[]) => void;
-  selected?: T[]; //进入之前选中的数据信息
-  select_show_field?: string; //选中时进行展示的字段，不传则不展示
-  column?: string[]; //手工列表展示字段
-  lineClick?: (obj: T) => void;
+
+  /**
+   * 生命周期函数
+   */
+  //列表做了post数据提交后的回调函数
+  onAfterSave: (key: string, data: any) => void; //数据保存后的回调事件
+
+  /*表单需要的组件属性*/
+  /**
+   * 表单字段校验
+   */
+  validate?: {
+    //指定[key]字段的校验函数;校验函数： (val字段值：formData:整个表单数据)=>
+    [key: string]: (val: any, formData: object) => string | Promise<any> | void;
+  };
+  dataComputer?: { funs: (data: any) => any; watchFields?: string[] };
+  read: boolean; //是否预览模式
   children?: any;
 }
 const TablePage = <T extends IdBean>({
@@ -197,7 +212,7 @@ const TablePage = <T extends IdBean>({
         setPageFunc(() => defaultFunc(tableModel));
       }
     }
-  }, []);
+  }, [listType]);
 
   /**
    * 分页数据
@@ -260,7 +275,8 @@ const TablePage = <T extends IdBean>({
               ...btn.model, //配置
               formData: data.data, //数据
               saveFun: btn.model?.formApi,
-              validate: btn.model?.validate, //自定义校验
+              validate: props.validate, //自定义校验
+              dataComputer: props.dataComputer, //数据计算
             })
             .then((saveData) => {
               if (onAfterSave) {
@@ -274,6 +290,8 @@ const TablePage = <T extends IdBean>({
           .show({
             ...btn.model, //配置
             formData: record ? record[0] : undefined, //undefined 新增
+            validate: props.validate, //自定义校验
+            dataComputer: props.dataComputer, //数据计算
             saveFun: btn.model?.formApi,
           })
           .then((saveData) => {
@@ -304,7 +322,6 @@ const TablePage = <T extends IdBean>({
           .then((data: any) => {
             if (data.code === 200) {
               page(true);
-
               if (onAfterSave) {
                 onAfterSave(btn.key, data);
               }
@@ -340,15 +357,22 @@ const TablePage = <T extends IdBean>({
    */
   const checkUser = useCallback(
     (...records: any[]): boolean => {
-      return (
-        records.filter(
-          (record: any) =>
-            record.createId === user?.id ||
-            record.modifyId === user?.id || //2个字段等于当前用户id
-            ("createId" in record == false && "modifyId"! in record == false) || //没有这2个字段
-            (record.createId === null && record.modifyId === null)
-        ).length === records.length
-      );
+      // console.log("a");
+      // console.log(records);
+      // console.log("b");
+      const checkResult =
+        records && records.length > 0
+          ? records.filter(
+              (record: any) => {
+                // console.log("aaaaaaaaaa|" + user?.id);
+                // console.log("bbbbbbbbbbbb|" +JSON.stringify( record));
+                return "createId" in record && record.createId === user?.id;
+                // record?.createId === user?.id || record?.modifyId === user?.id
+              } //2个字段等于当前用户id
+            ).length === records.length
+          : true;
+
+      return checkResult;
     },
     [user?.id]
   );
@@ -381,7 +405,7 @@ const TablePage = <T extends IdBean>({
         return rm(ids);
       },
       statusCheckFunc: (...record: T[]) => {
-        if (record.filter((r) => checkUser(r) !== null).length > 0) {
+        if (record.filter((r) => checkUser(r)).length !== record.length) {
           return "无权删除他人创建的数据";
         }
         if (
@@ -452,7 +476,7 @@ const TablePage = <T extends IdBean>({
           return rm(ids);
         },
         statusCheckFunc: (record: T) => {
-          if (!checkUser(record)) {
+          if (checkUser(record) === false) {
             return "无权删除他人创建的数据";
           }
           if ("sys" in record && (record as any).sys === true) {
@@ -476,7 +500,7 @@ const TablePage = <T extends IdBean>({
           },
           click: modalShow,
           statusCheckFunc: (record: T) => {
-            if (!checkUser(record)) {
+            if (checkUser(record) === false) {
               return "无权修改他人创建的数据";
             }
             if ("sys" in record && (record as any).sys === true) {
@@ -587,28 +611,31 @@ const TablePage = <T extends IdBean>({
    * 设置外键，设置上级名称
    */
   useEffect(() => {
-    if (tableData && tableModel) {
-      const relation = async () => {
-        const fkObj: any = await getFkObj(tableData.result, tableModel);
-        const parentObj: any = await getParentObj(tableData.result, tableModel);
+    if (tableModel) {
+      const dd = tableData?.result || dataSource;
+      const relation = async (data: any[]) => {
+        const fkObj: any = await getFkObj(data, tableModel);
+        const parentObj: any = await getParentObj(data, tableModel);
         setRealationMap({ fkObj, parentObj });
       };
-
-      relation();
+      if (dd) {
+        relation(dd);
+      }
     }
-  }, [tableData, tableModel]);
+  }, [tableData, tableModel, dataSource]);
 
   // console.log("555555");
 
   const table = useMemo(() => {
     if (tableModel) {
       return (
-        <>
+        <div>
+          {/* table按钮 */}
           <TableToolbar<T>
             tableModel={tableModel}
             tableBtn={tableBtnMemo}
             selectedRow={selected || []}
-          ></TableToolbar>
+          />
           <Table<T>
             key={tableModel.type + pageSize + pager?.page}
             model={tableModel}
@@ -622,8 +649,8 @@ const TablePage = <T extends IdBean>({
             parentMap={relationMap?.parentObj}
             {...pagination}
             {...props}
-          ></Table>
-        </>
+          />
+        </div>
       );
     } else {
       return <>模型无法解析，请检查名称是否准确</>;

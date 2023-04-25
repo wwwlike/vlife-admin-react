@@ -5,7 +5,6 @@ import {
   TableProps,
 } from "@douyinfe/semi-ui/lib/es/table";
 import { useAuth } from "@src/context/auth-context";
-// import { checkLineNumber, VfButton } from "@src/datas/ButtonDatas";
 import { IdBean } from "@src/api/base";
 import { FormVo } from "@src/api/Form";
 import { FormFieldVo } from "@src/api/FormField";
@@ -17,43 +16,24 @@ import SelectIcon from "@src/components/SelectIcon";
 import VlifeButton, { VFButtonPorps } from "@src/components/vlifeButton";
 import { checkLineNumber, VfButton } from "@src/dsl/schema/button";
 
-/**
- * > 目前使用semi的组件进行vlife的table的二次封装、
- * - 在table的强大功能之上，封装我们需要的最常见功能给到调用方，达到易用的目的。
- * 1. 列头显隐藏支持()
- * 2. 列数据转换(字典/boolean)
- * 3. 表及列按钮渲染（显隐/可用状态/不可用提示）
- * 4. 单选/多选展示，与特定按钮状态进行绑定
- */
-/**
- * <T> 行数据类型
- */
 export interface ListProps<T extends IdBean> extends TableProps {
-  //模型信息
-  model: FormVo;
-  //行点击事件触发
-  lineClick?: (obj: T) => void;
-  //表格按钮信息
-  //行按钮
-  lineBtn?: VfButton<T>[];
-  // 手工传入要显示的列,配置设置的无效
-  column?: string[];
-  //外键数据
-  fkMap?: any; //外键数据的键值对
-  parentMap?: any; //上级单位的键值对
-  // 能否选择多选
-  select_more?: boolean; // undefined|false|true ->无勾选框|单选|多选
-  checkedBottomShow?: boolean; //选中的数据在下方展示
-  // 选中后下方现实的列
-  // select_show_field?: string; //选中时进行展示的字段，不传则不展示
-  //选中后的回调事件
-  onSelected?: (selecteds: T[]) => void;
-  // 已经选中的数据
-  // selected?: T[]; //进入之前选中的数据信息
+  className?: string;
+  model: FormVo; //模型信息
+  lineBtn?: VfButton<T>[]; //行按钮
+  column?: string[]; // 手工传入要显示的列,配置设置的无效
+  fkMap?: any; //外键数据的键值队
+  parentMap?: any; //上级单位的键值队
+  select_more?: boolean; //能否选择多选 undefined|false|true ->无勾选框|单选|多选
+  checkedBottomShow?: boolean; //选中的数据是否在列表下方展示
+  ignores?: string[]; //列表需要忽略不展示的字段
+  read?: boolean; //当前页面的只读模式
+  onSelected?: (selecteds: T[]) => void; //选中后的回调事件
+  onLineClick?: (obj: T) => void; //行点击事件触发
 }
 
 const TableIndex = <T extends IdBean>({
-  lineClick,
+  onLineClick,
+  className,
   model,
   lineBtn,
   dataSource,
@@ -61,41 +41,33 @@ const TableIndex = <T extends IdBean>({
   column,
   parentMap,
   select_more = true,
+  read = false,
+  ignores = [],
   onSelected,
   // selected,
   checkedBottomShow,
   children,
   ...props
 }: ListProps<T>) => {
+  //字典集
   const { dicts } = useAuth();
   // 选中的行记录
   const [selectedRow, setSelectedRow] = useState<T[]>([]);
-
+  /**
+   * 选中记录展示的label
+   */
   const select_show_field = useMemo(() => {
     const field: FormFieldVo[] = model.fields;
+    if (field.filter((f) => f.fieldName === "name").length > 0) return "name";
     if (field.filter((f) => f.fieldName === "label").length > 0) return "label";
     if (field.filter((f) => f.fieldName === "title").length > 0) return "title";
-    if (field.filter((f) => f.fieldName === "name").length > 0) return "name";
-    return "id";
+    return undefined;
   }, [model]);
-
-  // useEffect(() => {
-  //   setSelectedRow(selected ? selected : []);
-  // }, [selected]);
 
   useEffect(() => {
     if (onSelected) {
       onSelected(selectedRow);
     }
-  }, [selectedRow]);
-
-  //选中的id
-  const selectIds = useMemo<string[]>(() => {
-    const s: string[] = [];
-    selectedRow.forEach((line) => {
-      if (line.id) s.push(line.id);
-    });
-    return s;
   }, [selectedRow]);
 
   /**
@@ -170,10 +142,26 @@ const TableIndex = <T extends IdBean>({
             (f) =>
               f.x_hidden !== true &&
               f.listShow !== false &&
+              !ignores.includes(f.fieldName) &&
               f.x_component !== "VfEditor"
           )
           .forEach((f) => {
-            columnshow.push({ ...f, dataIndex: f.fieldName });
+            columnshow.push({
+              ...f,
+              // title: (
+              //   <div className="flex items-end">
+              //     <div>
+              //       <SelectIcon
+              //         read={true}
+              //         size="small"
+              //         value={ComponentInfos[f.x_component].icon}
+              //       />
+              //     </div>
+              //     <div className=" pl-2"> {f.title}</div>
+              //   </div>
+              // ),
+              dataIndex: f.fieldName,
+            });
           });
       }
 
@@ -239,15 +227,13 @@ const TableIndex = <T extends IdBean>({
           m["render"] = (text, record, index) => {
             return parentMap[text];
           };
-        } else if (m.type === "date") {
+        } else if (m.fieldType === "date") {
           m["render"] = (text, record, index) => {
             return formatDate(text, "yyyy-MM-dd");
           };
         }
       });
-
-      //图标组件转换
-      //图像组件转换
+      // 图标，图像组件转换
       columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
         if (m.x_component === "VfImage") {
           m["render"] = (text, record, index) => {
@@ -267,21 +253,19 @@ const TableIndex = <T extends IdBean>({
           };
         }
       });
-
       //行按钮添加
-      if (lineBtn && lineBtn.length > 0) {
+      if (read !== true && lineBtn && lineBtn.length > 0) {
         columnshow?.push({
           title: "操作",
           fieldName: "operate",
           render: (text, record, index) => {
             return (
               <Space>
-                {lineBtn.map((item: VfButton<T>, index: number) => {
+                {lineBtn.map((item: VfButton<T>) => {
                   let checkResult: Partial<VFButtonPorps> = btnCheck(
                     item,
                     record
                   );
-                  // alert(JSON.stringify(checkResult));
                   const button = (
                     <VlifeButton
                       btnType="text"
@@ -317,7 +301,7 @@ const TableIndex = <T extends IdBean>({
       return columnshow;
     }
     return [];
-  }, [model, lineBtn, column, fkMap, lineBtn, dataSource]);
+  }, [model, lineBtn, column, fkMap, lineBtn, dataSource, read]);
 
   const onRow = useMemo(
     () => (record: any, index: any) => {
@@ -325,19 +309,20 @@ const TableIndex = <T extends IdBean>({
       if (index % 2 === 1) {
         return {
           style: {
-            background: "var(--semi-color-fill-0)",
+            // background: "var(--semi-color-fill-0)",
+            background: "#f9fafc",
           },
           onClick: (e: any) => {
-            if (lineClick) {
-              lineClick(record);
+            if (onLineClick) {
+              onLineClick(record);
             }
           },
         };
       } else {
         return {
           onClick: (e: any) => {
-            if (lineClick) {
-              lineClick(record);
+            if (onLineClick) {
+              onLineClick(record);
             }
           },
         };
@@ -346,22 +331,17 @@ const TableIndex = <T extends IdBean>({
     []
   );
 
+  /**
+   * 行头选中组件结构
+   */
   const rowSelection = useMemo((): RowSelection<any> => {
     return {
       disabled: !select_more, //全局选中按钮
-      selectedRowKeys: selectIds,
+      selectedRowKeys: selectedRow.map((s) => s.id),
       onSelect: (record: any, selected: any) => {
         if (select_more == false) {
           if (selected == true) {
             setSelectedRow([record]);
-
-            // if (select_show_field) {
-            //   setSelectedRow([
-            //     { id: record.id, name: record[select_show_field] },
-            //   ]);
-            // } else {
-            //   setSelectedRow([record]);
-            // }
           } else {
             setSelectedRow([]);
           }
@@ -378,11 +358,7 @@ const TableIndex = <T extends IdBean>({
           if (selectedRows) {
             setSelectedRow([
               ...selectedRows.map((row) => {
-                if (select_show_field) {
-                  return { id: row.id, name: row[select_show_field] };
-                } else {
-                  return row;
-                }
+                return row;
               }),
             ]);
           }
@@ -405,8 +381,7 @@ const TableIndex = <T extends IdBean>({
   };
 
   return (
-    <div>
-      {/* <div className=" space-x-0.5"> {tableButtonMemo}</div> */}
+    <div className={className}>
       <Table
         showHeader={true}
         // style={{ lineHeight: "24px" }}
@@ -414,12 +389,15 @@ const TableIndex = <T extends IdBean>({
         rowKey={"id"}
         dataSource={dataSource}
         columns={memoColumns}
-        // onRow={onRow}
+        onRow={onRow}
         // title={<div className=" absolute top-0">{children}</div>}
         size="middle"
-        rowSelection={select_more != undefined ? rowSelection : undefined}
+        rowSelection={
+          read ? undefined : select_more != undefined ? rowSelection : undefined
+        }
         {...props}
       />
+      {/* 是否底部展示选中的数据项 */}
       {select_show_field && checkedBottomShow && (
         <div className=" space-x-2">
           {selectedRow.map((one: any) => {

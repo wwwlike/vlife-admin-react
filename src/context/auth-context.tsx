@@ -1,10 +1,10 @@
 // import { AuthForm, useCurrUser, useLogin } from "@src/provider/userProvider";
 // import { useAllDict } from "@src/provider/dictProvider";
-import { ModelInfo, TranDict } from "@src/api/base";
+import { TranDict } from "@src/api/base";
 import { useAllResources } from "@src/api/SysResources";
 import { useMount, useSize } from "ahooks";
 import React, { ReactNode, useCallback, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { all, SysDict } from "@src/api/SysDict";
 import {
   currUser,
@@ -13,7 +13,7 @@ import {
   UserDetailVo,
   login as userLogin,
 } from "@src/api/SysUser";
-import { FormVo, model, javaModel, formPageReq } from "@src/api/Form";
+import { FormVo, model, formPageReq } from "@src/api/Form";
 import { SysResources } from "@src/api/SysResources";
 import { useEffect } from "react";
 import { listAll, SysGroup } from "@src/api/SysGroup";
@@ -68,7 +68,7 @@ const AuthContext = React.createContext<
       groups: { [id: string]: SysGroup };
       /**2 funs */
       //java模型信息
-      getModelInfo: (modelName: string) => Promise<ModelInfo | undefined>;
+      // getModelInfo: (modelName: string) => Promise<ModelInfo | undefined>;
       //db模型信息
       getFormInfo: (params: formPageReq) => Promise<FormVo | undefined>;
       //模型缓存信息清除
@@ -149,7 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     obj["vlife"] = {
       label: "字典类目",
       data: dbDicts
-        .filter((d) => d.val === null)
+        .filter((d) => d.dictType === true)
         .map((d) => {
           return { value: d.code, label: d.title, color: d.color };
         }),
@@ -198,24 +198,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * 获得后台Java内存里的所有模型原始信息
    * @param modelName
    */
-  async function getModelInfo(
-    modelName: string
-  ): Promise<ModelInfo | undefined> {
-    if (javaModels[modelName] === undefined) {
-      //简写
-      let model = await (await javaModel(modelName)).data;
-      setJavaModels({ ...javaModel, modelName: model });
-      // then的写法
-      // await modelInfo(entityName,modelName).then(data=>{
-      //   model=data.data;
-      //   setModels({...models,modelName:model})
-      // });
-      // alert(JSON.stringify(model?.parentsName));
-      return model;
-    } else {
-      return javaModels[modelName];
-    }
-  }
+  // async function getModelInfo(
+  //   modelName: string
+  // ): Promise<ModelInfo | undefined> {
+  //   if (javaModels[modelName] === undefined) {
+  //     //简写
+  //     let model = await (await javaModel(modelName)).data;
+  //     setJavaModels({ ...javaModel, modelName: model });
+  //     // then的写法
+  //     // await modelInfo(entityName,modelName).then(data=>{
+  //     //   model=data.data;
+  //     //   setModels({...models,modelName:model})
+  //     // });
+  //     // alert(JSON.stringify(model?.parentsName));
+  //     return model;
+  //   } else {
+  //     return javaModels[modelName];
+  //   }
+  // }
 
   /**
    *
@@ -346,7 +346,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkBtnPermission = useCallback(
     (code: string): boolean => {
       //超级管理员
-      if (user?.username === "manage") {
+      if (user?.sysGroupId === "super") {
         return true;
       }
       //按钮有code,且code是权限范围内的
@@ -397,7 +397,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           dicts,
           error,
           groups,
-          getModelInfo,
+          // getModelInfo,
           getFormInfo,
           clearModelInfo,
           login,

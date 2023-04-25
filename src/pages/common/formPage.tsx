@@ -4,6 +4,7 @@ import { FormVo } from "@src/api/Form";
 import React, { useEffect, useMemo, useState } from "react";
 import { find } from "@src/api/base/baseService";
 import CheckModel from "@src/pages/sysConf/model/checkModel";
+import { IdBean } from "@src/api/base";
 const mode = import.meta.env.VITE_APP_MODE;
 /**
  * 入参：
@@ -17,14 +18,15 @@ const mode = import.meta.env.VITE_APP_MODE;
  * 4. 数据透传
  */
 
-export interface FormPageProps extends Omit<FormProps, "modelInfo"> {
+export interface FormPageProps<T extends IdBean>
+  extends Omit<FormProps<T>, "modelInfo"> {
   type: string; //表单模型必传
   title?: string; //表单名称
   modelInfo?: FormVo; //模型信息可选，设计表单时实时传
   //将模型传输出去
   onVfForm?: (formVo: FormVo) => void;
 }
-const FormPage = ({
+const FormPage = <T extends IdBean>({
   type,
   modelInfo,
   className,
@@ -33,7 +35,7 @@ const FormPage = ({
   onVfForm,
   design,
   ...props
-}: FormPageProps) => {
+}: FormPageProps<T>) => {
   const { getDict, getFormInfo, groups, user } = useAuth(); //context里的字典信息、模型信息提取
 
   const [model, setModel] = useState<FormVo | undefined>(
@@ -233,6 +235,7 @@ const FormPage = ({
         <>{form}</>
       ) : (
         <>
+          {/* {JSON.stringify(model?.fields.filter((f) => f.events))} */}
           <CheckModel modelName={[type]}>{form}</CheckModel>
         </>
       )}

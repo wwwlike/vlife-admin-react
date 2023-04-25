@@ -77,7 +77,6 @@ export default <T extends IdBean>({
   const tableButtonMemo = useMemo(() => {
     const tableBtns = tableBtn?.map((item, index) => {
       let checkResult: Partial<VFButtonPorps> = btnCheck(item, ...selectedRow);
-
       const button = (
         <VlifeButton
           className={cx(item.className, " bg-red-400")}
@@ -103,7 +102,6 @@ export default <T extends IdBean>({
     return tableBtns;
   }, [tableBtn, JSON.stringify(selectedRow)]);
   return (
-    // justify-end
     <div className="flex  mb-1">
       {children && <div className="flex-1">{children}</div>}
       <div className=" space-x-0.5">{tableButtonMemo}</div>

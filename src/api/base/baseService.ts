@@ -3,7 +3,7 @@ import { useRequest } from "ahooks";
 import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import qs from "qs";
 import apiClient from "@src/api/base/apiClient";
-import {  IdBean, ModelInfo, PageVo, Result } from "@src/api/base";
+import {  IdBean,  PageVo, Result } from "@src/api/base";
 import { Notification } from "@douyinfe/semi-ui";
 import { useMemo } from 'react';
 
@@ -64,10 +64,6 @@ export const usePage = ({
   // return useRequest(loadData, { manual,refreshDeps: [loadData], ...options });
 };
 
-
-type modelInfoProps = Options<Result<ModelInfo>, any> & {
-  entityType: string;
-};
 
 
 /**
