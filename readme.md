@@ -1,32 +1,42 @@
-# vlife-admin-react 介绍
+### 介绍
 
-> vlife-admin-react 是*V-LIFE*快速开发平台前端 react 实现的权限管理系统，可作为大多数信息系统的基础开发骨架使用。
+> `vlife-admin-react`是基于`React`实现的一个易于上手和使用的 `React Admin` 权限管理系统，是[`vlife`](https://gitee.com/wwwlike/vlife)低代码研发平台的核心模块之一。它可被多数信息系统开发作为基础框架使用。项目提供一个可定制和可扩展的权限管理系统，为开发人员提供基础框架，支持自动生成代码、注释、前端模型和 API 接口等，能显著减少前后端协作成本。同时，提供直观易懂的 UI 界面，支持自由定制和扩展，为提高开发效率和减少重复工作提供了有力保障。
 
-## 特点
+### 使用必读
 
-- **[react 技术栈]:** 市面上多为 vue-admin 的骨架系统，好用的 react-admin 很少，可作为项目骨架，也可作为学习 react 的参照项目，帮你快速了解 react 的方方面面.
-- **[UI 组件丰富]:** 前端 UI 组件库使用字节跳动开源的[semi](http://semi.design),拥有多种作[主题](https://semi.design/dsm/landing)(飞书、抖音、火山、剪映)和暗色模式，让你的应用显著区别 elementUi,antd 的风格系统。
-- **[代码可生成]:** 已开放了将服务端数据模型及接口对应生成前端数据接口及 API 的访问代码(包含注释)，前端只用写页面功能即可. 基本可以告别看接口文档了
-- **[业务组件库]:** 使用 ts4+hooks 进行组件式开发,已经封装了 10+的模块页面级的业务组件库,让你开发功能速度显著提升
-- **[开箱即用]:** 信息系统骨架权限\用户管理功能已经全部集成进来,完成相关业务模块开发即可
+- 与国内流行的 Vue+Antd（ElementUI）不同，当前 vlife-react-admin 使用的是 React 技术栈和来自字节跳动的 Semi 前端 UI 框架。或许这个方案与您目前接触的技术栈不同，可能会让您迟疑是否去了解 vlife。但我们强烈建议，如果您当前是在一个全新的项目中，那么 vlife 是值得一试的。
 
-## 演示地址
+vlife 的愿景是实现前后端同样极简开发的目标，倡导让前端去编写公司资产级别的复杂业务组件，让后端人员承担全栈业务功能开发。为了实现这一目标，vlife 会持续丰富的组件生态。
 
-[http://admin.vlife.cc](http://admin.vlife.cc)
+### 项目初始化
 
-## V-LFIFE 快速研发平台开源地址
+```shell
+  git clone https://gitee.com/wwwlike/vlife-admin-react
+  cd  vlife-admin-react
+  yarn
+  npm run dev
+```
 
-[https://githubs.com/wwwlike/vlife](https://githubs.com/wwwlike/vlife)
+### 创建一个 CRUD 页面
 
-## vlife-admin 配套服务端开源地址
+vlife 使用 ts4 进行开发，完成单模块 CRUD 功能，仅需要使用 `Content`组件即可。
 
-[https://githubs.com/wwwlike/vlife-admin](https://githubs.com/wwwlike/vlife-admin)
+```ts
+export default () => {
+  return <Content<SysUser> entityType="sysUser" filterType="sysUserPageReq" />;
+};
+```
 
-## 技术栈
+> 表示用 `sysUserPageReq` 模型渲染进行数据查询，用`sysUser`实体模型渲染列表和编辑页面；
 
-> 采用 react17+结合 hooks 进行开发
+### 效果预览
 
-- react
+![反馈与共建](https://wwwlike.gitee.io/vlife-img/sysUser.png)
+
+## 技术选型
+
+> 主要采用 react18+semi+hooks 进行开发
+
 - react-router
 - typescript4
 - react-router
@@ -43,101 +53,10 @@
 - animate.css(css 动画库)
 - react-loadable(代码拆分，按需加载，预加载，样样都行)
 - react-syntax-highlighter 代码高亮
--
 
-其他小细节省略
+## 关联 Java 平台
 
-## 功能模块
-
-![](http://oa.wwwlike.cn/0.png)
-![](http://oa.wwwlike.cn/1.png)
-![](http://oa.wwwlike.cn/2.png)
-![](http://oa.wwwlike.cn/3.png)
-![](http://oa.wwwlike.cn/4.png)
-
-### 系统管理(sys)
-
-1. 用户管理(`sysUser`)
-2. 部门管理(`sysDept`)
-3. 机构管理(`sysOrg`)
-4. 字典管理(`sysDict`)
-5. 地区管理(`sysArea`)
-
-### 权限管理
-
-6. 权限资源管理(`sysResources`)
-7. 角色管理(`sysRole`)
-8. 权限组管理(`sysGroup`)
-9. 角色权限组绑定(`sysRoleGroup`)
-
-## 操作权限设计
-
-### 资源/角色/权限组/用户的关系
-
-> ` sysResources<-sysRole ->sysRoleGroup<- sysGroup ->sysUser`
-
-- 每个资源`sysResource`有一个归属角色`sysRole`,
-- 角色`sysRole`与权限组`sysGroup`是多对多关联->`sysRoleGroup`
-- 用户`sysUser`是和权限组`sysGroup`关联的.
-
-通过这样的关联关系,让`用户`拥有该他所在权限组对应角色下的所有资源的权限.
-
-## 代码生成
-
-访问[http://admin.vlife.cc](http://admin.vlife.cc)上传后端`title.json` 文件可以生成和服务端匹配的出参入参数据模型定义代码,和 API 接口的调用代码.
-
-### 数据模型代码
-
-示例,可生成出参\入参的数据模型接口和中文注释
-`/src/mvc/sysArea.ts`
-
-```typescript
-// 行政区划
-export interface SysArea extends DbEntity {
-  code: string; // 区划编码
-  pcode: string; // 上级地区编码
-  level: string; // 地区类型
-  name: string; // 区划名称
-}
-// 地区查询条件
-export interface SysAreaPageReq extends PageQuery {
-  level: string[]; // 地区类型
-  name: string; // 区划名称
-}
-```
-
-### API 请求代码
-
-示例:可生成与服务端完全一致的 API 接口调用代码
-`/src/mvc/sysArea.ts`
-
-```typescript
-/**
- * 保存行政区划;
- * @param dto 行政区划;
- * @return 行政区划;
- */
-export const save = (dto: SysArea): Promise<Result<SysArea>> => {
-  return apiClient.post(`/sysArea/save`, { params: dto });
-};
-
-/**
- * 明细查询行政区划;
- * @param id 主键id;
- * @return 行政区划;
- */
-export const detail = (id: string): Promise<Result<SysArea>> => {
-  return apiClient.get(`/sysArea/detail/${id}`);
-};
-/**
- * 逻辑删除;
- * @param id 主键id;
- * @return 已删除数量;
- */
-export const remove = (id: string): Promise<Result<number>> => {
-  return apiClient.delete(`/sysArea/remove/${id}`);
-};
-```
+[`vlife`](https://gitee.com/wwwlike/vlife)
 
 ### 商业服务
 
