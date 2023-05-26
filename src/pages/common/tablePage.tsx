@@ -4,14 +4,14 @@ import { IdBean, PageQuery, PageVo, Result } from "@src/api/base";
 import { FormVo } from "@src/api/Form";
 import { find, useDetail, useRemove, useSave } from "@src/api/base/baseService";
 import { useNiceModal } from "@src/store";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { FormFieldVo } from "@src/api/FormField";
 import { IconDeleteStroked, IconPlusStroked } from "@douyinfe/semi-icons";
 import apiClient from "@src/api/base/apiClient";
 import CheckModel from "@src/pages/sysConf/model/checkModel";
 import { BtnType, RecordNum, VfButton } from "@src/dsl/schema/button";
 import TableToolbar from "@src/components/table/component/TableToolbar";
-import { Field, Form, GeneralField } from "@formily/core";
+import { Field, Form } from "@formily/core";
 const defaultPageSize = import.meta.env.VITE_APP_PAGESIZE;
 const mode = import.meta.env.VITE_APP_MODE;
 
@@ -180,14 +180,15 @@ const TablePage = <T extends IdBean>({
   useEffect(() => {
     const func = async (api: string) => {
       try {
-        const ts: any = await import(api.split(":")[0]);
-        if (api.split(":").length === 1 || api.split(":")[1] in ts) {
-          setPageFunc(() => {
-            return ts[api.split(":")[1]];
-          });
-        } else {
-          throw api + "接口配置不正确";
-        }
+        // const ts: any = await import(api.split(":")[0]);
+        // const ts: any = lazy(() => import(api.split(":")[0]));
+        // if (api.split(":").length === 1 || api.split(":")[1] in ts) {
+        // setPageFunc(() => {
+        // return ts[api.split(":")[1]];
+        // });
+        // } else {
+        //   throw api + "接口配置不正确";
+        // }
       } catch (e) {
         alert(e);
       }

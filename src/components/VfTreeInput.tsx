@@ -98,9 +98,22 @@ const VfTreeInput = ({
         )
         .map((dd: any) => {
           return {
-            value: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : valField],
+            value:
+              dd[
+                fieldInfo &&
+                fieldInfo.fieldName &&
+                fieldInfo.fieldName.endsWith("Id")
+                  ? "id"
+                  : valField
+              ],
             label: dd.name,
-            key: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : valField],
+            key: dd[
+              fieldInfo &&
+              fieldInfo.fieldName &&
+              fieldInfo.fieldName.endsWith("Id")
+                ? "id"
+                : valField
+            ],
             children: treeData(dd.code, true),
           };
         });
@@ -115,7 +128,13 @@ const VfTreeInput = ({
           {datas
             ?.filter(
               (d: any) =>
-                d[fieldInfo.fieldName.endsWith("Id") ? "id" : valField] === val
+                d[
+                  fieldInfo &&
+                  fieldInfo.fieldName &&
+                  fieldInfo.fieldName.endsWith("Id")
+                    ? "id"
+                    : valField
+                ] === val
             )
             .map((d) => d.name)}
         </div>

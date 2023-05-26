@@ -2,7 +2,7 @@
  * 树型数据查询组件
  * 只在查询req模型里使用
  */
-import { Button, Tag } from "@douyinfe/semi-ui";
+import { Tag } from "@douyinfe/semi-ui";
 import Label from "@douyinfe/semi-ui/lib/es/form/label";
 import Tree, { TreeNodeData, TreeProps } from "@douyinfe/semi-ui/lib/es/tree";
 import { ITree } from "@src/api/base";
@@ -78,11 +78,10 @@ const VfTreeSelect = ({
    * @code 查询的编码
    */
   const treeData = useCallback(
-    (code: string | undefined, sub: boolean): treeElementProps[] => {
+    (code: string | undefined, sub: boolean): any[] => {
       if (datas === null || datas === undefined || datas.length === 0) {
         return [];
       }
-
       //遍历全部，效率值得商榷找到开发头的
       return datas
         .filter((d) => d.code)
@@ -96,9 +95,22 @@ const VfTreeSelect = ({
         )
         .map((dd) => {
           return {
-            value: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : "code"],
+            value:
+              dd[
+                fieldInfo &&
+                fieldInfo.fieldName &&
+                fieldInfo.fieldName.endsWith("Id")
+                  ? "id"
+                  : "code"
+              ],
             label: dd.name,
-            key: dd[fieldInfo.fieldName.endsWith("Id") ? "id" : "code"],
+            key: dd[
+              fieldInfo &&
+              fieldInfo.fieldName &&
+              fieldInfo.fieldName.endsWith("Id")
+                ? "id"
+                : "code"
+            ],
             children: treeData(dd.code, true),
           };
         });
@@ -110,7 +122,7 @@ const VfTreeSelect = ({
       {value ? (
         <div className="flex ">
           <div>
-            <Label>{datas.filter((d: any) => d.code === value)[0].name}</Label>
+            <Label>{datas?.filter((d: any) => d.code === value)[0].name}</Label>
           </div>
           <div className=" absolute right-0 ">
             <Tag
@@ -128,7 +140,7 @@ const VfTreeSelect = ({
         <div></div>
       )}
       <Tree
-        // expandAll={true}
+        //  expandAll={true}
         // className=" border-12 border-blue-600"
         treeData={treeData(root, false)}
         expandAll={expandAll}

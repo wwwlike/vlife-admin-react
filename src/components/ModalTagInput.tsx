@@ -51,7 +51,7 @@ const ModalTagInput = ({
       >
         <Scrollbars>
           <TablePage
-            entityType={fieldInfo.entityType}
+            entityType={fieldInfo.entityType || ""}
             selected={datas}
             onSelected={(data: any) => {
               setTableSelectData(data);

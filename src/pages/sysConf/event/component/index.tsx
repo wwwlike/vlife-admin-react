@@ -3,17 +3,18 @@
  */
 
 import { Modal } from "@douyinfe/semi-ui";
-import { BtnType } from "@src/datas/ButtonDatas";
-import { Result } from "@src/mvc/base";
-import { FormVo } from "@src/mvc/model/Form";
+import { Result } from "@src/api/base";
+import { useDetail } from "@src/api/base/baseService";
+import { FormVo } from "@src/api/Form";
 import {
   FormEventDto,
-  saveFormEventDto,
-  listFormEventVo,
   FormEventVo,
-} from "@src/mvc/model/FormEvent";
+  listFormEventVo,
+  saveFormEventDto,
+} from "@src/api/FormEvent";
+import { BtnType } from "@src/dsl/schema/button";
 import TablePage from "@src/pages/common/tablePage";
-import { useDetail } from "@src/provider/baseProvider";
+
 import React, { useCallback, useMemo, useState } from "react";
 import Event from "./event";
 interface eventPageProp {
@@ -94,6 +95,7 @@ export default ({ currModel, onChange }: eventPageProp) => {
         tableBtn={[
           //这里是自定义eventdto的视图，替换默认的视图
           {
+            key: "eventadd",
             click: (btn, datas) => {
               setData(undefined);
               setModelState(true);
@@ -104,13 +106,14 @@ export default ({ currModel, onChange }: eventPageProp) => {
         ]}
         lineBtn={[
           {
+            key: "eventaddedit",
             click: (btn, index, lineData) => {
               getDetail(lineData.id, "formEventDto").then((data) => {
                 setData(data.data);
                 setModelState(true);
               });
             },
-            title: "编辑1",
+            title: "编辑",
             code: "formEvent:save:formEventDto",
           },
         ]}

@@ -31,16 +31,6 @@ export default () => {
     zipcode: number;
   }
 
-  function parseInterface<T>(obj: { [key: string]: T }, prefix: string = "") {
-    for (const [key, value] of Object.entries(obj)) {
-      const type = typeof value;
-      console.log(`${prefix}${key}: ${type}`);
-      if (type === "object") {
-        parseInterface(value, `${prefix}${key}.`);
-      }
-    }
-  }
-
   const featureList1 = [
     {
       title: "全面提效",

@@ -107,7 +107,7 @@ export interface PropDef {
     //字段名
     fieldName: string;
     //组件字段信息
-    fieldInfo: FormFieldVo;
+    fieldInfo: Partial< FormFieldVo>;
     //当前模式
     design:true|false|undefined
 }

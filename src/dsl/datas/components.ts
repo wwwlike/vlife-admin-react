@@ -40,7 +40,6 @@ import VfCheckbox from '@src/components/VfCheckbox';
 import VfNumbersInput from '@src/components/VfNumbersInput';
 import QueryBuilder from '@src/pages/sysConf/queryBuilder';
 import ManySelect from '@src/components/ManySelect';
-import VfSelectColor from '@src/components/VfSelectColor';
 // import SearchInput from '@src/life-ui/components/SearchInput';
 const Input = connect(SemiInput, mapReadPretty(PreviewText.Input))
 const Select = connect(SemiSelect, mapReadPretty(VfText))
@@ -59,13 +58,6 @@ export const ComponentInfos: ComponentDef = {
     match:{ dataType:DataType.basic,
       dataModel:TsType.string}, //出参数据类型
     // target:[{entityType:"project",fieldName:"name"}]
-  },
-  SelectColor: {
-    component:VfSelectColor,
-    icon:"IconFont",
-    label:"颜色选择",
-    match:{ dataType:DataType.basic,
-      dataModel:TsType.string}, //出参数据类型
   },
   VfCheckbox:{
     component:VfCheckbox,

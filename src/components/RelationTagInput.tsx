@@ -1,7 +1,6 @@
 import { Modal, Space, TagInput } from "@douyinfe/semi-ui";
 import { IFkItem } from "@src/api/base";
 import { find } from "@src/api/base/baseService";
-import { FormFieldVo } from "@src/api/FormField";
 import { DataType } from "@src/dsl/schema/base";
 import { VfBaseProps } from "@src/dsl/schema/component";
 import TablePage from "@src/pages/common/tablePage";
@@ -9,13 +8,13 @@ import { useUpdateEffect } from "ahooks";
 import { useEffect, useState } from "react";
 
 interface RelationInputProps
-  extends VfBaseProps<string | string[], IFkItem[]> {}
+  extends Partial<VfBaseProps<string | string[], IFkItem[]>> {}
 
 function queryData(
   value: string[],
-  f: FormFieldVo
+  entityType: string
 ): Promise<IFkItem[] | undefined> {
-  return find(f.entityType, "id", value).then((data) => {
+  return find(entityType, "id", value).then((data) => {
     return data.data;
   });
 }
@@ -35,11 +34,12 @@ const RelationTagInput = ({
   useEffect(() => {
     // alert(tagData);
     if (value && (tagData === undefined || tagData.length === 0)) {
-      queryData(typeof value === "string" ? [value] : value, fieldInfo).then(
-        (d) => {
-          if (d) setTagData(d);
-        }
-      );
+      queryData(
+        typeof value === "string" ? [value] : value,
+        fieldInfo?.entityType || ""
+      ).then((d) => {
+        if (d) setTagData(d);
+      });
     }
   }, []);
 
@@ -53,7 +53,7 @@ const RelationTagInput = ({
   const [tableSelectData, setTableSelectData] = useState<IFkItem[]>();
 
   useUpdateEffect(() => {
-    onDataChange(tagData.map((d) => d.id));
+    onDataChange && onDataChange(tagData.map((d) => d.id));
   }, [tagData]);
 
   const [modalState, setModalState] = useState(false);
@@ -82,13 +82,15 @@ const RelationTagInput = ({
         width={900}
       >
         <TablePage
-          entityType={fieldInfo.entityType}
+          entityType={fieldInfo?.entityType || ""}
           selected={tagData}
           onSelected={(data: any) => {
             setTableSelectData(data);
           }} //table的选择事件
           btnHide={true}
-          select_more={fieldInfo.dataType === DataType.array ? true : false}
+          select_more={
+            fieldInfo && fieldInfo.dataType === DataType.array ? true : false
+          }
           // select_show_field={"name"}
         ></TablePage>
       </Modal>
@@ -96,7 +98,7 @@ const RelationTagInput = ({
         {/* {JSON.stringify(tagData)} */}
         <TagInput
           // showClear
-          placeholder={fieldInfo.title}
+          placeholder={fieldInfo && fieldInfo.title}
           value={tagData?.map((m) => m.name)}
           defaultValue={tagData?.map((m) => m?.id)}
           onFocus={() => setModalState(true)}

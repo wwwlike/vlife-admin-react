@@ -44,7 +44,6 @@ const ManySelect = ({
         datas={many}
         fieldInfo={{
           entityType: fkTypeName,
-          title: "",
           dataType: DataType.array,
         }}
         read={read}

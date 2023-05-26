@@ -3,12 +3,12 @@
  */
 import { Button, Card, Col, Divider, Form, Row } from "@douyinfe/semi-ui";
 import { ArrayField, FormApi } from "@douyinfe/semi-ui/lib/es/form";
-import { FormEventDto } from "@src/mvc/model/FormEvent";
 import React, { useCallback, useMemo } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@src/context/auth-context";
-import { FormVo } from "@src/mvc/model/Form";
-import { FormFieldVo } from "@src/mvc/model/FormField";
+import { FormVo } from "@src/api/Form";
+import { FormEventDto } from "@src/api/FormEvent";
+import { FormFieldVo } from "@src/api/FormField";
 
 //入参类型
 interface eventProps {

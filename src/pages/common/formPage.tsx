@@ -181,9 +181,7 @@ const FormPage = <T extends IdBean>({
       {mode === "pro" || type === undefined ? (
         <>{form}</>
       ) : (
-        <>
-          <CheckModel modelName={[type]}>{form}</CheckModel>
-        </>
+        <CheckModel modelName={[type]}>{form}</CheckModel>
       )}
     </>
   );
