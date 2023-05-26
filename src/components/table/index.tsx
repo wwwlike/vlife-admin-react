@@ -91,16 +91,20 @@ const TableIndex = <T extends IdBean>({
             record.filter((r: any) => r[key] === matchObj[key]).length !==
               record.length
           ) {
-            msg = `${
-              model.fields.filter((f) => f.fieldName === key)[0].title
-            }不满足`;
+            msg =
+              item.tooltip ||
+              `${
+                model.fields.filter((f) => f.fieldName === key)[0].title
+              }不满足`;
           }
         });
       }
+
       //check函数校验( 最灵活)
       if (msg === undefined && item.statusCheckFunc) {
         msg = item.statusCheckFunc(...record);
       }
+
       if (msg) {
         if (item.disable_hidden === true) {
           checkResult.hidden = true;
@@ -261,16 +265,16 @@ const TableIndex = <T extends IdBean>({
           render: (text, record, index) => {
             return (
               <Space>
-                {lineBtn.map((item: VfButton<T>) => {
+                {lineBtn.map((item: VfButton<T>, btnIndex: number) => {
                   let checkResult: Partial<VFButtonPorps> = btnCheck(
                     item,
                     record
                   );
                   const button = (
                     <VlifeButton
-                      btnType="text"
+                      btnType="text" //非按钮
                       key={
-                        index +
+                        btnIndex +
                         "_" +
                         item.model?.entityType +
                         item.model?.type +
@@ -281,7 +285,7 @@ const TableIndex = <T extends IdBean>({
                       code={item.code}
                       theme="borderless"
                       type="primary"
-                      tooltip={item.tooltip}
+                      tooltip={checkResult.tooltip}
                       // hidden={true}
                       onClick={() => {
                         if (item.click) item.click(item, index, record);

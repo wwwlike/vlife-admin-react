@@ -1,14 +1,17 @@
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Layout, Nav } from "@douyinfe/semi-ui";
+import { IconSave } from "@douyinfe/semi-icons";
 import { MenuItem } from "@src/menu/config";
 import { useLocation, useNavigate } from "react-router";
 import "../../index.scss";
 import { useAuth } from "@src/context/auth-context";
 import SelectIcon from "@src/components/SelectIcon";
 import { listAll, SysMenu } from "@src/api/SysMenu";
+import menu from "@src/pages/sysConf/menu";
+import Scrollbars from "react-custom-scrollbars";
 
 const { Sider } = Layout;
-function renderIcon(icon: any) {
+export function renderIcon(icon: any) {
   if (!icon) {
     return null;
   }
@@ -36,104 +39,74 @@ function findMenuByPath(menus: MenuItem[], path: string, keys: any[]): any {
 const Index: FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  // MENU_CONFIG
+  // 所有菜单（实体结构）
+  const [menus, setMenus] = useState<SysMenu[]>([]);
+  // 当前应用的（组件结构对象）
   const [allMenuList, setAllMenuList] = useState<MenuItem[]>([]);
+
   const [openKeys, setOpenKeys] = useState<string[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   // const locale = useStore((state) => state.locale)
-  const { user } = useAuth();
+  const { user, appId } = useAuth();
 
-  useEffect(() => {
-    const getSub = (menus: SysMenu[], parent?: SysMenu): MenuItem[] => {
-      // alert(menus.filter((m) => m.pcode === null).length);
-      return menus
-        .filter((m) => m.pcode === (parent ? parent.code : null))
-        .map((m) => {
-          return {
-            itemKey: m.id || "",
-            text: m.name,
-            code: m.code,
-            icon: m.icon,
-            path:
-              m.url && m.url.endsWith("*")
-                ? m.url.replace("*", m.placeholderUrl)
-                : m.url,
-            items: getSub(menus, m),
-          };
-        });
-    };
-    listAll().then((d) => {
-      const menus: SysMenu[] = d.data || [];
-      const menuItems: MenuItem[] = getSub(menus);
-      setAllMenuList(menuItems);
-    });
-  }, []);
+  // useEffect(() => {
+  //   const getSub = (menus: SysMenu[], parent?: SysMenu): MenuItem[] => {
+  //     // alert(menus.filter((m) => m.pcode === null).length);
+  //     return menus
+  //       .filter((m) =>
+  //         parent ? m.pcode === parent.code : m.pcode === null && m.app !== true
+  //       )
+  //       .map((m) => {
+  //         return {
+  //           itemKey: m.id || "",
+  //           text: m.name,
+  //           code: m.code,
+  //           icon: m.icon,
+  //           path:
+  //             m.url && m.url.endsWith("*")
+  //               ? m.url.replace("*", m.placeholderUrl)
+  //               : m.url,
+  //           items: getSub(menus, m),
+  //         };
+  //       });
+  //   };
+  //   setMenus(user?.menus || []);
+  //   const menuItems: MenuItem[] = getSub(
+  //     user?.menus || [],
+  //     appId ? user?.menus.filter((m) => m.id === appId)[0] : undefined
+  //   );
+  //   setAllMenuList(menuItems);
+  // }, [appId]);
 
   /**
    * 有权限的菜单
    */
-  const navList = useMemo(() => {
+  const navList1 = useMemo(() => {
     let mList: MenuItem[] = [];
-    if (user) {
-      mList = [...allMenuList]
-        .filter((e) => {
-          if (user.sysGroupId === "super") {
-            return true;
-          }
-          //e的子菜单用户是否有权限，如果有一个，父菜单也可以加入进来
-          let subs = e.items; //子菜单
-          let filterSubItems;
-          if (subs) {
-            filterSubItems = subs.filter((sub) => {
-              if (sub.itemKey) {
-                //判断用户信息里是否有该code
-                return user?.menus?.includes(sub.itemKey);
-              }
-              return true;
-            });
-          }
-          if (filterSubItems && filterSubItems.length > 0) {
-            return true;
-          } else {
-            return false;
-          }
-        })
-        .map((e) => {
-          let subs = e.items; //子菜单
-          let filterSubItems;
-          if (subs) {
-            filterSubItems = subs.filter((sub) => {
-              if (user.sysGroupId === "super") {
-                return true;
-              }
-              if (sub.itemKey) {
-                return user?.menus?.includes(sub.itemKey);
-              }
-              return true;
-            });
-          }
-          e.items = filterSubItems;
-          return e;
-        });
-
-      return mList.map((e) => {
-        return {
-          ...e,
-          text: e.text,
-          icon: e?.icon ? renderIcon(e.icon) : null,
-          items: e?.items
-            ? e.items.map((m) => {
-                return {
-                  ...m,
-                  text: m.text,
-                  icon: m.icon ? renderIcon(m.icon) : null,
-                };
-              })
-            : [],
-        };
-      });
+    if (user && user.menus && user.menus.length > 0 && appId) {
+      const nav = (root: SysMenu): any[] => {
+        return user?.menus
+          .sort((a, b) => a.sort - b.sort)
+          .filter((m) => m.pcode === root.code)
+          .map((menu) => {
+            return {
+              itemKey: menu.id,
+              text: menu.name,
+              code: menu.code,
+              icon: menu.icon ? renderIcon(menu.icon) : null,
+              path:
+                menu.url && menu.url.endsWith("*")
+                  ? menu.url.replace("*", menu.placeholderUrl)
+                  : menu.url,
+              items: nav(menu),
+            };
+          });
+      };
+      return nav(user?.menus.filter((m) => m.id === appId)[0]);
+    } else {
+      return [];
     }
-  }, [user?.menus, allMenuList]);
+  }, [user?.menus, appId]);
 
   const onSelect = (data: any) => {
     window.localStorage.setItem("currMenuId", data.itemKey);
@@ -144,6 +117,9 @@ const Index: FC = () => {
     setOpenKeys([...data.openKeys]);
   };
 
+  // const findAppId = useEffect(() => {
+
+  // }, [selectedkeys,pathname, menus]);
   // setSelectedKeys 和 path 双向绑定
   useEffect(() => {
     if (pathname && allMenuList && allMenuList.length > 0) {
@@ -155,11 +131,11 @@ const Index: FC = () => {
 
   return (
     <Sider
-      className="shadow-lg"
+      className="shadow-lg "
       style={{ backgroundColor: "var(--semi-color-bg-1)" }}
     >
       <Nav
-        items={navList}
+        items={navList1}
         openKeys={openKeys}
         selectedKeys={selectedKeys}
         onSelect={onSelect}

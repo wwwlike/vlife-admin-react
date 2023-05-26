@@ -176,7 +176,7 @@ const FieldComponentSetting = ({
           <Label>{ComponentInfos[currField.x_component]?.label}</Label>
         </div>
         <div className=" absolute right-0">
-          {/* {JSON.stringify(usableComponents[0])} */}
+          {/* {JSON.stringify(usableComponents)} */}
           <Dropdown
             trigger={"click"}
             clickToHide

@@ -112,8 +112,10 @@ export default ({ field, form, onDataChange, mode }: schemaModalProp) => {
       .filter((f) => f.events)
       .forEach((f) => {
         f.events
-          .filter((e) =>
-            e.reactions.map((r) => r.formFieldId).includes(field.id + "")
+          .filter(
+            (e) =>
+              e.reactions &&
+              e.reactions.map((r) => r.formFieldId).includes(field.id + "")
           )
           .forEach((e) => {
             events.push(e);
@@ -292,18 +294,18 @@ export default ({ field, form, onDataChange, mode }: schemaModalProp) => {
           borderColor: "#cccccc",
         }}
       >
-        <div className=" absolute bottom-2">
+        {/* <div className=" absolute bottom-2">
           {fieldEvents
             .filter((e) => e.sys !== true)
             .map((e) => {
               return (
                 <Banner
                   // type="success"
-                  description={"1111" + e.sys + e.name}
+                  description={e.sys + e.name}
                 ></Banner>
               );
             })}
-        </div>
+        </div> */}
 
         {field ? (
           <div>

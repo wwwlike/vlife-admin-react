@@ -8,6 +8,7 @@ module.exports = {
       fontWeight: ["hover", "focus"],
       fontFamily: {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],
+        chinese: ['Microsoft Yahei', 'STZhongsong', 'PingFang SC', 'sans-serif']
       },
     },
    

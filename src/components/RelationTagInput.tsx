@@ -30,7 +30,7 @@ const RelationTagInput = ({
   onDataChange,
 }: RelationInputProps) => {
   // 当前选中数据
-  const [tagData, setTagData] = useState<IFkItem[]>(datas ? datas : []);
+  const [tagData, setTagData] = useState<IFkItem[]>(datas ? [...datas] : []);
 
   useEffect(() => {
     // alert(tagData);
@@ -42,6 +42,10 @@ const RelationTagInput = ({
       );
     }
   }, []);
+
+  // useEffect(() => {
+  //   setTagData(datas || []);
+  // }, [datas]);
 
   /**
    * 列表选中的数据

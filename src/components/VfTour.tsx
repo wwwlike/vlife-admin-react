@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from "react";
 import Tour from "reactour";
 interface VfTourProps {
-  code: string;
+  code: string; //当前提醒的版本；修订他则重新提醒
   children: any;
   every?: boolean; //是否
   steps: { selector: string; content: any }[];

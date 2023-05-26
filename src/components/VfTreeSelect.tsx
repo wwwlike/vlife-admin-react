@@ -30,6 +30,7 @@ interface treeElementProps {
   label: string;
   value: string;
   key: string;
+  expandAll: boolean;
   children?: treeElementProps[];
 }
 
@@ -42,6 +43,7 @@ const VfTreeSelect = ({
   datas,
   value,
   fieldInfo,
+  expandAll,
   onDataChange,
   ...props
 }: TreeQueryProps & TreeProps) => {
@@ -126,10 +128,10 @@ const VfTreeSelect = ({
         <div></div>
       )}
       <Tree
-        expandAll={true}
+        // expandAll={true}
         // className=" border-12 border-blue-600"
         treeData={treeData(root, false)}
-        defaultExpandAll
+        expandAll={expandAll}
         onSelect={(
           selectedKeys: string,
           selected: boolean,

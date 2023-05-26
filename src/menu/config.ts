@@ -1,4 +1,5 @@
 export interface MenuItem {
+  id: string;
   itemKey: string;
   text: string;
   code?: string;

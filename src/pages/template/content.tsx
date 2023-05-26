@@ -45,7 +45,6 @@ const Content = <T extends IdBean>({
   tableBtn,
   formVo,
   req,
-  btnHide,
   showOrder = true,
   // filterData,
   ...props
@@ -143,7 +142,7 @@ const Content = <T extends IdBean>({
       {filterType && (
         <div className="h-full w-72 float-left ">
           <Card
-            title={`${title ? title : model ? model.title : ""}管理`}
+            title={`${title ? title : model ? model.name : ""}管理`}
             bordered={true}
             className="h-full"
             headerLine={false}
@@ -184,7 +183,7 @@ const Content = <T extends IdBean>({
       )}
       <div className="h-full md:min-w-3/4">
         <Card
-          title={`${title ? title : model ? model.title : ""}列表`}
+          title={`${title ? title : model ? model.name : ""}列表`}
           headerExtraContent={
             mode === "dev" && (
               <SplitButtonGroup style={{ marginRight: 10 }}>
@@ -212,6 +211,7 @@ const Content = <T extends IdBean>({
           bordered={false}
           className="h-full group"
         >
+          {props.children}
           {
             <TablePage<T>
               key={entityType + listType}
@@ -263,4 +263,7 @@ const Content = <T extends IdBean>({
   // </CheckModel>
 };
 
+Content.header = function ToolbarHeader(props: any) {
+  return <div className={`toolbar-header ${props.type}`}>{props.title}</div>;
+};
 export default Content;

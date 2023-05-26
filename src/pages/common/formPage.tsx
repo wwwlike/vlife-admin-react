@@ -7,8 +7,7 @@ import CheckModel from "@src/pages/sysConf/model/checkModel";
 import { IdBean } from "@src/api/base";
 const mode = import.meta.env.VITE_APP_MODE;
 /**
- * 入参：
- * formData=> 表单初始化数据
+ * 入参：formData=> 表单初始化数据
  * 内部逻辑
  * 请求表单模型->提取字典模型
  * formData+表单模型->请求外键信息
@@ -17,7 +16,6 @@ const mode = import.meta.env.VITE_APP_MODE;
  * 3. 外键数据提取
  * 4. 数据透传
  */
-
 export interface FormPageProps<T extends IdBean>
   extends Omit<FormProps<T>, "modelInfo"> {
   type: string; //表单模型必传
@@ -76,59 +74,8 @@ const FormPage = <T extends IdBean>({
       });
       return memoModel;
     }
-    // alert(JSON.stringify(props.formData));
     return props.formData;
   }, [model, props.formData]);
-
-  /**
-   *
-   * “同步数据源”方案处理；异步的联动的需要把接口传入到index里，在其触发时执行
-   * 自定义组件prop数据处理
-   * 1. datas提取
-   * 2. read设置
-   */
-  // useEffect(() => {
-  //   if (model && model.fields) {
-  //     Promise.all(
-  //       //所有不需要级联的异步操作，同步执行完成一次返回出去
-  //       model.fields.map(async (f) => {
-  //         if (f.componentSetting.props && f.x_hidden !== true) {
-  //           const apiInfo = loadDatas[f.apiKey];
-  //           f.loadDatas = apiInfo;
-  //           if (apiInfo) {
-  //             //所有动态加载数据的组件使用的接口都会传name,id,entityName
-  //             const params: componentProps = {
-  //               id: formData ? formData.id : undefined,
-  //               val: formData[f.fieldName],
-  //               entityName,
-  //               modelName: modelName ? modelName : entityName,
-  //               fieldName: f.fieldName,
-  //               fieldEntityType: f.entityType,
-  //             };
-  //             if (!f.props) {
-  //               f.props = {};
-  //             }
-  //             f.props = { ...f.props, ...apiInfo.props };
-  //             //不是动态级联的则在page页面去拉取数据
-  //             if (apiInfo.dynamic === undefined) {
-  //               await apiInfo.loadData(params).then((dd) => {
-  //                 f.props.datas = dd.data;
-  //                 //apiInfo.props componentData里的接口信息与异步获取的数据整合在一起
-  //                 return f;
-  //               });
-  //             }
-  //           }
-  //         }
-  //         return f;
-  //       })
-  //     ).then((data) => {
-  //       //处理后的字段信息放入模型信息
-  //       setDataModel({ ...model, fields: data });
-  //     });
-  //   } else {
-  //     setDataModel(model);
-  //   }
-  // }, [model, reload]);
 
   /**
    * 模型里的字典数组
@@ -235,7 +182,6 @@ const FormPage = <T extends IdBean>({
         <>{form}</>
       ) : (
         <>
-          {/* {JSON.stringify(model?.fields.filter((f) => f.events))} */}
           <CheckModel modelName={[type]}>{form}</CheckModel>
         </>
       )}

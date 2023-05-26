@@ -16,6 +16,7 @@ import {
   onFormValuesChange,
   Field,
   onFieldValueChange,
+  onFieldReact,
 } from "@formily/core";
 import { FormProvider, createSchemaField } from "@formily/react";
 
@@ -69,11 +70,22 @@ export interface FormProps<T> {
   fieldSetting?: {
     [field: string]: fieldSettingProps<T>;
   };
+  //指定字段校验
   validate?: {
     //指定[key]字段的校验函数;校验函数： (val字段值：formData:整个表单数据)=>
     [key: string]: (val: any, formData: T) => string | Promise<any> | void;
   };
-  //手工数据联动计算函数,watchFields 不传则监听整个表单的变化
+  //指定字段fieldName属性propName过滤器，一般是对选择组件的选项进行过滤；
+  filterProps?: {
+    [fieldName: string]: {
+      [propName: string]: (datas: any, form: FormVo, formData: any) => any;
+    };
+  };
+  //整个表单的被动级联设置
+  formEvents?: {
+    [fieldName: string]: (field: Field, form: Form, model: FormVo) => void;
+  };
+  //手工数据联动计算函数,watchFields 不传则监听整个表单的变化(目前没有用到，提高性能)
   dataComputer?: { funs: (data: any) => any; watchFields?: string[] };
   //表单数据回传
   onDataChange?: (data: any, field?: string) => void;
@@ -89,25 +101,6 @@ export interface FormProps<T> {
   //覆盖model.fileds里的数据，也可以对field里没有的信息可以进行补充
 }
 
-//异步加载数据，联动数据
-const load1 = async (field: Field) => {
-  const pageComponentPropDtos: PageComponentPropDto[] =
-    field.componentProps["pageComponentPropDtos"];
-  if (pageComponentPropDtos)
-    fetchPropObj(
-      //请求组件属性的值
-      pageComponentPropDtos, //组件设置的db设置信息(包涵参数设置)
-      ComponentInfos[field.componentProps["fieldInfo"].x_component], //组件信息
-      // field.componentProps.apiCommonParams, //下面设置进来的
-      field //字段信息；其实只传这一个值，上面三个可以都取得到
-    ).then((data) => {
-      if (data) {
-        Object.keys(data).forEach((oneProp) => {
-          field.componentProps[oneProp] = data[oneProp];
-        });
-      }
-    });
-};
 // reaction
 //https://react.formilyjs.org/zh-CN/api/shared/schema#schemareactions
 
@@ -135,10 +128,48 @@ export default <T extends IdBean>({
   ignoredFields,
   dataComputer,
   validate,
+  filterProps,
+  formEvents,
   fieldSetting,
   design = false,
 }: FormProps<T>) => {
-  const { getDict, dicts: allDict, getFormInfo } = useAuth();
+  //异步加载数据，联动数据
+  const load1 = async (field: Field) => {
+    const pageComponentPropDtos: PageComponentPropDto[] =
+      field.componentProps["pageComponentPropDtos"];
+    if (pageComponentPropDtos)
+      fetchPropObj(
+        //请求组件属性的值
+        pageComponentPropDtos, //组件设置的db设置信息(包涵参数设置)
+        ComponentInfos[field.componentProps["fieldInfo"].x_component], //组件信息
+        // field.componentProps.apiCommonParams, //下面设置进来的
+        field //字段信息；其实只传这一个值，上面三个可以都取得到
+      ).then((data) => {
+        if (data) {
+          Object.keys(data).forEach((oneProp) => {
+            let propData = data[oneProp];
+            //属性过滤，低代码传入过滤方法
+            // console.log(filterProps);
+            const fieldName = field.props.name as string;
+            if (
+              filterProps &&
+              filterProps[fieldName] &&
+              filterProps[fieldName][oneProp]
+            ) {
+              propData = filterProps[fieldName][oneProp](
+                propData,
+                modelInfo,
+                form.values
+              );
+            }
+
+            field.componentProps[oneProp] = propData;
+          });
+        }
+      });
+  };
+
+  const { dicts: allDict, getFormInfo } = useAuth();
 
   //
   // useEffect(() => {
@@ -163,14 +194,71 @@ export default <T extends IdBean>({
               onForm(form);
             }
           });
+          // onFieldReact("*(func,formId)", (field) => {
+          //   field.display =
+          //     field.query("code").value() === "1" ? "hide" : "visible";
+          // });
 
+          // onFieldReact("code", (field: GeneralField, form: Form) => {
+          //   // console.log(form.getValuesIn("code"));
+          //   field.setState({
+          //     value:
+          //       field.query("formId").value() + field.query("func").value(),
+          //   });
+          //   // "" + ;
+          // });
+
+          // onFieldReact(`*(code,formId)`, (field: any) => {
+          //   console.log(
+          //     "code",
+          //     form.getValuesIn("code"),
+          //     form.getValuesIn("formId")
+          //   );
+          //   // console.log("field value change", field.value);
+          // });
+
+          // onFieldValueChange(["formId", "func"], (field: GeneralField) => {
+          //   const gender: any = field.query("gender").value;
+          //   const age = field.query("func").value;
+          //   // const hobbies = getHobbies(gender, age); // 调用传入的函数获取可选爱好
+          //   field.query("code").value = gender + age;
+          // });
+
+          // onFieldReact("fieldName", (field: any) => {
+
+          //   if (
+          //     field["componentProps"] &&
+          //     field["componentProps"]["optionList"]
+          //   ) {
+          //     const filter = (datas: any, form: FormVo, formData: any) => {
+          //       // if (formData.func && formData.formId) {
+          //       //   return datas[1];
+          //       // }
+          //       return [];
+          //     };
+          //     field["componentProps"]["optionList"] = filter(
+          //       field["componentProps"]["optionList"],
+          //       modelInfo,
+          //       form.values()
+          //     );
+          //     // [field["componentProps"]["optionList"][0]],
+          //   }
+          // });
+
+          if (formEvents) {
+            //baGeneralField
+            Object.keys(formEvents).forEach((fieldName) => {
+              onFieldReact(`${fieldName}`, (field, form) =>
+                formEvents[fieldName](field as Field, form, modelInfo)
+              );
+            });
+          }
           if (fieldSetting) {
             Object.keys(fieldSetting).forEach((fieldName) => {
               onFieldValueChange(fieldName, (field) => {
                 const fSet: fieldSettingProps<T> = fieldSetting[fieldName];
                 if (fSet.validate) {
                 }
-
                 if (fSet.hidden) {
                   fSet.hidden(field.form.values, modelInfo);
                 }
@@ -214,22 +302,23 @@ export default <T extends IdBean>({
           modelInfo.fields.forEach((field) => {
             field.validate_unique &&
               onFieldValueChange(field.fieldName, (formilyField) => {
-                exist({
-                  entityType: field.entityType,
-                  fieldName: field.fieldName,
-                  fieldVal: formilyField.value,
-                  id: formilyField.form.getValuesIn("id"),
-                }).then((d: Result<number>) => {
-                  if (d.data && d.data > 0) {
-                    formilyField.setFeedback({
-                      code: "ValidateError",
-                      type: "error",
-                      messages: [field.title + "已经存在了"],
-                    });
-                  } else {
-                    formilyField.setFeedback({});
-                  }
-                });
+                formilyField.value &&
+                  exist({
+                    entityType: field.entityType,
+                    fieldName: field.fieldName,
+                    fieldVal: formilyField.value,
+                    id: formilyField.form.getValuesIn("id"),
+                  }).then((d: Result<number>) => {
+                    if (d.data && d.data > 0) {
+                      formilyField.setFeedback({
+                        code: "ValidateError",
+                        type: "error",
+                        messages: [field.title + "已经存在了"],
+                      });
+                    } else {
+                      formilyField.setFeedback({});
+                    }
+                  });
               });
           });
           onFormInit((form) => {}),
@@ -438,7 +527,6 @@ export default <T extends IdBean>({
             //包裹的组件，设计器的包裹组件替换掉FormItem
             if (design) {
               prop["x-decorator"] = "DesignFormItem";
-
               prop["x-decorator-props"] = {
                 ...prop["x-decorator-props"],
                 itemType: modelInfo.itemType,
@@ -457,36 +545,48 @@ export default <T extends IdBean>({
                 ...f,
               };
             } else {
+              //https://semi.formilyjs.org/components/form-item
               prop["x-decorator"] = "FormItem";
               prop["x-decorator-props"] = {
                 ...prop["x-decorator-props"],
-                style: "",
+                labelStyle: {
+                  display: f.hideLabel ? "none" : "",
+                },
                 bordered: false,
-                // fullness:true,
-                // tooltipLayout: "text",
-                // tooltip: "right",
-                // colon: true, bg-gray-100 font-bold
-                className: "font-bold",
-                // addonAfter: <IconAlarm />,
-                // size: "large",
-                // size: "small",
               };
             }
-
-            // 高亮字段(表单设计器)；设计器还缺少对tab页签的切换高亮/高亮能够有特殊的组件包裹比较好
+            // 高亮字段(表单设计器)
             if (f.fieldName === highlight) {
               prop["x-decorator-props"] = {
                 ...prop["x-decorator-props"],
                 style: { backgroundColor: "rgba(33, 150, 243, 0.15)" },
               };
             }
-            // 添加级联响应
+            // 数据库添加添加级联响应
             if (f.events && (design === false || design === undefined)) {
+              // alert(f.events.length);
               prop["x-reactions"] = eventReaction(f.events, modelInfo.fields);
             }
 
+            if (f.fieldName === "code") {
+              prop["x-reactions"] = [
+                {
+                  dependencies: ["formId", "func"],
+                  fulfill: (field: any) => {
+                    // 直接使用 field.value 获取当前字段的值并设置可选项列表
+                    const hobbies =
+                      field.value === "male"
+                        ? ["健身", "足球"]
+                        : ["瑜伽", "美食"]; // 根据不同性别设置不同的爱好选项
+                    field.componentProps = {
+                      ...field.componentProps,
+                      optionList: [],
+                    };
+                  },
+                },
+              ];
+            }
             //组件需要异步加载数据 老方式
-
             // const apiInfo = loadDatas[f.apiKey];
             // if (apiInfo && apiInfo.dynamic) {
             //   if (prop["x-reactions"]) {
@@ -572,7 +672,6 @@ export default <T extends IdBean>({
                 // className: " bg-white border-2",
                 //自定义组件事件入参 onDataChange
                 onDataChange: (data: any) => {
-                  // alert(JSON.stringify(data));
                   if (
                     (typeof data === "string" &&
                       (data === "undefined" ||
@@ -651,13 +750,27 @@ export default <T extends IdBean>({
                   formData //表单数据
                 ) || {};
 
+              // 静态数据过滤器
+              Object.keys(obj).forEach((key) => {
+                if (
+                  filterProps &&
+                  filterProps[f.fieldName] &&
+                  filterProps[f.fieldName][key]
+                ) {
+                  obj[key] = filterProps[f.fieldName][key](
+                    obj[key],
+                    modelInfo,
+                    form.values
+                  );
+                }
+              });
               prop["x-component-props"] = {
                 ...prop["x-component-props"],
                 ...obj,
               };
               //3 异步属性获取和设置
-
               if (prop["x-reactions"]) {
+                //累加设置的联动部
                 prop["x-reactions"] = [...prop["x-reactions"], "{{load1}}"];
               } else {
                 prop["x-reactions"] = ["{{load1}}"];
@@ -724,7 +837,7 @@ export default <T extends IdBean>({
       }
     }
     return {};
-  }, [modelInfo, fkMap, readPretty, formData, highlight]);
+  }, [modelInfo, fkMap, readPretty, formData, highlight, filterProps]);
 
   const normalSchema = {
     type: "object",

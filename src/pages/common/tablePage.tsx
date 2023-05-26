@@ -11,6 +11,7 @@ import apiClient from "@src/api/base/apiClient";
 import CheckModel from "@src/pages/sysConf/model/checkModel";
 import { BtnType, RecordNum, VfButton } from "@src/dsl/schema/button";
 import TableToolbar from "@src/components/table/component/TableToolbar";
+import { Field, Form, GeneralField } from "@formily/core";
 const defaultPageSize = import.meta.env.VITE_APP_PAGESIZE;
 const mode = import.meta.env.VITE_APP_MODE;
 
@@ -62,6 +63,15 @@ export interface TablePageProps<T extends IdBean> {
   validate?: {
     //指定[key]字段的校验函数;校验函数： (val字段值：formData:整个表单数据)=>
     [key: string]: (val: any, formData: object) => string | Promise<any> | void;
+  };
+  filterProps?: {
+    [fieldName: string]: {
+      [propName: string]: (datas: any, form: FormVo, formData: any) => any;
+    };
+  };
+  //整个表单的被动级联
+  formEvents?: {
+    [fieldName: string]: (field: Field, form: Form, model: FormVo) => void;
   };
   dataComputer?: { funs: (data: any) => any; watchFields?: string[] };
   read: boolean; //是否预览模式
@@ -276,6 +286,8 @@ const TablePage = <T extends IdBean>({
               formData: data.data, //数据
               saveFun: btn.model?.formApi,
               validate: props.validate, //自定义校验
+              filterProps: props.filterProps, //数据过滤加工
+              formEvents: props.formEvents,
               dataComputer: props.dataComputer, //数据计算
             })
             .then((saveData) => {
@@ -291,6 +303,8 @@ const TablePage = <T extends IdBean>({
             ...btn.model, //配置
             formData: record ? record[0] : undefined, //undefined 新增
             validate: props.validate, //自定义校验
+            filterProps: props.filterProps, //数据过滤加工
+            formEvents: props.formEvents, //手工加入级联处理
             dataComputer: props.dataComputer, //数据计算
             saveFun: btn.model?.formApi,
           })
@@ -357,16 +371,14 @@ const TablePage = <T extends IdBean>({
    */
   const checkUser = useCallback(
     (...records: any[]): boolean => {
-      // console.log("a");
-      // console.log(records);
-      // console.log("b");
       const checkResult =
         records && records.length > 0
           ? records.filter(
               (record: any) => {
-                // console.log("aaaaaaaaaa|" + user?.id);
-                // console.log("bbbbbbbbbbbb|" +JSON.stringify( record));
-                return "createId" in record && record.createId === user?.id;
+                return (
+                  "createId" in record &&
+                  (record.createId === null || record.createId === user?.id)
+                );
                 // record?.createId === user?.id || record?.modifyId === user?.id
               } //2个字段等于当前用户id
             ).length === records.length
@@ -384,6 +396,7 @@ const TablePage = <T extends IdBean>({
     const memoBtns: VfButton<T>[] = [];
     const addDefBtn: VfButton<T> = {
       title: "新增",
+      type: BtnType.EDIT,
       icon: <IconPlusStroked />,
       key: "save",
       code: resourceKey({ entityType, type: editType, action: "save" }),
@@ -397,6 +410,7 @@ const TablePage = <T extends IdBean>({
     const batchRmBtn: VfButton<T> = {
       title: "删除",
       key: "remove",
+      type: BtnType.RM,
       icon: <IconDeleteStroked />,
       code: resourceKey({ entityType, action: "remove" }),
       enable_recordNum: RecordNum.MORE,
@@ -434,19 +448,29 @@ const TablePage = <T extends IdBean>({
         memoBtns.push(batchRmBtn);
       }
     }
+
     //自定义按钮
     if (tableBtn) {
       tableBtn.forEach((customBtn) => {
-        if (customBtn.model) {
-          customBtn.click = modalShow;
-          customBtn.model.formApi = save(
-            customBtn.model.entityType,
-            customBtn.model.type
-          );
-        } else if (customBtn.tableApi) {
-          customBtn.click = confirmShow;
+        let replace = false;
+        memoBtns.forEach((m, index) => {
+          if (m.type === customBtn.type) {
+            replace = true;
+            memoBtns[index] = { ...memoBtns[index], ...customBtn };
+          }
+        });
+        if (!replace) {
+          if (customBtn.model) {
+            customBtn.click = modalShow;
+            customBtn.model.formApi = save(
+              customBtn.model.entityType,
+              customBtn.model.type
+            );
+          } else if (customBtn.tableApi) {
+            customBtn.click = confirmShow;
+          }
+          memoBtns.push(customBtn);
         }
-        memoBtns.push(customBtn);
       });
     }
     return memoBtns;
@@ -469,6 +493,7 @@ const TablePage = <T extends IdBean>({
       const memoBtns: VfButton<T>[] = [];
       const rmDefBtn: VfButton<T> = {
         key: "remove",
+        type: BtnType.RM,
         title: "删除",
         code: resourceKey({ entityType, action: "remove" }),
         click: confirmShow,
@@ -487,6 +512,7 @@ const TablePage = <T extends IdBean>({
       if (editType) {
         const editDefBtn: VfButton<T> = {
           title: "修改",
+          type: BtnType.EDIT,
           key: "save",
           code: resourceKey({
             entityType: entityType,
@@ -511,6 +537,7 @@ const TablePage = <T extends IdBean>({
         const detailDefBtn: VfButton<T> = {
           title: "查看",
           key: "view",
+          type: BtnType.VIEW,
           model: { entityType, type: editType, readPretty: true },
           click: modalShow,
         };
@@ -528,19 +555,28 @@ const TablePage = <T extends IdBean>({
           memoBtns.push(rmDefBtn);
         }
       }
-      //自定义按钮
+      //自定义按钮  type和line里的相同则做覆盖操作
       if (lineBtn) {
         lineBtn.forEach((customBtn) => {
-          if (customBtn.model) {
-            customBtn.click = modalShow;
-            customBtn.model.formApi = save(
-              customBtn.model.entityType,
-              customBtn.model.type
-            );
-          } else if (customBtn.tableApi) {
-            customBtn.click = confirmShow;
+          let replace = false;
+          memoBtns.forEach((m, index) => {
+            if (m.type === customBtn.type) {
+              replace = true;
+              memoBtns[index] = { ...memoBtns[index], ...customBtn };
+            }
+          });
+          if (!replace) {
+            if (customBtn.model) {
+              customBtn.click = modalShow;
+              customBtn.model.formApi = save(
+                customBtn.model.entityType,
+                customBtn.model.type
+              );
+            } else if (customBtn.tableApi) {
+              customBtn.click = confirmShow;
+            }
+            memoBtns.push(customBtn);
           }
-          memoBtns.push(customBtn);
         });
       }
       return memoBtns;
@@ -670,14 +706,12 @@ const TablePage = <T extends IdBean>({
       {mode === "pro" ? (
         <>{table}</>
       ) : (
-        <>
-          <CheckModel
-            modelName={[entityType, listType, editType]}
-            buttons={lineBtn}
-          >
-            {table}
-          </CheckModel>
-        </>
+        <CheckModel
+          modelName={[entityType, listType, editType]}
+          buttons={lineBtn}
+        >
+          {table}
+        </CheckModel>
       )}
     </>
   );

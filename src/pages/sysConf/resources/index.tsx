@@ -42,6 +42,8 @@ import { entityModels, FormVo } from "@src/api/Form";
 import VlifeButton from "@src/components/vlifeButton";
 import SelectIcon from "@src/components/SelectIcon";
 import { arrayToTreeData } from "@src/util/func";
+import VfTour from "@src/components/VfTour";
+import { useAuth } from "@src/context/auth-context";
 
 //对菜单下接入的权限进行启用停用
 export interface ResourcesConfProps {
@@ -51,6 +53,7 @@ export default ({ menuId }: ResourcesConfProps) => {
   const [sysMenuId, setSysMenuId] = useState<string | null>(
     menuId || localStorage.getItem("currMenuId")
   );
+  const { user } = useAuth();
   const [role, setRole] = useState<{ label: string; value: string }[]>(); //所有角色
   const [resources, setResources] = useState<Partial<SysResources>[]>(); //最新资源
   const [dbResources, setDbResources] = useState<Partial<SysResources>[]>(); //数据库资源
@@ -123,19 +126,30 @@ export default ({ menuId }: ResourcesConfProps) => {
       setDbResources(d.data); // init提取的资源
     });
   }, []);
+
+  const treeData = useMemo(() => {
+    const selectMenu =
+      menus?.filter((m) => m.url === null || m.entityType !== null) || [];
+
+    return arrayToTreeData(selectMenu, "id");
+  }, [menus]);
+
   useEffect(() => {
     if (sysMenuId) {
       //全量资源
       loadResourcesData();
-      //菜单信息
-      menuAll().then((m) => {
-        setMenus(m.data);
+      if (user) {
+        setMenus(user.menus);
         setFilter({
           state: "-1",
           entityType:
-            m.data?.filter((mm) => mm.id === sysMenuId)[0].entityType || "",
+            user.menus?.filter((mm) => mm.id === sysMenuId)[0].entityType || "",
         });
-      });
+      }
+      // //菜单信息
+      // menuAll().then((m) => {
+
+      // });
       //角色信息
       listAll().then((d) => {
         setRole(
@@ -149,68 +163,83 @@ export default ({ menuId }: ResourcesConfProps) => {
         setEntitys(d.data);
       });
     }
-  }, [sysMenuId]);
+  }, [sysMenuId, user]);
 
   const navigate = useNavigate();
   return (
-    <Layout className="layout-page">
-      <Layout.Header
-        className="layout-header shadow"
-        style={{ height: "50px" }}
-      >
-        <Nav
-          mode="horizontal"
-          header={
-            <div className=" flex items-center">
-              {/* <Label>{menuStr || `路由地址${menuCode}对应的菜单没找到`}</Label> */}
-              当前菜单：
-              <Label>
-                {menu?.pcode &&
-                  menus?.filter((m) => m.code === menu.pcode)[0].name + "/"}
-                {menu?.name}
-              </Label>
-              <Button
-                onClick={() => {
-                  vlifeModal.show({
-                    title: "菜单切换",
-                    okFun: () => {},
-                    children: (
-                      <Tree
-                        expandAll
-                        selectedKey={sysMenuId}
-                        onSelect={(
-                          selectedKeys: string,
-                          selected: boolean,
-                          selectedNode: TreeNodeData
-                        ) => {
-                          if (selected) {
-                            if (
-                              menus?.filter(
-                                (m: SysMenu) => m.id === selectedKeys
-                              )[0].pcode
-                            ) {
-                              setSysMenuId(selectedKeys);
-                              vlifeModal.hide();
+    <VfTour
+      code="468"
+      // every={true}
+      steps={[
+        {
+          selector: ".fieldSelectTour",
+          content: "选择需要关联权限的菜单",
+        },
+        {
+          selector: ".move",
+          content: "选择接口进行权限组关联",
+        },
+      ]}
+    >
+      <Layout className="layout-page">
+        <Layout.Header
+          className="layout-header shadow"
+          style={{ height: "50px" }}
+        >
+          <Nav
+            mode="horizontal"
+            header={
+              <div className=" flex items-center">
+                {/* <Label>{menuStr || `路由地址${menuCode}对应的菜单没找到`}</Label> */}
+                当前菜单：
+                <Label>
+                  {menu?.pcode &&
+                    menus?.filter((m) => m.code === menu.pcode)[0].name + "/"}
+                  {menu?.name}
+                </Label>
+                <Button
+                  className="fieldSelectTour"
+                  onClick={() => {
+                    vlifeModal.show({
+                      title: `菜单切换`,
+                      okFun: () => {},
+                      children: (
+                        <Tree
+                          // expandAll
+                          selectedKey={sysMenuId}
+                          onSelect={(
+                            selectedKeys: string,
+                            selected: boolean,
+                            selectedNode: TreeNodeData
+                          ) => {
+                            if (selected) {
+                              if (
+                                //有关联实体的可以进行权限设置
+                                menus?.filter(
+                                  (m: SysMenu) => m.id === selectedKeys
+                                )[0].entityType
+                              ) {
+                                setSysMenuId(selectedKeys);
+                                vlifeModal.hide();
+                              } else {
+                                alert(
+                                  "只能选择与实体关联的菜单进行权限资源绑定"
+                                );
+                              }
                             }
-                          }
-                        }}
-                        treeData={arrayToTreeData(
-                          menus?.filter(
-                            (m) => m.pcode === null || m.entityType !== null
-                          ) || [],
-                          "id"
-                        )}
-                      />
-                    ),
-                  });
-                }}
-                icon={<IconLoopTextStroked className=" cursor-pointer " />}
-              ></Button>
-            </div>
-          }
-          footer={
-            <Space>
-              {/* <VlifeButton
+                          }}
+                          treeData={treeData}
+                        />
+                      ),
+                    });
+                  }}
+                  icon={<IconLoopTextStroked className=" cursor-pointer " />}
+                ></Button>
+              </div>
+            }
+            footer={
+              <Space>
+                {/* <VlifeButton
                 code="sysResources:save"
                 onClick={() => {
                   setResources(
@@ -223,263 +252,264 @@ export default ({ menuId }: ResourcesConfProps) => {
               >
                 一键配置
               </VlifeButton> */}
-              <VlifeButton
-                disabled={
-                  JSON.stringify(resources) === JSON.stringify(dbResources)
-                }
-                onClick={() => {
-                  saveResources(submitData).then((d: any) => {
-                    loadResourcesData();
-                  });
-                }}
-                code="sysResources:save"
-                icon={<IconSave />}
-              >
-                保存
-              </VlifeButton>
-              <Button
-                onClick={() => {
-                  navigate(-1);
-                }}
-              >
-                返回
-              </Button>
-            </Space>
-          }
-        />
-      </Layout.Header>
+                <VlifeButton
+                  disabled={
+                    JSON.stringify(resources) === JSON.stringify(dbResources)
+                  }
+                  onClick={() => {
+                    saveResources(submitData).then((d: any) => {
+                      loadResourcesData();
+                    });
+                  }}
+                  code="sysResources:save"
+                  icon={<IconSave />}
+                >
+                  保存
+                </VlifeButton>
+                <Button
+                  onClick={() => {
+                    navigate(-1);
+                  }}
+                >
+                  返回
+                </Button>
+              </Space>
+            }
+          />
+        </Layout.Header>
 
-      <div className="h-full flex overscroll-auto">
-        <div className=" mt-2 mr-2 bg-white w-1/3">
-          <div className="pt-2 pl-4">
-            <Label>请选择接口进行绑定</Label>
-            {/* <Breadcrumb className=" mt-2 ml-4"> */}
-            {/* <Breadcrumb.Item></Breadcrumb.Item>
+        <div className="h-full flex overscroll-auto">
+          <div className=" mt-2 mr-2 bg-white w-1/3">
+            <div className="pt-2 pl-4">
+              <Label>请选择接口进行绑定</Label>
+              {/* <Breadcrumb className=" mt-2 ml-4"> */}
+              {/* <Breadcrumb.Item></Breadcrumb.Item>
               <Breadcrumb.Item>接口选择</Breadcrumb.Item>
               <Breadcrumb.Item>
                 {entitys?.filter((e) => e.type === filter?.entityType)[0].title}
               </Breadcrumb.Item>
             </Breadcrumb> */}
-          </div>
+            </div>
 
-          {/* <div >
+            {/* <div >
             <Label>
               当前位置：
              
             </Label>
           </div> */}
-          <Space className="mt-4 ml-4">
-            <Dropdown
-              render={
-                <div className=" w-96  bg-slate-100 p-4  grid grid-cols-3 space-x-2 space-y-2">
-                  {entitys?.map((entity) => (
-                    <Tag
-                      className=" hover:bg-slate-400"
-                      size="large"
-                      type={
-                        filter?.state === "-1" &&
-                        filter.entityType === entity?.type
-                          ? "solid"
-                          : "ghost"
-                      }
-                      key={`entity${entity.type}`}
-                      onClick={() => {
-                        setFilter({ state: "-1", entityType: entity.type });
-                      }}
-                    >
-                      {entity.title}
-                    </Tag>
-                  ))}
-                </div>
-              }
-            >
-              <Tag
-                // color="blue"
-                size="large"
-                type={filter?.state === "-1" ? "solid" : "ghost"}
-              >
-                待选择接口
-              </Tag>
-            </Dropdown>
-
-            <Dropdown
-              render={
-                <div className=" w-96  bg-slate-100 p-4  grid grid-cols-3 space-x-2 space-y-2">
-                  {entitys?.map((entity) => (
-                    <Tag
-                      className=" hover:bg-slate-400"
-                      size="large"
-                      type={
-                        filter?.state === "0" &&
-                        filter.entityType === entity?.type
-                          ? "solid"
-                          : "ghost"
-                      }
-                      key={`entity${entity.type}`}
-                      onClick={() => {
-                        setFilter({ state: "0", entityType: entity.type });
-                      }}
-                    >
-                      {entity.title}
-                    </Tag>
-                  ))}
-                </div>
-              }
-            >
-              <Tag
-                size="large"
-                type={filter?.state === "0" ? "solid" : "ghost"}
-              >
-                已忽略接口
-              </Tag>
-            </Dropdown>
-          </Space>
-
-          <div className=" p-2">
-            {/* <Scrollbars > */}
-            <List
-              dataSource={renderList}
-              renderItem={(item, index) => (
-                <List.Item
-                  className=" relative border "
-                  key={item.id}
-                  header={
-                    <>
-                      <SelectIcon value={item.icon} read />
-                      {/* {JSON.stringify(item.icon)} */}
-                    </>
-                  }
-                  main={
-                    <div>
-                      <span
-                        style={{
-                          color: "var(--semi-color-text-0)",
-                          fontWeight: 100,
+            <Space className="mt-4 ml-4">
+              <Dropdown
+                render={
+                  <div className=" w-96  bg-slate-100 p-4  grid grid-cols-3 space-x-2 space-y-2">
+                    {entitys?.map((entity) => (
+                      <Tag
+                        className=" hover:bg-slate-400"
+                        size="large"
+                        type={
+                          filter?.state === "-1" &&
+                          filter.entityType === entity?.type
+                            ? "solid"
+                            : "ghost"
+                        }
+                        key={`entity${entity.type}`}
+                        onClick={() => {
+                          setFilter({ state: "-1", entityType: entity.type });
                         }}
                       >
-                        {item.name}
-                      </span>
-                      <p>{item.url}</p>
-                    </div>
-                  }
-                  extra={
-                    <ButtonGroup
-                      className=" absolute top-0 right-0"
-                      theme="borderless"
-                    >
-                      <Button
-                        icon={<IconForward />}
-                        onClick={() => {
-                          resources &&
-                            setResources(
-                              resources.map((r) => {
-                                return r.id === item.id
-                                  ? {
-                                      ...item,
-                                      sysMenuId: sysMenuId || "",
-                                      state: "1",
-                                    }
-                                  : r;
-                              })
-                            );
-                        }}
-                      />
-
-                      <Button
-                        icon={<IconClose />}
-                        onClick={() => {
-                          resources &&
-                            setResources(
-                              resources.map((r) => {
-                                return r.id === item.id
-                                  ? {
-                                      ...item,
-                                      sysMenuId: undefined,
-                                      state: "0",
-                                    }
-                                  : r;
-                              })
-                            );
-                        }}
-                      />
-                    </ButtonGroup>
-                  }
-                />
-              )}
-            />
-            {/* </Scrollbars> */}
-          </div>
-        </div>
-        <div className="w-full bg-white mt-2">
-          <div className="p-2">
-            <Label>已绑定的接口资源</Label>
-          </div>
-          <Table
-            dataSource={resources?.filter((r) => r.sysMenuId === menu?.id)}
-            pagination={false}
-          >
-            <Column title="接口地址" width={200} dataIndex="url" key="url" />
-            <Column
-              title="接口名称"
-              dataIndex="name"
-              width={140}
-              key="name"
-              render={(text, record, index) => (
-                <Input
-                  value={text}
-                  onChange={(t) => {
-                    const line = { ...record, name: t };
-                    setResources(
-                      resources?.map((r, i) => {
-                        return record.id === r.id ? line : r;
-                      })
-                    );
-                  }}
-                />
-                // <Input value={a} onChange={(t) => setA(t)} />
-              )}
-            />
-            <Column
-              title="图标"
-              dataIndex="icon"
-              key="icon"
-              width={110}
-              render={(text, record, index) => (
-                <SelectIcon
-                  key={"icon" + record.id}
-                  value={text}
-                  onDataChange={(icon) => {
-                    setResources(
-                      resources?.map((r, i) => {
-                        return record.id === r.id ? { ...r, icon } : r;
-                      })
-                    );
-                  }}
-                />
-              )}
-            />
-            <Column
-              title="模块"
-              dataIndex="entityType"
-              key="entityType"
-              width={110}
-            />
-            <Column
-              className="group"
-              title="编码"
-              dataIndex="code"
-              key="code"
-              width={180}
-              render={(text, record, index) => (
-                <Label>
-                  {text}
-                  <div className=" absolute right-0 hidden group-hover:block">
-                    复制
+                        {entity.title}
+                      </Tag>
+                    ))}
                   </div>
-                </Label>
-              )}
-            />
-            {/* <Column
+                }
+              >
+                <Tag
+                  // color="blue"
+                  size="large"
+                  type={filter?.state === "-1" ? "solid" : "ghost"}
+                >
+                  待选择接口
+                </Tag>
+              </Dropdown>
+
+              <Dropdown
+                render={
+                  <div className=" w-96  bg-slate-100 p-4  grid grid-cols-3 space-x-2 space-y-2">
+                    {entitys?.map((entity) => (
+                      <Tag
+                        className=" hover:bg-slate-400"
+                        size="large"
+                        type={
+                          filter?.state === "0" &&
+                          filter.entityType === entity?.type
+                            ? "solid"
+                            : "ghost"
+                        }
+                        key={`entity${entity.type}`}
+                        onClick={() => {
+                          setFilter({ state: "0", entityType: entity.type });
+                        }}
+                      >
+                        {entity.title}
+                      </Tag>
+                    ))}
+                  </div>
+                }
+              >
+                <Tag
+                  size="large"
+                  type={filter?.state === "0" ? "solid" : "ghost"}
+                >
+                  已忽略接口
+                </Tag>
+              </Dropdown>
+            </Space>
+
+            <div className=" p-2">
+              {/* <Scrollbars > */}
+              <List
+                dataSource={renderList}
+                renderItem={(item, index) => (
+                  <List.Item
+                    className=" relative border "
+                    key={item.id}
+                    header={
+                      <>
+                        <SelectIcon value={item.icon} read />
+                        {/* {JSON.stringify(item.icon)} */}
+                      </>
+                    }
+                    main={
+                      <div>
+                        <span
+                          style={{
+                            color: "var(--semi-color-text-0)",
+                            fontWeight: 100,
+                          }}
+                        >
+                          {item.name}
+                        </span>
+                        <p>{item.url}</p>
+                      </div>
+                    }
+                    extra={
+                      <ButtonGroup
+                        className=" absolute top-0 right-0"
+                        theme="borderless"
+                      >
+                        <Button
+                          icon={<IconForward />}
+                          className="move"
+                          onClick={() => {
+                            resources &&
+                              setResources(
+                                resources.map((r) => {
+                                  return r.id === item.id
+                                    ? {
+                                        ...item,
+                                        sysMenuId: sysMenuId || "",
+                                        state: "1",
+                                      }
+                                    : r;
+                                })
+                              );
+                          }}
+                        />
+
+                        <Button
+                          icon={<IconClose />}
+                          onClick={() => {
+                            resources &&
+                              setResources(
+                                resources.map((r) => {
+                                  return r.id === item.id
+                                    ? {
+                                        ...item,
+                                        sysMenuId: undefined,
+                                        state: "0",
+                                      }
+                                    : r;
+                                })
+                              );
+                          }}
+                        />
+                      </ButtonGroup>
+                    }
+                  />
+                )}
+              />
+              {/* </Scrollbars> */}
+            </div>
+          </div>
+          <div className="w-full bg-white mt-2">
+            <div className="p-2">
+              <Label>已绑定的接口资源</Label>
+            </div>
+            <Table
+              dataSource={resources?.filter((r) => r.sysMenuId === menu?.id)}
+              pagination={false}
+            >
+              <Column title="接口地址" width={200} dataIndex="url" key="url" />
+              <Column
+                title="接口名称"
+                dataIndex="name"
+                width={140}
+                key="name"
+                render={(text, record, index) => (
+                  <Input
+                    value={text}
+                    onChange={(t) => {
+                      const line = { ...record, name: t };
+                      setResources(
+                        resources?.map((r, i) => {
+                          return record.id === r.id ? line : r;
+                        })
+                      );
+                    }}
+                  />
+                  // <Input value={a} onChange={(t) => setA(t)} />
+                )}
+              />
+              <Column
+                title="图标"
+                dataIndex="icon"
+                key="icon"
+                width={110}
+                render={(text, record, index) => (
+                  <SelectIcon
+                    key={"icon" + record.id}
+                    value={text}
+                    onDataChange={(icon) => {
+                      setResources(
+                        resources?.map((r, i) => {
+                          return record.id === r.id ? { ...r, icon } : r;
+                        })
+                      );
+                    }}
+                  />
+                )}
+              />
+              <Column
+                title="模块"
+                dataIndex="entityType"
+                key="entityType"
+                width={110}
+              />
+              <Column
+                className="group"
+                title="编码"
+                dataIndex="code"
+                key="code"
+                width={180}
+                render={(text, record, index) => (
+                  <Label>
+                    {text}
+                    <div className=" absolute right-0 hidden group-hover:block">
+                      复制
+                    </div>
+                  </Label>
+                )}
+              />
+              {/* <Column
               title="调用情况"
               dataIndex="auth"
               key="resourcesCode"
@@ -499,101 +529,94 @@ export default ({ menuId }: ResourcesConfProps) => {
                 )
               }
             /> */}
-            <Column
-              width={120}
-              title={
-                <>
-                  主要接口
-                  <Tooltip content="进入该菜单模块一定会访问到的接口">
-                    <IconHelpCircle />
-                  </Tooltip>
-                </>
-              }
-              dataIndex="menuRequired"
-              key="menuRequired"
-              render={(text: boolean, record: SysResources, index) => (
-                <Switch
-                  checked={text}
-                  onChange={(menuRequired) => {
-                    setResources(
-                      resources?.map((r, i) => {
-                        return record.id === r.id
-                          ? { ...r, menuRequired: menuRequired }
-                          : r;
-                      })
-                    );
-                  }}
-                />
-              )}
-            />
-            <Column
-              width={150}
-              title={
-                <>
-                  关联角色
-                  {/* <IconHelpCircle /> */}
-                </>
-              }
-              dataIndex="sysRoleId"
-              key="sysRoleId"
-              render={(text: string, record, index) => (
-                <Select
-                  showClear
-                  style={{ width: "150px" }}
-                  optionList={role}
-                  value={text}
-                  onChange={(role) => {
-                    setResources(
-                      resources?.map((r, i) => {
-                        return r.id === record.id
-                          ? {
-                              ...r,
-                              sysRoleId: role ? role + "" : undefined,
-                            }
-                          : r;
-                      })
-                    );
-                  }}
-                />
-              )}
-            />
+              <Column
+                width={120}
+                title={
+                  <>
+                    主要接口
+                    <Tooltip content="进入该菜单模块一定会访问到的接口">
+                      <IconHelpCircle />
+                    </Tooltip>
+                  </>
+                }
+                dataIndex="menuRequired"
+                key="menuRequired"
+                render={(text: boolean, record: SysResources, index) => (
+                  <Switch
+                    checked={text}
+                    onChange={(menuRequired) => {
+                      setResources(
+                        resources?.map((r, i) => {
+                          return record.id === r.id
+                            ? { ...r, menuRequired: menuRequired }
+                            : r;
+                        })
+                      );
+                    }}
+                  />
+                )}
+              />
+              <Column
+                width={150}
+                title={
+                  <>
+                    关联角色
+                    {/* <IconHelpCircle /> */}
+                  </>
+                }
+                dataIndex="sysRoleId"
+                key="sysRoleId"
+                render={(text: string, record, index) => (
+                  <Select
+                    showClear
+                    style={{ width: "150px" }}
+                    optionList={role}
+                    value={text}
+                    onChange={(role) => {
+                      setResources(
+                        resources?.map((r, i) => {
+                          return r.id === record.id
+                            ? {
+                                ...r,
+                                sysRoleId: role ? role + "" : undefined,
+                              }
+                            : r;
+                        })
+                      );
+                    }}
+                  />
+                )}
+              />
 
-            <Column
-              title="移除"
-              dataIndex="id"
-              key="id"
-              render={(id: string, record, index) => (
-                <Button
-                  onClick={() => {
-                    setResources(
-                      resources?.map((r, i) => {
-                        return r.id === record.id
-                          ? {
-                              ...record,
-                              sysMenuId: undefined,
-                              sysRoleId: undefined,
-                              state: "-1",
-                            }
-                          : r;
-                      })
-                    );
-                  }}
-                >
-                  移除
-                </Button>
-              )}
-            />
-          </Table>
-          {
-            // resources?.filter(
-            //   (r) =>
-            //     r.entityType?.toLowerCase() ===
-            //       menu?.entityType.toLowerCase() && r.menuId === null
-            // ).length
-            // JSON.stringify(saveResources)
-          }
+              <Column
+                title="移除"
+                dataIndex="id"
+                key="id"
+                render={(id: string, record, index) => (
+                  <Button
+                    onClick={() => {
+                      setResources(
+                        resources?.map((r, i) => {
+                          return r.id === record.id
+                            ? {
+                                ...record,
+                                sysMenuId: undefined,
+                                sysRoleId: undefined,
+                                state: "-1",
+                              }
+                            : r;
+                        })
+                      );
+                    }}
+                  >
+                    移除
+                  </Button>
+                )}
+              />
+            </Table>
+          </div>
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </VfTour>
   );
 };

@@ -37,6 +37,10 @@ import VfTreeSelect from '@src/components/VfTreeSelect';
 import { DataType, Mode, sourceType, TsType } from '@src/dsl/schema/base';
 import { ComponentDef } from '@src/dsl/schema/component';
 import VfCheckbox from '@src/components/VfCheckbox';
+import VfNumbersInput from '@src/components/VfNumbersInput';
+import QueryBuilder from '@src/pages/sysConf/queryBuilder';
+import ManySelect from '@src/components/ManySelect';
+import VfSelectColor from '@src/components/VfSelectColor';
 // import SearchInput from '@src/life-ui/components/SearchInput';
 const Input = connect(SemiInput, mapReadPretty(PreviewText.Input))
 const Select = connect(SemiSelect, mapReadPretty(VfText))
@@ -52,10 +56,16 @@ export const ComponentInfos: ComponentDef = {
     component:Input,
     icon:"IconFont",
     label:"单行文字",
-    // dataChangeValueType: dataType.string,
     match:{ dataType:DataType.basic,
-      dataModel:TsType.string},
+      dataModel:TsType.string}, //出参数据类型
     // target:[{entityType:"project",fieldName:"name"}]
+  },
+  SelectColor: {
+    component:VfSelectColor,
+    icon:"IconFont",
+    label:"颜色选择",
+    match:{ dataType:DataType.basic,
+      dataModel:TsType.string}, //出参数据类型
   },
   VfCheckbox:{
     component:VfCheckbox,
@@ -69,6 +79,13 @@ export const ComponentInfos: ComponentDef = {
     label:"多行文字",
     match:{ dataType:DataType.basic,
       dataModel:TsType.string},
+  },
+  VfNumbersInput:{
+    icon:"IconWholeWord",
+    component:VfNumbersInput,
+    label:"数字范围",
+    match:{ dataType:DataType.array,
+      dataModel:TsType.number},
   },
   InputNumber: {
     label:"数字",
@@ -185,6 +202,7 @@ export const ComponentInfos: ComponentDef = {
         dataModel:"ITree",
         must: true,
       },
+
       // valField: "code",
       // valField: {
       //   label: "取值字段",
@@ -261,9 +279,21 @@ VfImage: {
         dataModel:'ITree',
         must: true,
       },
+      expandAll:false,
       valField: "code",
     },
   },
+
+
+  // <RadioGroup
+  //             type="button"
+  //             defaultValue={"en_GB"}
+  //             style={{ marginLeft: "20px" }}
+  //           >
+  //             <Radio value={"zh_CN"}>中文</Radio>
+  //             <Radio value={"en_GB"}>EN</Radio>
+  //           </RadioGroup>
+
   PageSelect:{
     component:PageSelect,
     label:"分组选择组件",
@@ -279,6 +309,10 @@ VfImage: {
       }
     }
   },
+  /**
+   * (1)一对多用子表单(录入方式创建多方数据)
+   * 如果1对多的，多方那张表也是多对多的中间表，则可以使用一次多选的方式创建
+   */ 
   table:{
     component:FormTable,
     label: "子表单",
@@ -301,6 +335,22 @@ VfImage: {
         sourceType:sourceType.fixed
         // sys:{key:'entityType'},
       }
+    }
+  }
+,
+  ManySelect:{
+    component:ManySelect,
+    label: "1对多选择组件",
+    icon:"IconOrderedList",
+    mode:[Mode.form],
+    match:{ dataType:DataType.array,dataModel:"IdBean"},
+    propInfo:{
+      fkTypeName:{
+        sourceType:sourceType.fixed,
+        dataType: DataType.basic,
+        dataModel:TsType.string,
+        label:"实体类名",
+      },
     }
   }
 
@@ -345,20 +395,26 @@ VfImage: {
       },
     },
   },
-//   QueryBuilder: {
-//     component:QueryBuilder,
-//     dataChangeValueType: dataType.string,
-//     label: "查询条件设计器",
-//    mode:[Mode.form],
-//     propInfo: {
-//       datas: {
-//         label: "实体模型名称",
-//         dataType: dataType.string,
-//         sourceType:"field",
-//         must: true,
-//       },
-//     },
-//   },
+  //高级组件
+  QueryBuilder: {
+    component:QueryBuilder,
+    match:{dataType:DataType.basic,
+    dataModel:TsType.string},
+    target:[
+      {type:"reportItem",fieldName:"conditionJson"}
+    ],
+    label: "查询条件设计器",
+    mode:[Mode.form],
+    propInfo: {
+      datas: {
+        label: "模型字段",
+        dataType:DataType.basic,
+        dataModel:TsType.string,
+        sourceType:sourceType.field,
+        must: true,
+      },
+    },
+  },
 
 
  

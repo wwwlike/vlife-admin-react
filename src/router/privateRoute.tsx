@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { Navigate } from "react-router-dom";
-import { RouteProps, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import Empty from "@src/pages/common/Empty";
 // import useStore from '@src/stores/user'
 import { useAuth } from "@src/context/auth-context";

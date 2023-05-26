@@ -15,7 +15,7 @@ function VfEditor({ value, onDataChange, read }: VfEditorProps) {
   // const [editor, setEditor] = useState(null)                   // JS 语法
 
   // 编辑器内容
-  const [html, setHtml] = useState(value);
+  const [html, setHtml] = useState<string>(value);
 
   useUpdateEffect(() => {
     onDataChange(html);

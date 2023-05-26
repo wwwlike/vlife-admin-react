@@ -1,6 +1,6 @@
 
 import {OrderPurchaseDetail} from './OrderPurchaseDetail'
-import {PageVo,DbEntity,SaveBean,PageQuery,INo,Result} from '@src/api/base'
+import {PageVo,DbEntity,SaveBean,PageQuery,INo,Result, EntityStateDto} from '@src/api/base'
 import apiClient from '@src/api/base/apiClient'
 // 采购单
 export interface OrderPurchase extends DbEntity,INo{
@@ -54,4 +54,14 @@ export const saveOrderPurchaseDto=(dto: OrderPurchaseDto): Promise<Result<OrderP
    */
 export const detail=(id: string): Promise<Result<OrderPurchase>>=>{
   return apiClient.get(`/orderPurchase/detail/${id}`  );
+};
+
+
+/** 
+  * 更新订单状态
+  * @param dto
+  * @return
+  */
+ export const state=(dto:EntityStateDto): Promise<Result<string[]>>=>{
+  return apiClient.post(`/orderPurchase/state`  ,dto  );
 };

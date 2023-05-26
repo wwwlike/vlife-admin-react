@@ -48,15 +48,15 @@ export const FormModal = createNiceModal(
       const no = formData?.no || "";
       if (props.title) return props.title;
       if (props.readPretty) {
-        return formVo?.title + "详情" + no;
+        return formVo?.name + "详情" + no;
       } else {
         if (formData && formData.id) {
-          return formVo?.title + "编辑" + no;
+          return formVo?.name + "编辑" + no;
         } else {
-          return "新建(" + formVo?.title + ")";
+          return "新建(" + formVo?.name + ")";
         }
       }
-    }, [formData, formVo && formVo.title]);
+    }, [formData, formVo && formVo.name]);
 
     const handleSubmit = useCallback(() => {
       if (formVo) {

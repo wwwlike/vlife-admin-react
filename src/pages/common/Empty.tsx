@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { Empty, Button } from "@douyinfe/semi-ui";
 import { useNavigate } from "react-router-dom";
 import {
@@ -9,22 +9,41 @@ import {
 interface Iprops {
   title?: string;
   description?: string;
-  type: "404" | "403";
+  imgSize?: "small" | "large" | "default";
+  type?: "404" | "403";
 }
 
-const Result: FC<Iprops> = ({ title, description, type }) => {
+const Result: FC<Iprops> = ({
+  title,
+  description,
+  type,
+  imgSize = "default",
+}) => {
   const navigate = useNavigate();
-  // useEffect(()=>{
-  // 	if(type==='403'){
-  // 		navigate(`/login${'?from=' + encodeURIComponent(location.pathname)}`, { replace: true })		}
-  // },[])
+  // const [size, setSize] = useState(imgSi);
+
+  const size = useMemo((): string => {
+    if (imgSize === "small") {
+      return "w-20";
+    } else if (imgSize === "large") {
+      return "w-60";
+    }
+    return "w-40";
+  }, [imgSize]);
+  useEffect(() => {
+    // if (type === "403") {
+    //   navigate(`/login${"?from=" + encodeURIComponent(location.pathname)}`, {
+    //     replace: true,
+    //   });
+    // }
+  }, []);
   return (
     <Empty
       image={
         type == "403" ? (
-          <IllustrationNoAccess style={{ width: 150, height: 150 }} />
+          <IllustrationNoAccess className={size} />
         ) : (
-          <IllustrationConstruction style={{ width: 150, height: 150 }} />
+          <IllustrationConstruction className={size} />
         )
       }
       title={title}
@@ -35,22 +54,24 @@ const Result: FC<Iprops> = ({ title, description, type }) => {
         alignItems: "center",
       }}
     >
-      <Button
-        style={{ padding: "6px 24px", width: " 180px" }}
-        theme="solid"
-        type="primary"
-        onClick={
-          type === "403"
-            ? () =>
-                navigate(
-                  `/login${"?from=" + encodeURIComponent(location.pathname)}`,
-                  { replace: true }
-                )
-            : () => navigate(`/dashboard/workbeach`, { replace: true })
-        }
-      >
-        {type === "403" ? "去登录" : "回到首页"}
-      </Button>
+      {type && (
+        <Button
+          style={{ padding: "6px 24px", width: " 180px" }}
+          theme="solid"
+          type="primary"
+          onClick={
+            type === "403"
+              ? () =>
+                  navigate(
+                    `/login${"?from=" + encodeURIComponent(location.pathname)}`,
+                    { replace: true }
+                  )
+              : () => navigate(`/dashboard/workbeach`, { replace: true })
+          }
+        >
+          {type === "403" ? "去登录" : "回到首页"}
+        </Button>
+      )}
     </Empty>
   );
 };

@@ -13,6 +13,7 @@ export interface SysMenu extends DbEntity{
   entityType:string;//对应模型
   placeholderUrl:string;//替换通配符
   app:boolean;//是否作为APP
+  sort:number;//排序号
 }
 
 /**
@@ -25,6 +26,7 @@ export interface MenuVo extends DbEntity{
   icon: string;  // 图标
   url: string;  // 路由地址
   entityType:string;//对应模型
+  sort:number;//排序号
   sysResourcesList:SysResources[];//接口数据
 }
 /** 

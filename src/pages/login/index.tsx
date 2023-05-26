@@ -198,8 +198,8 @@ const Index: React.FC = () => {
       flex items-center h-screen
       "
       style={{
-        backgroundColor: `#00c1c1`,
-        backgroundImage: `url(https://wwwlike.gitee.io/vlife-img/vlife.jpg) `,
+        // backgroundColor: `#00c1c1`,
+        backgroundImage: `url(https://wwwlike.gitee.io/vlife-img/bj.jpg) `,
       }}
     >
       {/* <div className=" absolute  left-36 top-1/4 ">
@@ -234,20 +234,14 @@ const Index: React.FC = () => {
             >
               密码登录
             </div>
-            <div
-              className=" cursor-pointer"
-              onClick={() => {
-                setPart("register");
-                setRegisterData({});
-              }}
-            >
-              <a
-                href="#"
-                className="text-sm  text-blue-400 hover:text-blue-500 hover:underline mb-6"
-              >
-                账号注册
-              </a>
+            <div className=" absolute top-2 right-2">
+              <img
+                src="https://wwwlike.gitee.io/vlife-img/wxgzh.jpg"
+                className=" w-36 "
+              />
+              关注获取账号
             </div>
+
             {/* <p className="text-gray-600 pt-2">管理员：manage/123456</p>
           <p className="text-gray-600 pt-2">普通用户：admin/123456</p> */}
           </section>
@@ -558,7 +552,9 @@ const Index: React.FC = () => {
             cursor: "pointer",
           }}
         >
-          关注公众号获取开发资料
+          <a href="http://qm.qq.com/cgi-bin/qm/qr?k=786134846" target="_blank">
+            技术支持QQ群：786134846
+          </a>
         </div>
       </div>
 

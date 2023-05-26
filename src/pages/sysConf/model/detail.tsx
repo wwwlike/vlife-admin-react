@@ -1,5 +1,5 @@
 import { Button } from "@douyinfe/semi-ui";
-import { Form, list } from "@src/api/Form";
+import { Form, FormVo, list } from "@src/api/Form";
 import { useNiceModal } from "@src/store";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -17,7 +17,7 @@ const Entity = () => {
   //加载弹出表单modal
   const formModal = useNiceModal("formModal");
   //数据库保存的模型信息
-  const [dbEntitys, setDbEntitys] = useState<Form[]>();
+  const [dbEntitys, setDbEntitys] = useState<FormVo[]>();
 
   const ItemTypeInfo: {
     [key: string]: { itemType: string[]; label: string };

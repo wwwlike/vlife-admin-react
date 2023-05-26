@@ -103,7 +103,7 @@ export const model = (params:formPageReq): Promise<Result<FormVo>> => {
  */
  export const list = (
   req:formPageReq
- ): Promise<Result<Form[]>> => {
+ ): Promise<Result<FormVo[]>> => {
    return apiClient.get(`/form/list`,{params:req});
  };
 
@@ -152,4 +152,12 @@ export const formReportItemAll = (): Promise<Result<SelectCompVo[]>> => {
 
 export const formReportKpiAll = (): Promise<Result<SelectCompVo[]>> => {
   return apiClient.get(`/form/formReportKpiAll`);
+};
+
+/** 
+  * 模型初始化
+  * @return
+  */
+ export const init=(id: string): Promise<Result<FormVo>>=>{
+  return apiClient.post(`/form/init/${id}`  );
 };

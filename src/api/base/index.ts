@@ -9,6 +9,13 @@ import { SysDict } from "../SysDict";
 export interface IdBean {
   id: string;
 }
+/**
+ * 实体状态批量修改dto
+ */
+export interface EntityStateDto{
+  ids:string[], //ids
+  state:string,//修改状态
+}
 
 /**
  * 支持字典和外键name形成选择项
@@ -68,6 +75,21 @@ export interface PageQuery {
     size: number;
   };
 }
+
+/**
+ * 数据库实体基类
+ */
+ export interface Item extends IStatus, IdBean {
+}
+/**
+ * 统计查询的条件
+ */
+export interface ReportQuery {
+  itemCode?:string[];//统计项目code
+  reportCode?: string; //报表code
+  groups: string[]; //分组信息
+}
+
 /**
  *查询分页结果
  */

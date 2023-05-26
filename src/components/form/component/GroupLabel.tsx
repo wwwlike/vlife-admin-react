@@ -5,8 +5,8 @@ import React from "react";
 
 interface GroupLabelProps {
   text: string;
-  icon: string;
-  color: string;
+  icon?: string;
+  color?: string;
 }
 export default ({ text, icon, color }: GroupLabelProps) => {
   return (

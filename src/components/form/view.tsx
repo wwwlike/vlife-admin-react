@@ -11,7 +11,6 @@ import SelectIcon from "@src/components/SelectIcon";
 import { Field } from "@formily/core";
 import { ParamInfo } from "@src/dsl/schema/api";
 import { listAll } from "@src/api/base/baseService";
-import { Result } from "@src/api/base";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 // /**

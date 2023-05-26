@@ -1,38 +1,20 @@
-import { Button, Tooltip } from "@douyinfe/semi-ui";
+import { Button, TabPane, Tabs, Tooltip } from "@douyinfe/semi-ui";
+import { FormVo, list } from "@src/api/Form";
 import { useAuth } from "@src/context/auth-context";
-import { Form, list } from "@src/api/Form";
-import { useNiceModal } from "@src/store";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { renderIcon } from "@src/pages/layout/components/sider";
+import { title } from "process";
+import react, { useCallback, useEffect, useState } from "react";
+import Scrollbars from "react-custom-scrollbars";
 import { useNavigate } from "react-router-dom";
 import { IconCode } from "@douyinfe/semi-icons";
-import Scrollbars from "react-custom-scrollbars";
-import { listAll, SysMenu } from "@src/api/SysMenu";
-
-/**
-   ## 模型管理
-   ### 模型介绍
-    > 涉及到实体模型entity,视图模型vo,传输模型dto,查询模型req相关的所有与页面显示层有关的设置都放在里面。
-    - entity支持成为vo,dto,req
-    - dto 传输模型，可以作为vo
-    - vo  视图层，可以作为列表
-    - req 查询条件 
-
-  ###
-  .模型列表(tab页签)
-    -   启用的模型
-      启用后模型可以按照业务分类
-    1.1 未启用模型 （启用）
-    1.2 外键表，关联表查看
-    1.3 模型代码生成
- 
-    1.4 模型设置
-    1.5.1 表单设置
-    1.5.2 相应设置
- */
+import { SysMenu } from "@src/api/SysMenu";
+import { findSubs } from "@src/util/func";
 const Model = () => {
-  const [menus, setMenus] = useState<SysMenu[]>();
-  const [dbEntitys, setDbEntitys] = useState<Form[]>();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  //全部实体模型
+  const [dbEntitys, setDbEntitys] = useState<FormVo[]>([]);
+
   useEffect(() => {
     list({ itemType: "entity" }).then((d) => {
       if (d.data) {
@@ -41,13 +23,9 @@ const Model = () => {
         setDbEntitys([]);
       }
     });
-
-    listAll().then((t) => {
-      setMenus(t.data);
-    });
   }, []);
 
-  const card = useCallback((e: Form, index: number) => {
+  const card = useCallback((e: FormVo) => {
     return (
       <div className=" group relative block w-full h-24 border-2 border-gray-300 border-dashed rounded-lg p-2 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
         <Tooltip content="前端代码">
@@ -80,99 +58,52 @@ const Model = () => {
     );
   }, []);
 
+  /**
+   * 模块下的实体
+   */
+  const liEntity = useCallback(
+    (appId: string): FormVo[] => {
+      if (user?.menus && dbEntitys) {
+        const menus: SysMenu[] = findSubs(
+          user.menus,
+          user.menus.filter((m) => m.id === appId)[0]
+        ).filter((m) => m.entityType);
+
+        return dbEntitys.filter((d) =>
+          menus.map((m) => m.entityType).includes(d.type)
+        );
+      }
+      return [];
+    },
+    [user?.menus, dbEntitys]
+  );
+
+  /**
+   * 外键关联实体
+   */
+  const realationEntity = useCallback((appId: string) => {}, []);
+
   return (
     <Scrollbars autoHide={true}>
-      <div className="flex-1 flex items-stretch overflow-hidden bg-white rounded-md ">
-        <main className="flex-1 overflow-y-auto">
-          {/* max-w-7xl */}
-          <div className="pt-2  mx-auto px-2 ">
-            {menus &&
-              menus
-                .filter((m) => m.pcode === null)
-                .filter((m) => {
-                  return (
-                    menus.filter((k) => k.pcode === m.code && k.entityType)
-                      .length > 0
-                  );
-                })
-                .map((d, index) => (
-                  <div key={"model_" + index} className="">
-                    <div className="hidden sm:block">
-                      <div className="flex items-center border-b border-gray-200">
-                        <a
-                          href="#"
-                          aria-current="page"
-                          className={`border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                        >
-                          {d.name}
-                        </a>
-                      </div>
-                      <div>
-                        <ul
-                          role="list"
-                          className="grid  p-2 gap-4 grid-cols-10"
-                        >
-                          {dbEntitys
-                            ?.filter((db) =>
-                              menus
-                                .filter((m) => m.pcode === d.code)
-                                .map((mm) => mm.entityType)
-                                .includes(db.type)
-                            )
-                            .map((e, index) => (
-                              <li
-                                key={e.type + index}
-                                className="relative"
-                                onDoubleClick={() => {
-                                  navigate("/sysConf/modelDetail/" + e.type);
-                                }}
-                              >
-                                {card(e, index)}
-                              </li>
-                            ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-            <div key={"model_other"} className="">
-              <div className="hidden sm:block">
-                <div className="flex items-center border-b border-gray-200">
-                  <a
-                    href="#"
-                    aria-current="page"
-                    className={`border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                  >
-                    {"其他模块"}
-                  </a>
-                </div>
-                <div>
-                  <ul role="list" className="grid  p-2 gap-4 grid-cols-10">
-                    {menus &&
-                      dbEntitys
-                        ?.filter(
-                          (db) =>
-                            !menus.map((mm) => mm.entityType).includes(db.type)
-                        )
-                        .map((e, index) => (
-                          <li
-                            key={e.type + index}
-                            className="relative"
-                            onDoubleClick={() => {
-                              navigate("/sysConf/modelDetail/" + e.type);
-                            }}
-                          >
-                            {card(e, index)}
-                          </li>
-                        ))}
-                  </ul>
-                </div>
+      <Tabs>
+        {user?.menus
+          .filter((m) => m.app)
+          .map((m, index) => (
+            <TabPane
+              icon={renderIcon(m.icon)}
+              itemKey={m.id}
+              key={`app${m.id}`}
+              tab={m.name}
+            >
+              <div role="list" className="grid  p-2 gap-4 grid-cols-10">
+                {liEntity(m.id).map((e) => {
+                  return card(e);
+                })}
               </div>
-            </div>
-          </div>
-        </main>
-      </div>
+              {/* liEntity */}
+            </TabPane>
+          ))}
+      </Tabs>
     </Scrollbars>
   );
 };

@@ -21,7 +21,7 @@ const ModalTagInput = ({
   // const [tagData, setTagData] = useState<IFkItem[]>(datas ? datas : []);
   const [tableSelectData, setTableSelectData] = useState<IFkItem[]>();
 
-  return read ? (
+  return read && datas ? (
     <Space>
       {/* 'ghost' | 'solid' | 'light'; */}
       {datas.map((d: IFkItem) => {

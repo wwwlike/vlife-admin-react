@@ -1,9 +1,9 @@
 
 import {OrderSaleDetail} from '@src/api/erp/OrderSaleDetail'
-import {PageVo,DbEntity,SaveBean,PageQuery,Result} from '@src/api/base'
+import {PageVo,DbEntity,SaveBean,PageQuery,Result, INo} from '@src/api/base'
 import apiClient from '@src/api/base/apiClient'
 // 销售单
-export interface OrderSale extends DbEntity{
+export interface OrderSale extends DbEntity,INo{
   no: string;  // 订单编号
   totalPrice: number;  // 销售总额(元)
   remark: string;  // 备注

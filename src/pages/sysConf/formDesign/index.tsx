@@ -1,14 +1,5 @@
-import {
-  Button,
-  ButtonGroup,
-  Empty,
-  Layout,
-  Nav,
-  Space,
-  TabPane,
-  Tabs,
-} from "@douyinfe/semi-ui";
-import { saveFormDto } from "@src/api/Form";
+import { Button, ButtonGroup, Layout, Nav, Space } from "@douyinfe/semi-ui";
+import { init, saveFormDto } from "@src/api/Form";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   IconSave,
@@ -100,7 +91,7 @@ export default () => {
   //当前字段
   const [currField, setCurrField] = useState<FormFieldVo>();
 
-  //
+  //单个组件初始化
   const initComponent = (ff: FormFieldVo, itemType: ItemType): FormFieldVo => {
     const componentMappingObj =
       itemType === "req" ? typeReqComponent : typeComponent;
@@ -147,6 +138,28 @@ export default () => {
     return init;
   };
   /**
+   * 模型所有组件初始化
+   * @param formVo
+   * @returns
+   */
+  const modelComponentsInit = (formVo: FormVo): FormVo => {
+    return {
+      ...formVo,
+      fields: formVo.fields.map((ff): any => {
+        // 初始化组件类型
+        return {
+          ...ff,
+          ...initComponent(ff, formVo.itemType), //初始化组件信息
+          x_decorator_props$gridSpan: ff.x_decorator_props$gridSpan
+            ? ff.x_decorator_props$gridSpan
+            : 1,
+          x_decorator_props$labelAlign: "left",
+        };
+      }),
+    };
+  };
+
+  /**
    * 模型标识变化,模型数据加载
    */
   useEffect(() => {
@@ -154,22 +167,7 @@ export default () => {
       //传design 请求数据不会过滤
       getFormInfo({ type, design: true }).then((model) => {
         if (model) {
-          // alert(model.formTabDtos?.length);
-          setCurrModel({
-            ...model,
-            fields: model.fields.map((ff): any => {
-              // 初始化组件类型
-              return {
-                ...ff,
-
-                ...initComponent(ff, model.itemType), //初始化组件信息
-                x_decorator_props$gridSpan: ff.x_decorator_props$gridSpan
-                  ? ff.x_decorator_props$gridSpan
-                  : 1,
-                x_decorator_props$labelAlign: "left",
-              };
-            }),
-          });
+          setCurrModel(modelComponentsInit(model));
           setCurrField(model.fields[0]);
           const length = local.pathname.split("/").length;
           const pathEnd = local.pathname.split("/")[length - 1];
@@ -286,6 +284,18 @@ export default () => {
     }
   }, [currModel]);
 
+  const initModel = useCallback(() => {
+    if (currModel) {
+      init(currModel.id).then((data) => {
+        if (data.data) {
+          setCurrModel(modelComponentsInit(data.data));
+          //缓存清除
+          clearModelInfo(currModel.type);
+        }
+      });
+    }
+  }, [currModel]);
+
   /**
    * 返回最新的formily用户的写入数据，在read模式时使用该数据
    */
@@ -308,7 +318,7 @@ export default () => {
   }, [currModel]);
   return (
     <VfTour
-      code="abcd"
+      code="ddd"
       // every={true}
       steps={[
         {
@@ -465,7 +475,9 @@ export default () => {
                       >
                         预览
                       </Button>
-
+                      <Button icon={<IconPlayCircle />} onClick={initModel}>
+                        初始化
+                      </Button>
                       <Button
                         onClick={() => {
                           // alert(JSON.stringify(navigate));
@@ -509,21 +521,29 @@ export default () => {
                 />
               )}
             </Sider>
-            <Content className="grid h-full p-2 m-2">
+            <Content className="grid h-full p-2">
               <Scrollbars autoHide={true}>
                 {currModel && currModel.id && params.mode !== Mode.list ? (
                   <>
                     <FormPage
                       type="form"
+                      formEvents={{
+                        prefixNo: (field, form, model) => {
+                          if (!currModel.parentsName.includes("INo")) {
+                            field.display = "hide";
+                          }
+                        },
+                      }}
                       formData={currModel}
                       onDataChange={(model) => {
                         setCurrModel({ ...model });
                       }}
                       className={` center rounded-md h-20 w-8/12 bg-white p-4 pt-6 m-2`}
                     />
+
                     <FormPage
                       design={true}
-                      key={currModel.type + currModel.modelSize}
+                      key={currModel.id + currModel.type + currModel.modelSize}
                       className={` center rounded-md bg-white  p-4 m-2 ${
                         currModel.modelSize === undefined ||
                         currModel.modelSize === 4
@@ -659,7 +679,8 @@ export default () => {
                         updateFieldSyncModel({ ...data });
                       }}
                       field={currField}
-                    ></CompDesign>
+                    />
+                    {/* <RecordList /> */}
                   </div>
                 )}
               {currField && currModel && params.mode === Mode.list && (

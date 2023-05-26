@@ -43,7 +43,7 @@ export interface FormEventVo extends VoBean {
   eventType: string; // 触发的事件类型
   val: string; // 匹配的值
   reactions: FormReactionVo[]; //响应内容
-  sys:boolean;// 前台自动选择新增隐藏，修改只读时自动产生的数据
+  sys:boolean;// 系统产生的封装； 前台自动选择新增隐藏，修改只读时自动产生的数据
 }
 
 /**

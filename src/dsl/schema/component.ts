@@ -24,14 +24,11 @@ export interface  ComponentInfo  {
   w?: number,//组件在grid布局里的宽度
   h?: number,//组件在grid布局里的高度
   component:any,//组件
-  mode?:Mode[]|Mode //组件使用场景 多个或者指定
-  match?:match|match[]; //onDataChange输出数据匹配支持的类型
-  // dataChangeValueType?: dataType | dataType[];  //出参数据类型 和field的 Type fieldType进行比对
+  mode?:Mode|Mode[] //组件使用场景
+  match?:match|match[]; //onDataChange输出数据匹配支持的类型(应该不能支持[])
   target?:{type:string,fieldName?:string}[] //绑定的字段,只能给指定模型的字段使用；就算字段满足，也只给指定的对象的字段
-  //组件使用说明 ，弹出propver提醒
-  remark?: string;
-  //组件属性对象定义信息 （目标type fieldType 去掉 dataType和 dataModel）
-  propInfo?: PropDef;
+  remark?: string;  //组件使用说明 ，弹出propver提醒
+  propInfo?: PropDef; //组件属性对象定义信息 （目标type fieldType 去掉 dataType和 dataModel）
 };
 
 /**
@@ -64,7 +61,7 @@ export interface  PropInfo{
     },
     func?:(value:any)=>any,
     // otherData?: { [key:string]: (otherData:any)=>any }, //其他类型的数据， 对应的转换方法(dataType)
-    dataSub?:PropDef //下一级数据的定义信息 能支持嵌套一级
+    dataSub?:PropDef //下一级数据的定义信息 能支持嵌套一级;如原本需要传入Object复杂对象，使用dataSub则传递
     must?: boolean; //是否必填,默认不是必须的
 
     //思考form里是否有相关使用场景，那么该如何处理；
@@ -99,7 +96,7 @@ export interface PropDef {
     // onDataChange: (...data: T[]) => void;
     onDataChange: (data: T|undefined) => void;
     //组件渲染需要的数据
-    datas: D;
+    datas?: D;
     // 表态只读状态
     read: boolean;
     //当前实体类

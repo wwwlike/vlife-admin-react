@@ -11,6 +11,7 @@
    ADD,
    RM,
    VIEW,
+   OTHER,
  }
  export enum RecordNum {
    NONE,
@@ -22,8 +23,9 @@
  //按钮数据结构，能转换成VlifeButton的数据结构
  export interface VfButton<T extends IdBean> {
    key:string,
+   type?:BtnType,
    className?:string,
-   title: string; //按钮名称
+   title?: string; //按钮名称
    code?: string; //权限code
    tooltip?:string;//按钮介绍
    icon?: React.ReactNode; //按钮图标

@@ -8,34 +8,39 @@ import {
 import { AppProviders } from "@src/context";
 // 下一步做动态组件提取
 //桌面
-// import DemoPage from "@src/pages/demo";
-import DashboardPage from "@src/pages/dashboard";
+// import DemoPage =lazy(() => import( "@src/pages/demo"));
+const DashboardPage = lazy(() => import("@src/pages/dashboard"));
+//模版页面
+const MainTemplatePage = lazy(() => import("@src/pages/template/main"));
 //示例
-import ExamplePage from "@src/pages/example";
+const ExamplePage = lazy(() => import("@src/pages/example"));
 //系统管理
-import UserPage from "@src/pages/sysManage/user";
-import DeptPage from "@src/pages/sysManage/dept";
-import RolePage from "@src/pages/sysManage/role";
-import GroupPage from "@src/pages/sysManage/group";
+const UserPage = lazy(() => import("@src/pages/sysManage/user"));
+const DeptPage = lazy(() => import("@src/pages/sysManage/dept"));
+const RolePage = lazy(() => import("@src/pages/sysManage/role"));
+const GroupPage = lazy(() => import("@src/pages/sysManage/group"));
 //系统配置
-import ModelDesignPage from "@src/pages/sysConf/formDesign"; //模型设计页
-import ModelIndelPage from "@src/pages/sysConf/model"; //模型主页
-import ModelDetailPage from "@src/pages/sysConf/model/detail"; //模型明细页
-import ModelCodePage from "@src/pages/sysConf/model/code"; //模型明细页
-import MenuPage from "@src/pages/sysConf/menu";
-import ResourcesPage from "@src/pages/sysConf/resources";
-import DictPage from "@src/pages/sysConf/dict";
+const ModelDesignPage = lazy(() => import("@src/pages/sysConf/formDesign")); //模型设计页
+const ModelIndelPage = lazy(() => import("@src/pages/sysConf/model")); //模型主页
+const ModelDetailPage = lazy(() => import("@src/pages/sysConf/model/detail")); //模型明细页
+const ModelCodePage = lazy(() => import("@src/pages/sysConf/model/code")); //模型明细页
+const MenuPage = lazy(() => import("@src/pages/sysConf/menu"));
+const ResourcesPage = lazy(() => import("@src/pages/sysConf/resources"));
+const DictPage = lazy(() => import("@src/pages/sysConf/dict"));
+const EventPage = lazy(() => import("@src/pages/sysConf/event")); //事件主页
+
 //业务系统
-import LoginPage from "@src/pages/login";
-import LayoutPage from "@src/pages/layout";
+const LoginPage = lazy(() => import("@src/pages/login"));
+const LayoutPage = lazy(() => import("@src/pages/layout"));
 
 //erp
-import LinkManPage from "@src/pages/erp/linkman";
-import SupplierPage from "@src/pages/erp/supplier";
-import CustomerPage from "@src/pages/erp/customer";
-import ProductPage from "@src/pages/erp/product";
-import OrderPurchasePage from "@src/pages/erp/orderPurchase";
-import OrderSalePage from "@src/pages/erp/orderSale";
+const LinkManPage = lazy(() => import("@src/pages/erp/linkman"));
+const SupplierPage = lazy(() => import("@src/pages/erp/supplier"));
+const CustomerPage = lazy(() => import("@src/pages/erp/customer"));
+const ProductPage = lazy(() => import("@src/pages/erp/product"));
+const OrderPurchasePage = lazy(() => import("@src/pages/erp/orderPurchase"));
+const OrderSalePage = lazy(() => import("@src/pages/erp/orderSale"));
+
 
 export const allRoute: any[] = [
   //系统业务
@@ -55,6 +60,25 @@ export const allRoute: any[] = [
           <WrapperRouteComponent
             element={<DashboardPage />}
             titleId="工作台"
+            auth
+          />
+        ),
+      },
+    ],
+  },
+  //CRUD页面模版，根据路由后缀确定访问哪个模型
+  {
+    path: "/vlife",
+    element: (
+      <WrapperRouteComponent element={<LayoutPage />} titleId="业务模版" auth />
+    ),
+    children: [
+      {
+        path: "*",
+        element: (
+          <WrapperRouteComponent
+            element={<MainTemplatePage />}
+            titleId="模版"
             auth
           />
         ),
@@ -124,6 +148,16 @@ export const allRoute: any[] = [
           <WrapperRouteComponent
             element={<MenuPage />}
             titleId="菜单管理"
+            auth
+          />
+        ),
+      },
+      {
+        path: "event",
+        element: (
+          <WrapperRouteComponent
+            element={<EventPage />}
+            titleId="表单事件"
             auth
           />
         ),
@@ -262,24 +296,23 @@ export const allRoute: any[] = [
   {
     path: "/example",
     element: (
-      <WrapperRouteComponent element={<LayoutPage />} titleId="演示说明" auth />
+      <WrapperRouteComponent element={<LayoutPage />} titleId="组件演示" auth />
     ),
     children: [
       {
-        path: "crud/*",
+        path: "*",
         element: (
           <WrapperRouteComponent
             element={<ExamplePage />}
-            titleId="入口"
+            titleId="demo"
             auth
           />
         ),
       },
     ],
   },
-
   {
-    path: "login",
+    path: "/login",
     element: <LoginPage />,
   },
 ];

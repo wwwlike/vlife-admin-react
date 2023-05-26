@@ -68,7 +68,7 @@ const ComponentPropSetting = ({
       const params: { [key: string]: ParamInfo } = api.params;
       return (
         Object.keys(params).filter((key) =>
-          ["dict", "field", "dict"].includes(params[key].sourceType)
+          ["dict", "field", "fixed"].includes(params[key].sourceType)
         ).length > 0
       );
     }
@@ -201,8 +201,9 @@ const ComponentPropSetting = ({
               const len: number = await getFormInfo({ type: modelName }).then(
                 (d) => {
                   return (
-                    d?.parentsName.filter((name) => propInfo.dataModel === name)
-                      .length || 0
+                    d?.parentsName?.filter(
+                      (name) => propInfo.dataModel === name
+                    ).length || 0
                   );
                 }
               );
@@ -314,6 +315,7 @@ const ComponentPropSetting = ({
             onChange={onPropValChange}
           />
         )}
+        {/* {propData.propVal && <>{JSON.stringify(ApiInfo[propData.propVal])}</>} */}
         {propData.propVal &&
           ApiInfo[propData.propVal] &&
           ApiInfo[propData.propVal].params !== undefined &&

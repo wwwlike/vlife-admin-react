@@ -54,8 +54,20 @@ const diseaseApi = [
 // const navigate = useNavigate();
 
 
+
+
 instance.interceptors.request.use(
   (config: AxiosRequestConfig) => {
+    //  拦截器来过滤掉 GET 请求参数中值为空字符串的属性，从而不发送这些参数到后端
+    if (config.method === "get") {
+      // 过滤掉请求参数中值为空字符串的属性
+      let params = config.params;
+      for (let key in params) {
+        if (params.hasOwnProperty(key) && params[key] === "") {
+          delete params[key];
+        }
+      }
+    }
     //所有get 请求入参处理（get请求参数都需要封装到params里）
     config.paramsSerializer=(params)=>qs.stringify(params,{
         allowDots: true, //多级对象转str中间加点

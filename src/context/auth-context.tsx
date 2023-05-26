@@ -73,6 +73,8 @@ const AuthContext = React.createContext<
       getFormInfo: (params: formPageReq) => Promise<FormVo | undefined>;
       //模型缓存信息清除
       clearModelInfo: (modelName?: string) => void;
+      appId?: string;
+      setAppId: (appId?: string) => void;
       //登录(可以移除到一般service里)
       login: (form: { password: string; username: string }) => void;
       giteeLogin: (code: string) => Promise<ThirdAccountDto | undefined>;
@@ -91,6 +93,10 @@ AuthContext.displayName = "AuthContext";
  * 把 authContext需要的数据注入了进来
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  /**
+   * 当前模块menuId
+   */
+  const [appId, setAppId] = useState<string>();
   /** 当前用户信息 */
   const [user, setUser] = useState<UserDetailVo>();
   /**
@@ -230,14 +236,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
   //从缓存里取模型信息
   async function getFormInfo(params: formPageReq): Promise<FormVo | undefined> {
-    if (params.type) {
-      if (models[params.type] === undefined) {
+    const key = params.type || params.id;
+    if (key) {
+      if (models[key] === undefined) {
         //简写(promise形式返回数据出去)
         let form = await (await model(params)).data;
         // console.log("form", form);
         setModels({
           ...models,
-          [params.type]: { ...form },
+          [key]: { ...form },
         });
         return form;
         //组件设置json转对象
@@ -252,7 +259,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // setModels({ ...models, [modelName + uiType]: { ...form, fields } });
         // return { ...form, fields };
       } else {
-        return models[params.type];
+        return models[key];
       }
     }
     return undefined;
@@ -340,16 +347,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   /**
-   * @param btnObj 检查按钮权限
+   * @param btnObj 检查权限编码是否在用户能访问的范围里
    * @returns
    */
   const checkBtnPermission = useCallback(
     (code: string): boolean => {
-      //超级管理员
+      //超级权限组，所有功能都能访问
       if (user?.sysGroupId === "super") {
         return true;
       }
-      //按钮有code,且code是权限范围内的
       if (user && user.resourceCodes && code) {
         return user?.resourceCodes?.includes(code);
       }
@@ -357,11 +363,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     [user?.resourceCodes]
   );
-
+  /**
+   * 退出
+   */
   const loginOut = useCallback(() => {
     window.localStorage.removeItem(localStorageKey);
     setUser(undefined);
-    navigate("/login");
+    window.location.href = "/login";
+    // navigate("/login");
   }, []);
   const [screenSize, setScreenSize] = useState<{
     width: number;
@@ -392,6 +401,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         children={children}
         value={{
           user,
+          appId,
+          setAppId,
           models,
           screenSize,
           dicts,

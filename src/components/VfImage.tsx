@@ -21,6 +21,8 @@ const VfImage = ({
   size = "small",
   onDataChange,
   read,
+  className,
+  ...props
 }: VfImageProps) => {
   const action = `${apiUrl}/sysFile/uploadImg`;
 
@@ -101,6 +103,7 @@ const VfImage = ({
           <Image
             width={viewSize.width}
             height={viewSize.height}
+            className={className}
             src={`${apiUrl}/sysFile/image/${value}`}
           />
         ) : (
@@ -108,6 +111,7 @@ const VfImage = ({
             <Image
               width={viewSize.width}
               height={viewSize.height}
+              className={className}
               src={`${apiUrl}/sysFile/image/${d}`}
             />
           ))

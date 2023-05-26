@@ -1,5 +1,6 @@
 import { TreeNodeData } from '@douyinfe/semi-ui/lib/es/tree';
 import { ITree } from '@src/api/base';
+import SelectIcon from '@src/components/SelectIcon';
 
 /**
  * 工具类函数非hooks
@@ -112,7 +113,6 @@ import { ITree } from '@src/api/base';
    }
  
  
-  
   /**
    * @param rootCode itree数据转,datas数据
    * @param datas 
@@ -127,3 +127,39 @@ import { ITree } from '@src/api/base';
       })
     }
    
+    /**
+     * 
+     * @param all 查找属性结构的根节点
+     * @param sub 
+     * @returns 
+     */
+    export const findTreeRoot=<T extends ITree>(all:T[],sub:T):T|undefined=>{
+      if(sub.pcode===undefined||sub.pcode===null){
+        return sub;
+      }else{
+       const result:T[]= all.filter(one=>one.code===sub.pcode);
+       if(result.length>0){
+        return findTreeRoot<T>(all,result[0])
+       }else{
+        return undefined;
+       }
+      }
+    }
+
+
+     /**
+     * 过滤all里所有root的子节点(递归)
+     */
+      export const findSubs=<T extends ITree>(all:T[],root:T):T[]=>{
+        const subs:T[]=[];
+        const next=all.filter(a=>a.pcode===root.code)
+        if(next&&next.length>0){
+          subs.push(...next)
+          next.forEach(n=>{
+            subs.push(...findSubs(all,n));
+          })
+        }
+        return subs;
+      }
+
+ 

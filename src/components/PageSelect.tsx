@@ -2,6 +2,8 @@ import { Checkbox, Divider } from "@douyinfe/semi-ui";
 import { Section } from "@formily/semi";
 import { VfBaseProps } from "@src/dsl/schema/component";
 import React from "react";
+import DesignFormItem from "./form/component/DesignFormItem";
+import GroupLabel from "./form/component/GroupLabel";
 
 export interface PageSelectData {
   groupName: string;
@@ -27,15 +29,27 @@ const PageSelect = ({
         .map((d) => {
           return (
             <div className=" ">
-              <Divider align="left">{d.groupName}</Divider>
+              {/* <Divider align="left">{d.groupName}</Divider> */}
+              {/* <GroupLabel text={d.groupName}></GroupLabel> */}
+
+              <div className="flex items-center border-b border-gray-200">
+                <a
+                  href="#"
+                  aria-current="page"
+                  className={`border-indigo-500 text-indigo-600 whitespace-nowrap py-2 px-1 border-b-0 font-medium text-sm`}
+                >
+                  {d.groupName}
+                </a>
+              </div>
+              {/* <DesignFormItem></DesignFormItem> */}
               <div>
-                <ul role="list" className="grid  p-2 gap-4 grid-cols-6">
+                <ul role="list" className="grid p-2 gap-4 grid-cols-6">
                   {d.details?.map((dd) => {
                     return (
                       <li className="flex">
-                        {dd.label}
                         {/* {JSON.stringify(value?.includes(dd.value))} */}
                         <Checkbox
+                          // type="card"
                           checked={value?.includes(dd.value)}
                           onChange={(v) => {
                             if (v.target.checked && value === null) {
@@ -58,7 +72,9 @@ const PageSelect = ({
                               );
                             }
                           }}
-                        />
+                        >
+                          {dd.label}
+                        </Checkbox>
                       </li>
                     );
                   })}

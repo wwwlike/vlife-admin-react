@@ -127,7 +127,7 @@ export const eventReaction = (
           otherwise: otherwiseObj(
             reaction.reactionAttr,
             reaction.reactionValue,
-            fields.filter((f) => f.fieldName === reaction.fieldName)[0]
+            fields.filter((f) => f.fieldName === reaction.fieldName)[0]//事件字段 （没有用到）
           ),
         };
       }),

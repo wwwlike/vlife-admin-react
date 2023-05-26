@@ -15,6 +15,7 @@ import { VfButton } from "@src/dsl/schema/button";
 interface FormTableProps extends VfBaseProps<any[], FormVo> {
   type: string; //字段类型
   ignores?: string[]; //忽略不展示的字段
+  mainForm?: any; //主表数据
 }
 
 export default ({
@@ -56,7 +57,7 @@ export default ({
     onDataChange(tableData);
   }, [tableData]);
   return (
-    <div>
+    <div className="">
       {!read ? (
         <Button
           icon={<IconPlusStroked />}
@@ -101,17 +102,16 @@ export default ({
           type={type}
         />
       </Modal>
-      <>
-        <TablePage<any>
-          btnHide={true}
-          key={"table_sub" + props.fieldName + tableData.length}
-          dataSource={tableData}
-          entityType={type}
-          // read={true}
-          lineBtn={!read ? lineButton : undefined}
-          ignores={ignores}
-        ></TablePage>
-      </>
+
+      <TablePage<any>
+        btnHide={true}
+        key={"table_sub" + props.fieldName + tableData.length}
+        dataSource={tableData}
+        entityType={type}
+        // read={true}
+        lineBtn={!read ? lineButton : undefined}
+        ignores={ignores}
+      ></TablePage>
     </div>
   );
 };
