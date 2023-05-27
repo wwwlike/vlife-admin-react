@@ -1,6 +1,6 @@
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live";
 import React from "react";
-import { Card, Modal, Table, TabPane, Tabs } from "@douyinfe/semi-ui";
+import { Card, Table, TabPane, Tabs } from "@douyinfe/semi-ui";
 import prettier from "prettier/standalone";
 import parserTypescript from "prettier/parser-typescript";
 

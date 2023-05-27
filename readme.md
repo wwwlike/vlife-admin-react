@@ -17,6 +17,8 @@ vlife 的愿景是实现前后端同样极简开发的目标，倡导让前端�
   npm run dev
 ```
 
+> 访问 Http://localhost:3000 进入项目
+
 ### 创建一个 CRUD 页面
 
 vlife 使用 ts4 进行开发，完成单模块 CRUD 功能，仅需要使用 `Content`组件即可。

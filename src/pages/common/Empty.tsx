@@ -31,11 +31,17 @@ const Result: FC<Iprops> = ({
     return "w-40";
   }, [imgSize]);
   useEffect(() => {
-    // if (type === "403") {
-    //   navigate(`/login${"?from=" + encodeURIComponent(location.pathname)}`, {
-    //     replace: true,
-    //   });
-    // }
+    if (type === "403") {
+      // navigate(`/login${"?from=" + encodeURIComponent(location.pathname)}`, {
+      //   replace: true,
+      // });
+      // const gotoLogin = `/login${
+      //   location.pathname && location.pathname.length > 1
+      //     ? "?from=" + encodeURIComponent(location.pathname)
+      //     : ""
+      // }`;
+      // window.location.href = gotoLogin;
+    }
   }, []);
   return (
     <Empty
@@ -61,11 +67,15 @@ const Result: FC<Iprops> = ({
           type="primary"
           onClick={
             type === "403"
-              ? () =>
-                  navigate(
-                    `/login${"?from=" + encodeURIComponent(location.pathname)}`,
-                    { replace: true }
-                  )
+              ? () => {
+                  const gotoLogin = `/login${
+                    location.pathname && location.pathname.length > 1
+                      ? "?from=" + encodeURIComponent(location.pathname)
+                      : ""
+                  }`;
+                  // navigate(gotoLogin);
+                  window.location.href = gotoLogin;
+                }
               : () => navigate(`/dashboard/workbeach`, { replace: true })
           }
         >

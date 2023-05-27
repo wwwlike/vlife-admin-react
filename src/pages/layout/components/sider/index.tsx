@@ -1,14 +1,11 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { Layout, Nav } from "@douyinfe/semi-ui";
-import { IconSave } from "@douyinfe/semi-icons";
 import { MenuItem } from "@src/menu/config";
-import { useLocation, useNavigate } from "react-router";
-import "../../index.scss";
+import { useLocation, useNavigate } from "react-router-dom";
+// import "../../index.scss";
 import { useAuth } from "@src/context/auth-context";
 import SelectIcon from "@src/components/SelectIcon";
-import { listAll, SysMenu } from "@src/api/SysMenu";
-import menu from "@src/pages/sysConf/menu";
-import Scrollbars from "react-custom-scrollbars";
+import { SysMenu } from "@src/api/SysMenu";
 
 const { Sider } = Layout;
 export function renderIcon(icon: any) {

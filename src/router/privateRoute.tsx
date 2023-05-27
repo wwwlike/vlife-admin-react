@@ -1,6 +1,5 @@
 import React, { FC } from "react";
-import { Navigate } from "react-router-dom";
-import { useLocation } from "react-router";
+import { Navigate, useLocation } from "react-router-dom";
 import Empty from "@src/pages/common/Empty";
 // import useStore from '@src/stores/user'
 import { useAuth } from "@src/context/auth-context";

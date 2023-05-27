@@ -1,11 +1,11 @@
 import React, { lazy, FC, useEffect, useState } from "react";
-import { RouteObject } from "react-router";
-import { Link, Route, useRoutes } from "react-router-dom";
+import { Link, Route, useRoutes, RouteObject } from "react-router-dom";
 import {
   WrapperRouteComponent,
   WrapperRouteWithOutLayoutComponent,
 } from "./config";
 import { AppProviders } from "@src/context";
+import Empty from "@src/pages/common/Empty";
 // 下一步做动态组件提取
 //桌面
 // import DemoPage =lazy(() => import( "@src/pages/demo"));
@@ -314,6 +314,17 @@ export const allRoute: any[] = [
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "*",
+    element: (
+      <WrapperRouteWithOutLayoutComponent
+        element={
+          <Empty title="找不到咯" description="这里什么也没有~" type="404" />
+        }
+        titleId="404"
+      />
+    ),
   },
 ];
 
