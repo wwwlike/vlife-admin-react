@@ -41,6 +41,20 @@ const ProductPage = lazy(() => import("@src/pages/erp/product"));
 const OrderPurchasePage = lazy(() => import("@src/pages/erp/orderPurchase"));
 const OrderSalePage = lazy(() => import("@src/pages/erp/orderSale"));
 
+//report（plus）
+const ReportItemPage = lazy(() => import("@src/plus/report/item")); //统计项
+const ReportKpiPage = lazy(() => import("@src/plus/report/kpi"));
+// const ReportKpiPage =lazy(() => import( "@src/plus/report/kpi")); //指标
+const ReportDesignPage = lazy(() => import("@src/plus/report/design")); //报表设计器
+const ReportPage = lazy(() => import("@src/plus/common/ReportPage")); //配置的报表
+
+//pageDesign（plus）
+const PageDesignIndexPage = lazy(() => import("@src/plus/page/design")); //页面设计列表页
+//页面设置
+const PageDesignLayoutPage = lazy(() => import("@src/plus/page/design/layout"));
+
+//页面设置
+const ViewPage = lazy(() => import("@src/plus/page/design/component/page"));
 
 export const allRoute: any[] = [
   //系统业务
@@ -61,6 +75,21 @@ export const allRoute: any[] = [
             element={<DashboardPage />}
             titleId="工作台"
             auth
+          />
+        ),
+      },
+      {
+        path: "*",
+        element: (
+          <WrapperRouteComponent
+            element={
+              <Empty
+                title="高级功能需要授权"
+                description="添加微信`vlifeboot`申请开通"
+                type="405"
+              />
+            }
+            titleId="405"
           />
         ),
       },
@@ -310,6 +339,111 @@ export const allRoute: any[] = [
         ),
       },
     ],
+  },
+  // plus 高级版本
+  {
+    path: "/report",
+    element: (
+      <WrapperRouteComponent element={<LayoutPage />} titleId="报表设置" auth />
+    ),
+    children: [
+      {
+        path: "item",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportItemPage />}
+            titleId="统计项维护"
+            auth
+          />
+        ),
+      },
+      {
+        path: "kpi",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportKpiPage />}
+            titleId="指标维护"
+            auth
+          />
+        ),
+      },
+      {
+        path: "design",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportDesignPage />}
+            titleId="报表设计"
+            auth
+          />
+        ),
+      },
+      {
+        path: "table",
+        element: (
+          <WrapperRouteComponent
+            element={<ReportPage />}
+            titleId="配置结果"
+            auth
+          />
+        ),
+      },
+    ],
+  },
+  {
+    path: "/page",
+    element: (
+      <WrapperRouteComponent
+        element={<LayoutPage />}
+        titleId="页面和模块"
+        auth
+      />
+    ),
+    children: [
+      {
+        path: "design",
+        element: (
+          <WrapperRouteComponent
+            element={<PageDesignIndexPage />}
+            titleId="页面配置主页"
+            auth
+          />
+        ),
+      },
+      {
+        path: "layout/*",
+        element: (
+          <WrapperRouteComponent
+            element={<PageDesignLayoutPage />}
+            titleId="页面设计器"
+            auth
+          />
+        ),
+      },
+    ],
+  },
+  //独立访问的页面
+  {
+    path: "/page/admin",
+    element: (
+      <WrapperRouteComponent element={<LayoutPage />} titleId="组件演示" auth />
+    ),
+    children: [
+      {
+        path: "*",
+        element: (
+          <WrapperRouteComponent
+            element={<ViewPage />}
+            titleId="独立页面"
+            auth
+          />
+        ),
+      },
+    ],
+  },
+  //独立访问的页面
+  {
+    path: "/page/*",
+    element: <ViewPage />,
   },
   {
     path: "/login",

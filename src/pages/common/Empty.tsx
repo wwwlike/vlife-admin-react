@@ -1,16 +1,17 @@
 import React, { FC, useEffect, useMemo, useState } from "react";
-import { Empty, Button } from "@douyinfe/semi-ui";
+import { Empty, Button, ImagePreview, Image } from "@douyinfe/semi-ui";
 import { useNavigate } from "react-router-dom";
 import {
   IllustrationNoAccess,
   IllustrationConstruction,
+  IllustrationIdleDark,
 } from "@douyinfe/semi-illustrations";
 
 interface Iprops {
   title?: string;
   description?: string;
   imgSize?: "small" | "large" | "default";
-  type?: "404" | "403";
+  type?: "404" | "403" | "405";
 }
 
 const Result: FC<Iprops> = ({
@@ -46,12 +47,21 @@ const Result: FC<Iprops> = ({
   return (
     <Empty
       image={
-        type == "403" ? (
+        type === "403" ? (
           <IllustrationNoAccess className={size} />
-        ) : (
+        ) : type === "404" ? (
           <IllustrationConstruction className={size} />
+        ) : (
+          <Image
+            className={` w-48 h-48`}
+            src="https://wwwlike.gitee.io/vlife-img/wx.jpg"
+          ></Image>
         )
       }
+      // <Image
+      //               className={" w-48 top-4"}
+      //               src="https://wwwlike.gitee.io/vlife-img/wx.jpg"
+      //             />
       title={title}
       description={description}
       style={{
