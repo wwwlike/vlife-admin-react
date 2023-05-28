@@ -95,7 +95,10 @@ const Model = () => {
               key={`app${m.id}`}
               tab={m.name}
             >
-              <div role="list" className="grid  p-2 gap-4 grid-cols-10">
+              <div
+                role="list"
+                className="grid  p-2 gap-4  sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10"
+              >
                 {liEntity(m.id).map((e) => {
                   return card(e);
                 })}

@@ -32,28 +32,6 @@ export default () => {
     zipcode: number;
   }
 
-  const featureList1 = [
-    {
-      title: "全面提效",
-      description:
-        "自动对模型、字典、菜单、资源的解析和生成；前后端代码可根据模型类型动态生成；数据封装完善，可不写一行Sql;",
-    },
-    {
-      title: "模型驱动",
-      description: "设计模型(Javabean)和添加注释就能渲染出复杂关系的模块功能",
-    },
-    {
-      title: "业务配置",
-      description:
-        "在可视化设计器里完成对各类模型的命名、布局、样式、校验、联动等方面的配置，实现复杂逻辑",
-    },
-    {
-      title: "低码开发",
-      description:
-        "在服务端编写复杂逻辑接口，在客户端模版组件里插入生命周期钩子函数即可满足个性化需求",
-    },
-  ];
-
   const featureList = [
     {
       title: "做研发热爱的低码平台",
@@ -302,6 +280,7 @@ export default () => {
         </div>
         <div className=" w-1/3 p-4 bg-white">
           <Banner
+            className="h-full"
             fullMode={false}
             type="warning"
             bordered
@@ -328,7 +307,7 @@ export default () => {
                   />
                 </div>
                 <div className=" w-1/3">
-                  <div className=" font-bold">QQ群</div>
+                  <div className=" font-bold items-center">QQ群(786134846)</div>
                   <Image
                     className={" w-28 h-28 top-4"}
                     src="https://wwwlike.gitee.io/vlife-img/qqq.png"
@@ -338,7 +317,7 @@ export default () => {
                   <div className=" font-bold">微信群</div>
                   <Image
                     className={" w-28  h-28 top-4"}
-                    src="https://wwwlike.gitee.io/vlife-img/wxq.jpg"
+                    src="https://wwwlike.gitee.io/vlife-img/wxq.png"
                   />
                 </div>
               </div>
