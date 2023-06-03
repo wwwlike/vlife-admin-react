@@ -82,7 +82,7 @@ const Entity = () => {
                           key={"li_" + model.type}
                           onClick={() => {
                             navigate(
-                              `/sysConf/modelDesign/${model.type}/${key}`
+                              `/sysConf/model/design/${model.type}/${key}`
                             );
                           }}
                         >

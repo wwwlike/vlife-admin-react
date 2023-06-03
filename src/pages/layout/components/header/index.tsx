@@ -1,15 +1,11 @@
 import React, { FC, useEffect, useState } from "react";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
-
 import {
   Layout,
   Nav,
   Button,
   Avatar,
-  Badge,
   Dropdown,
-  RadioGroup,
-  Radio,
   Empty,
   SplitButtonGroup,
 } from "@douyinfe/semi-ui";
@@ -31,16 +27,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { MenuItem } from "@src/menu/config";
 import { listAll, SysMenu } from "@src/api/SysMenu";
 import SelectIcon from "@src/components/SelectIcon";
-import VfImage from "@src/components/VfImage";
-import { findTreeRoot } from "@src/util/func";
 const mode = import.meta.env.VITE_APP_MODE;
-
 const { Header } = Layout;
-
+/**
+ *
+ *  当前地址没有和菜单关联，如何定位一级菜单
+ */
 const Index: FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { loginOut, user, appId, setAppId, checkBtnPermission } = useAuth();
+  const { loginOut, user, app, setApp, checkBtnPermission } = useAuth();
   const formModal = useNiceModal("formModal");
   const [menuItems, setMenuItems] = useState<Partial<MenuItem>[]>([]);
 
@@ -58,15 +54,27 @@ const Index: FC = () => {
       listAll().then((d) => {
         const menus: SysMenu[] = d.data || [];
         //找path的菜单的根节点 初始化appId
-        const urlMenus = menus.filter((m) =>
+        //判断是否一级页面的菜单
+        let urlMenus = menus.filter((m) =>
           m.url && m.url.endsWith("*")
             ? m.url.substring(0, m.url.length - 1) + m.placeholderUrl ===
               pathname
             : m.url === pathname
         );
+        //二级页面的菜单匹配，则根据路由地址按照规则匹配菜单 /model 配置成菜单 /model/sysUser 明细页不是菜单，是二级页面
+        if (urlMenus === undefined || urlMenus.length === 0) {
+          urlMenus = menus.filter((m) =>
+            m.url && m.url.endsWith("*")
+              ? pathname.indexOf(
+                  m.url.substring(0, m.url.length - 1) + m.placeholderUrl
+                ) !== -1
+              : pathname.indexOf(m.url) !== -1
+          );
+        }
+        // 递归查找根节点
         function appIdSet(all: SysMenu[], menu: SysMenu) {
           if (menu.pcode === null || menu.pcode === undefined) {
-            setAppId(menu.app ? menu.id : undefined);
+            setApp(menu);
           } else {
             appIdSet(all, all.filter((a) => a.code === menu.pcode)[0]);
           }
@@ -83,7 +91,6 @@ const Index: FC = () => {
             ?.sort((a, b) => a.sort - b.sort);
         };
         const headMenus = filterRootMenus();
-        // alert(user?.menus);
         //用户拥有模块下任意一个菜单
         if (headMenus)
           setMenuItems(
@@ -96,7 +103,7 @@ const Index: FC = () => {
                 text: m.name,
                 icon: m.icon ? renderIcon(m.icon) : null,
                 onClick: () => {
-                  setAppId(m.id);
+                  setApp(m);
                 },
               };
             })
@@ -141,7 +148,7 @@ const Index: FC = () => {
             className=" flex items-center cursor-pointer "
             onClick={() => {
               navigate("/");
-              setAppId(undefined);
+              setApp(undefined);
             }}
           >
             <Empty
@@ -161,7 +168,7 @@ const Index: FC = () => {
             ></Empty>
           </div>
         }
-        defaultSelectedKeys={[appId || "sys"]}
+        defaultSelectedKeys={[(app && app.id) || ""]}
         items={menuItems}
         footer={
           <>

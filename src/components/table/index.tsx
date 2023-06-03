@@ -15,6 +15,7 @@ import VfImage from "@src/components/VfImage";
 import SelectIcon from "@src/components/SelectIcon";
 import VlifeButton, { VFButtonPorps } from "@src/components/vlifeButton";
 import { checkLineNumber, VfButton } from "@src/dsl/schema/button";
+import { IconStoryStroked } from "@douyinfe/semi-icons";
 
 export interface ListProps<T extends IdBean> extends TableProps {
   className?: string;
@@ -219,9 +220,9 @@ const TableIndex = <T extends IdBean>({
               "-"
             );
           };
-        } else if (m.type === "boolean") {
+        } else if (m.fieldType === "boolean") {
           m["render"] = (text, record, index) => {
-            return text === null ? "-" : text ? "是" : "否";
+            return text === null ? "-" : text ? <IconStoryStroked /> : "";
           };
         } else if (m.entityFieldName === "id" && fkMap) {
           m["render"] = (text, record, index) => {

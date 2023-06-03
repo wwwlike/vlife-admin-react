@@ -54,7 +54,7 @@ export interface TablePageProps<T extends IdBean> {
    * 生命周期函数
    */
   //列表做了post数据提交后的回调函数
-  onAfterSave: (key: string, data: any) => void; //数据保存后的回调事件
+  onAfterSave: (btnType: BtnType | string | undefined, data: any) => void; //数据保存后的回调事件
 
   /*表单需要的组件属性*/
   /**
@@ -180,7 +180,7 @@ const TablePage = <T extends IdBean>({
   useEffect(() => {
     const func = async (api: string) => {
       try {
-        // const ts: any = await import(api.split(":")[0]);
+        //校验屏蔽
         // const ts: any = lazy(() => import(api.split(":")[0]));
         // if (api.split(":").length === 1 || api.split(":")[1] in ts) {
         // setPageFunc(() => {
@@ -293,7 +293,7 @@ const TablePage = <T extends IdBean>({
             })
             .then((saveData) => {
               if (onAfterSave) {
-                onAfterSave(btn.key, saveData);
+                onAfterSave(btn.type, saveData);
               }
               page(true); //
             });
@@ -311,7 +311,7 @@ const TablePage = <T extends IdBean>({
           })
           .then((saveData) => {
             if (onAfterSave) {
-              onAfterSave(btn.key, saveData);
+              onAfterSave(btn.type, saveData);
             }
             page(true); //
           });
@@ -338,7 +338,7 @@ const TablePage = <T extends IdBean>({
             if (data.code === 200) {
               page(true);
               if (onAfterSave) {
-                onAfterSave(btn.key, data);
+                onAfterSave(btn.type, data);
               }
               // setSelected([]);
             } else {
@@ -399,7 +399,6 @@ const TablePage = <T extends IdBean>({
       title: "新增",
       type: BtnType.EDIT,
       icon: <IconPlusStroked />,
-      key: "save",
       code: resourceKey({ entityType, type: editType, action: "save" }),
       model: {
         entityType,
@@ -410,7 +409,6 @@ const TablePage = <T extends IdBean>({
     };
     const batchRmBtn: VfButton<T> = {
       title: "删除",
-      key: "remove",
       type: BtnType.RM,
       icon: <IconDeleteStroked />,
       code: resourceKey({ entityType, action: "remove" }),
@@ -493,7 +491,6 @@ const TablePage = <T extends IdBean>({
       const { entityType, type } = tableModel;
       const memoBtns: VfButton<T>[] = [];
       const rmDefBtn: VfButton<T> = {
-        key: "remove",
         type: BtnType.RM,
         title: "删除",
         code: resourceKey({ entityType, action: "remove" }),
@@ -514,7 +511,6 @@ const TablePage = <T extends IdBean>({
         const editDefBtn: VfButton<T> = {
           title: "修改",
           type: BtnType.EDIT,
-          key: "save",
           code: resourceKey({
             entityType: entityType,
             type: editType,
@@ -537,7 +533,6 @@ const TablePage = <T extends IdBean>({
         };
         const detailDefBtn: VfButton<T> = {
           title: "查看",
-          key: "view",
           type: BtnType.VIEW,
           model: { entityType, type: editType, readPretty: true },
           click: modalShow,
@@ -556,17 +551,17 @@ const TablePage = <T extends IdBean>({
           memoBtns.push(rmDefBtn);
         }
       }
-      //自定义按钮  type和line里的相同则做覆盖操作
+      //自定义按钮  type和默认里面一致则做覆盖操作
       if (lineBtn) {
-        lineBtn.forEach((customBtn) => {
-          let replace = false;
-          memoBtns.forEach((m, index) => {
-            if (m.type === customBtn.type) {
-              replace = true;
-              memoBtns[index] = { ...memoBtns[index], ...customBtn };
-            }
-          });
-          if (!replace) {
+        lineBtn.forEach((customBtn, index) => {
+          if (
+            customBtn.type &&
+            memoBtns.map((m) => m.type).includes(customBtn.type)
+          ) {
+            //覆盖
+            memoBtns[index] = { ...memoBtns[index], ...customBtn };
+          } else {
+            //新增
             if (customBtn.model) {
               customBtn.click = modalShow;
               customBtn.model.formApi = save(
@@ -687,6 +682,7 @@ const TablePage = <T extends IdBean>({
             {...pagination}
             {...props}
           />
+          {/* {JSON.stringify(lineBtnMemo.map((l) => l.title))} */}
         </div>
       );
     } else {
@@ -709,7 +705,7 @@ const TablePage = <T extends IdBean>({
       ) : (
         <CheckModel
           modelName={[entityType, listType, editType]}
-          buttons={lineBtn}
+          buttons={lineBtnMemo}
         >
           {table}
         </CheckModel>

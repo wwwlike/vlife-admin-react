@@ -207,7 +207,17 @@ export const allRoute: any[] = [
         ),
       },
       {
-        path: "modelDesign/*",
+        path: "model/*",
+        element: (
+          <WrapperRouteComponent
+            element={<ModelDetailPage />}
+            titleId="模型明细"
+            auth
+          />
+        ),
+      },
+      {
+        path: "model/design/*",
         element: (
           <WrapperRouteComponent
             element={<ModelDesignPage />}
@@ -217,21 +227,11 @@ export const allRoute: any[] = [
         ),
       },
       {
-        path: "modelCode/*",
+        path: "model/code/*",
         element: (
           <WrapperRouteComponent
             element={<ModelCodePage />}
             titleId="模型代码"
-            auth
-          />
-        ),
-      },
-      {
-        path: "modelDetail/*",
-        element: (
-          <WrapperRouteComponent
-            element={<ModelDetailPage />}
-            titleId="模型明细"
             auth
           />
         ),

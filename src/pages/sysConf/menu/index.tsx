@@ -18,10 +18,12 @@ export default () => {
         },
         app: (field: GeneralField, form: Form, formVo: FormVo) => {
           const display = form.getValuesIn("app") ? "hide" : "visible";
+          const display2 = form.getValuesIn("app") ? "visible" : "bide";
           field.query("url").take()?.setDisplay(display);
           field.query("entityType").take()?.setDisplay(display);
           field.query("placeholderUrl").take()?.setDisplay(display);
           field.query("pcode").take()?.setDisplay(display);
+          field.query("entityPrefix").take()?.setDisplay(display2);
         },
       }}
     />

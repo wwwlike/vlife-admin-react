@@ -17,6 +17,7 @@ import { FormVo, model, formPageReq } from "@src/api/Form";
 import { SysResources } from "@src/api/SysResources";
 import { useEffect } from "react";
 import { listAll, SysGroup } from "@src/api/SysGroup";
+import { SysMenu } from "@src/api/SysMenu";
 export const localStorageKey = "__auth_provider_token__";
 
 export interface dictObj {
@@ -73,8 +74,8 @@ const AuthContext = React.createContext<
       getFormInfo: (params: formPageReq) => Promise<FormVo | undefined>;
       //模型缓存信息清除
       clearModelInfo: (modelName?: string) => void;
-      appId?: string;
-      setAppId: (appId?: string) => void;
+      app: SysMenu | undefined; //当前应用
+      setApp: (app: SysMenu | undefined) => void; //当前应用
       //登录(可以移除到一般service里)
       login: (form: { password: string; username: string }) => void;
       giteeLogin: (code: string) => Promise<ThirdAccountDto | undefined>;
@@ -96,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   /**
    * 当前模块menuId
    */
-  const [appId, setAppId] = useState<string>();
+  const [app, setApp] = useState<SysMenu | undefined>();
   /** 当前用户信息 */
   const [user, setUser] = useState<UserDetailVo>();
   /**
@@ -401,8 +402,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         children={children}
         value={{
           user,
-          appId,
-          setAppId,
+          app,
+          setApp,
           models,
           screenSize,
           dicts,

@@ -22,7 +22,7 @@ export default () => {
         scope: { FormPage },
       },
       {
-        code: `<FormPage type="userPasswordModifyDto" btnHide={true} />`,
+        code: `<FormPage type="userPasswordModifyDto" />`,
         title: "数据传输模型dto",
         scope: { FormPage },
       },

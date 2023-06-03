@@ -62,21 +62,21 @@ const Content = <T extends IdBean>({
         node: "item",
         name: "查询配置",
         onClick: () => {
-          navigate(`/sysConf/modelDesign/${filterType}/filter`);
+          navigate(`/sysConf/model/design/${filterType}/filter`);
         },
       },
       {
         node: "item",
         name: "列表配置",
         onClick: () => {
-          navigate(`/sysConf/modelDesign/${listType}/list`);
+          navigate(`/sysConf/model/design/${listType}/list`);
         },
       },
       {
         node: "item",
         name: "表单配置",
         onClick: () => {
-          navigate(`/sysConf/modelDesign/${editType}/form`);
+          navigate(`/sysConf/model/design/${editType}/form`);
         },
       },
       { node: "divider" },
@@ -91,14 +91,14 @@ const Content = <T extends IdBean>({
         node: "item",
         name: "模型管理",
         onClick: () => {
-          navigate(`/sysConf/modelDetail/${entityType}`);
+          navigate(`/sysConf/model/${entityType}`);
         },
       },
       {
         node: "item",
         name: "前端代码",
         onClick: () => {
-          navigate(`/sysConf/modelCode/${entityType}`);
+          navigate(`/sysConf/model/code/${entityType}`);
         },
       },
     ];

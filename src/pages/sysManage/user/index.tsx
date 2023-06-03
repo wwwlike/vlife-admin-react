@@ -2,7 +2,7 @@ import React from "react";
 import { reset, state, SysUser } from "@src/api/SysUser";
 import { IconPlay, IconPause, IconForward } from "@douyinfe/semi-icons";
 import Content from "../../template/content";
-import { RecordNum } from "@src/dsl/schema/button";
+import { BtnType, RecordNum } from "@src/dsl/schema/button";
 import VfTour from "@src/components/VfTour";
 
 export default () => {
@@ -20,7 +20,9 @@ export default () => {
         entityType="sysUser"
         filterType="sysUserPageReq"
         req={{ state: "1" }}
-        onAfterSave={(key: string, d) => {}}
+        onAfterSave={(key: any, d) => {
+          //保存之后回调方法
+        }}
         validate={{
           age: (val: any, formData: object) => {
             return val > 100 ? "value不正确" : undefined;
@@ -29,26 +31,24 @@ export default () => {
         lineBtn={[
           {
             title: "启用",
-            key: "open",
-            code: "sysUser:state",
+            code: "sysUser:state", //加入权限
+            type: BtnType.EDIT,
             icon: <IconPlay />,
             disable_hidden: true,
-            enable_match: { state: "-1" },
+            enable_match: { state: "-1" }, //属性匹配方式校验
             statusCheckFunc: (record: SysUser) => {
-              return record.state === "1" ? "不能操作" : undefined;
+              //得到全量数据，根据数据进行复杂逻辑校验；
             },
             // 简化api ,增加手工表校验。
             tableApi: (id: string) => state({ ids: [id], state: "1" }),
           },
           {
             title: "停用",
-            key: "stop",
             code: "sysUser:state",
             icon: <IconPause />,
+            enable_match: { state: "1" },
             disable_hidden: true,
-            statusCheckFunc: (record: SysUser) => {
-              if (record.state === "-1") return "不能操作";
-            },
+            statusCheckFunc: (record: SysUser) => {},
             tableApi: (id: string) => state({ ids: [id], state: "-1" }),
           },
         ]}
@@ -56,7 +56,6 @@ export default () => {
           {
             title: "密码重置",
             className: "fieldSelectTour",
-            key: "reset",
             tooltip: "密码会被重置成123456",
             code: "sysUser:reset",
             icon: <IconForward />,

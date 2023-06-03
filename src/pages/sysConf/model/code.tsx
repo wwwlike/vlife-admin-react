@@ -10,6 +10,7 @@ import { duotoneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useLocation, useNavigate } from "react-router-dom";
 import Scrollbars from "react-custom-scrollbars";
+import DownloadButton from "./download";
 
 export default () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default () => {
       content: `复制成功`,
     });
   };
+
   return (
     <Scrollbars autoHide={true}>
       <div className="relative rounded-md">
@@ -51,7 +53,13 @@ export default () => {
           }}
           aria-label="关闭"
         />
-
+        <DownloadButton
+          className=" fixed right-10 bottom-4"
+          data={code}
+          fileName={`${
+            entityName.charAt(0).toUpperCase() + entityName.slice(1)
+          }.ts`}
+        ></DownloadButton>
         <CopyToClipboard onCopy={handleCopy} text={code}>
           <Prism
             showLineNumbers={true}

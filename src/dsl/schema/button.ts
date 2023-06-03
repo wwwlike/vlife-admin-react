@@ -22,7 +22,6 @@
  
  //按钮数据结构，能转换成VlifeButton的数据结构
  export interface VfButton<T extends IdBean> {
-   key:string,
    type?:BtnType,
    className?:string,
    title?: string; //按钮名称

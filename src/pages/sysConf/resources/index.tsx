@@ -5,10 +5,8 @@ import {
   listAll as resourcesAll,
   saveResources,
 } from "@src/api/SysResources";
-import { listAll as menuAll } from "@src/api/SysMenu";
 import { useNavigate } from "react-router-dom";
 import {
-  Breadcrumb,
   Button,
   ButtonGroup,
   Dropdown,
@@ -16,6 +14,7 @@ import {
   Layout,
   List,
   Nav,
+  Popover,
   Select,
   Space,
   Switch,
@@ -24,8 +23,10 @@ import {
   Tooltip,
   Tree,
 } from "@douyinfe/semi-ui";
+import { Notification } from "@douyinfe/semi-ui";
+
 import { IconSave } from "@douyinfe/semi-icons";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   IconHelpCircle,
   IconLoopTextStroked,
@@ -53,13 +54,13 @@ export default ({ menuId }: ResourcesConfProps) => {
   const [sysMenuId, setSysMenuId] = useState<string | null>(
     menuId || localStorage.getItem("currMenuId")
   );
+  const inputVal = useRef(null);
   const { user } = useAuth();
   const [role, setRole] = useState<{ label: string; value: string }[]>(); //所有角色
   const [resources, setResources] = useState<Partial<SysResources>[]>(); //最新资源
   const [dbResources, setDbResources] = useState<Partial<SysResources>[]>(); //数据库资源
   const [menus, setMenus] = useState<SysMenu[]>(); //所有菜单
   const [entitys, setEntitys] = useState<FormVo[]>();
-
   const submitData = useMemo((): Partial<SysResources>[] => {
     const saves: Partial<SysResources>[] = [];
     if (resources && dbResources) {
@@ -282,21 +283,8 @@ export default ({ menuId }: ResourcesConfProps) => {
           <div className=" mt-2 mr-2 bg-white w-1/3">
             <div className="pt-2 pl-4">
               <Label>请选择接口进行绑定</Label>
-              {/* <Breadcrumb className=" mt-2 ml-4"> */}
-              {/* <Breadcrumb.Item></Breadcrumb.Item>
-              <Breadcrumb.Item>接口选择</Breadcrumb.Item>
-              <Breadcrumb.Item>
-                {entitys?.filter((e) => e.type === filter?.entityType)[0].title}
-              </Breadcrumb.Item>
-            </Breadcrumb> */}
             </div>
 
-            {/* <div >
-            <Label>
-              当前位置：
-             
-            </Label>
-          </div> */}
             <Space className="mt-4 ml-4">
               <Dropdown
                 render={
@@ -454,18 +442,43 @@ export default ({ menuId }: ResourcesConfProps) => {
                 dataIndex="name"
                 width={140}
                 key="name"
+                className="group"
                 render={(text, record, index) => (
-                  <Input
-                    value={text}
-                    onChange={(t) => {
-                      const line = { ...record, name: t };
-                      setResources(
-                        resources?.map((r, i) => {
-                          return record.id === r.id ? line : r;
-                        })
-                      );
-                    }}
-                  />
+                  <div className="flex">
+                    <div className="  mr-2">{text}</div>
+                    <Popover
+                      content={
+                        <div className="  p-2 ">
+                          <Input
+                            ref={inputVal}
+                            onChange={(v) => {
+                              const line = { ...record, name: v };
+                              setResources(
+                                resources?.map((r, i) => {
+                                  return record.id === r.id ? line : r;
+                                })
+                              );
+                            }}
+                            placeholder="请输入修改后的名称"
+                          />
+                        </div>
+                      }
+                      trigger="click"
+                    >
+                      <div className="hidden group-hover:block">修改</div>
+                    </Popover>
+                  </div>
+                  // <Input
+                  //   value={text}
+                  //   onChange={(t) => {
+                  //     const line = { ...record, name: t };
+                  //     setResources(
+                  //       resources?.map((r, i) => {
+                  //         return record.id === r.id ? line : r;
+                  //       })
+                  //     );
+                  //   }}
+                  // />
                   // <Input value={a} onChange={(t) => setA(t)} />
                 )}
               />
@@ -503,32 +516,23 @@ export default ({ menuId }: ResourcesConfProps) => {
                 render={(text, record, index) => (
                   <Label>
                     {text}
-                    <div className=" absolute right-0 hidden group-hover:block">
+                    <div
+                      className=" absolute right-0 hidden group-hover:block"
+                      onClick={() => {
+                        navigator.clipboard.writeText(text);
+                        Notification.info({
+                          duration: 3,
+                          title: "已复制",
+                          position: "bottomRight",
+                        });
+                      }}
+                    >
                       复制
                     </div>
                   </Label>
                 )}
               />
-              {/* <Column
-              title="调用情况"
-              dataIndex="auth"
-              key="resourcesCode"
-              width={100}
-              render={(text, record: SysResources, index) =>
-                record.resourcesType !== "1" ? (
-                  catchResources.filter((s) => s.includes(record.url)).length >
-                  0 ? (
-                    <Tag type="light" color="blue">
-                      已调用
-                    </Tag>
-                  ) : (
-                    <Tag>未调用</Tag>
-                  )
-                ) : (
-                  <></>
-                )
-              }
-            /> */}
+
               <Column
                 width={120}
                 title={

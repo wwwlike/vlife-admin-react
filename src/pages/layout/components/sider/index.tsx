@@ -2,7 +2,6 @@ import React, { FC, useEffect, useMemo, useState } from "react";
 import { Layout, Nav } from "@douyinfe/semi-ui";
 import { MenuItem } from "@src/menu/config";
 import { useLocation, useNavigate } from "react-router-dom";
-// import "../../index.scss";
 import { useAuth } from "@src/context/auth-context";
 import SelectIcon from "@src/components/SelectIcon";
 import { SysMenu } from "@src/api/SysMenu";
@@ -36,57 +35,21 @@ function findMenuByPath(menus: MenuItem[], path: string, keys: any[]): any {
 const Index: FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  // 所有菜单（实体结构）
-  const [menus, setMenus] = useState<SysMenu[]>([]);
-  // 当前应用的（组件结构对象）
-  const [allMenuList, setAllMenuList] = useState<MenuItem[]>([]);
-
-  const [openKeys, setOpenKeys] = useState<string[]>([]);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  // const locale = useStore((state) => state.locale)
-  const { user, appId } = useAuth();
-
-  // useEffect(() => {
-  //   const getSub = (menus: SysMenu[], parent?: SysMenu): MenuItem[] => {
-  //     // alert(menus.filter((m) => m.pcode === null).length);
-  //     return menus
-  //       .filter((m) =>
-  //         parent ? m.pcode === parent.code : m.pcode === null && m.app !== true
-  //       )
-  //       .map((m) => {
-  //         return {
-  //           itemKey: m.id || "",
-  //           text: m.name,
-  //           code: m.code,
-  //           icon: m.icon,
-  //           path:
-  //             m.url && m.url.endsWith("*")
-  //               ? m.url.replace("*", m.placeholderUrl)
-  //               : m.url,
-  //           items: getSub(menus, m),
-  //         };
-  //       });
-  //   };
-  //   setMenus(user?.menus || []);
-  //   const menuItems: MenuItem[] = getSub(
-  //     user?.menus || [],
-  //     appId ? user?.menus.filter((m) => m.id === appId)[0] : undefined
-  //   );
-  //   setAllMenuList(menuItems);
-  // }, [appId]);
-
+  const [openKeys, setOpenKeys] = useState<string[]>([]); //打开节点
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]); //选中节点
+  const { user, app } = useAuth();
   /**
-   * 有权限的菜单
+   * 当前应用当前用户拥有权限下的所有菜单
    */
-  const navList1 = useMemo(() => {
-    let mList: MenuItem[] = [];
-    if (user && user.menus && user.menus.length > 0 && appId) {
-      const nav = (root: SysMenu): any[] => {
+  const currAppMenuList = useMemo(() => {
+    if (user && user.menus && user.menus.length > 0 && app) {
+      const nav = (root: SysMenu): MenuItem[] => {
         return user?.menus
           .sort((a, b) => a.sort - b.sort)
           .filter((m) => m.pcode === root.code)
           .map((menu) => {
             return {
+              id: menu.id,
               itemKey: menu.id,
               text: menu.name,
               code: menu.code,
@@ -99,11 +62,11 @@ const Index: FC = () => {
             };
           });
       };
-      return nav(user?.menus.filter((m) => m.id === appId)[0]);
+      return nav(user?.menus.filter((m) => app && m.id === app.id)[0]);
     } else {
       return [];
     }
-  }, [user?.menus, appId]);
+  }, [user?.menus, app]);
 
   const onSelect = (data: any) => {
     window.localStorage.setItem("currMenuId", data.itemKey);
@@ -114,17 +77,21 @@ const Index: FC = () => {
     setOpenKeys([...data.openKeys]);
   };
 
-  // const findAppId = useEffect(() => {
-
-  // }, [selectedkeys,pathname, menus]);
-  // setSelectedKeys 和 path 双向绑定
+  /**
+   * url直接打开找到应该展开的菜单
+   */
   useEffect(() => {
-    if (pathname && allMenuList && allMenuList.length > 0) {
-      const keys: string[] = findMenuByPath(allMenuList, pathname, []);
+    if (
+      pathname &&
+      currAppMenuList &&
+      currAppMenuList.length > 0 &&
+      selectedKeys.length === 0
+    ) {
+      const keys: string[] = findMenuByPath(currAppMenuList, pathname, []);
       setSelectedKeys([keys.pop() as string]);
       setOpenKeys(Array.from(new Set([...openKeys, ...keys])));
     }
-  }, [pathname, allMenuList]);
+  }, [pathname, currAppMenuList]);
 
   return (
     <Sider
@@ -132,20 +99,12 @@ const Index: FC = () => {
       style={{ backgroundColor: "var(--semi-color-bg-1)" }}
     >
       <Nav
-        items={navList1}
-        openKeys={openKeys}
-        selectedKeys={selectedKeys}
+        items={currAppMenuList}
+        openKeys={openKeys} //打开父节点
+        selectedKeys={selectedKeys} //选中的子节点
         onSelect={onSelect}
         onOpenChange={onOpenChange}
         style={{ maxWidth: 220, height: "100%" }}
-        // header={{
-        // 	logo: <IconApps style={{ fontSize: 36 }} />,
-        // 	text: 'VLife Admin',
-        // }}
-        // footer={{
-        //   collapseButton: true,
-        //   // collapseText: () => <div>{"展开"}</div>,
-        // }}
       >
         <Nav.Footer collapseButton={true} />
       </Nav>

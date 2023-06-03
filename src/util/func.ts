@@ -147,19 +147,19 @@ import SelectIcon from '@src/components/SelectIcon';
     }
 
 
-     /**
-     * 过滤all里所有root的子节点(递归)
-     */
-      export const findSubs=<T extends ITree>(all:T[],root:T):T[]=>{
-        const subs:T[]=[];
-        const next=all.filter(a=>a.pcode===root.code)
-        if(next&&next.length>0){
-          subs.push(...next)
-          next.forEach(n=>{
-            subs.push(...findSubs(all,n));
-          })
-        }
-        return subs;
-      }
+  /**
+ * 过滤all里所有root的子节点(递归)
+ */
+  export const findSubs=<T extends ITree>(all:T[],root:T):T[]=>{
+    const subs:T[]=[];
+    const next=all.filter(a=>a.pcode===root.code)
+    if(next&&next.length>0){
+      subs.push(...next)
+      next.forEach(n=>{
+        subs.push(...findSubs(all,n));
+      })
+    }
+    return subs;
+  }
 
  
