@@ -430,7 +430,7 @@ export default ({ menuId }: ResourcesConfProps) => {
           </div>
           <div className="w-full bg-white mt-2">
             <div className="p-2">
-              <Label>已绑定的接口资源</Label>
+              <Label>菜单权限绑定</Label>
             </div>
             <Table
               dataSource={resources?.filter((r) => r.sysMenuId === menu?.id)}

@@ -7,6 +7,7 @@ import SuspendFallbackLoading from "../../components/fallback-loading";
 import FormModal from "../common/modal/formModal";
 import VlifeModal from "../common/modal/vlifeModal";
 import ConfirmModal from "../common/modal/confirmModal";
+import Scrollbars from "react-custom-scrollbars";
 // import TableModal from "../common/tableModal";
 // import FormModal from "../common/formModal";
 // import ConfirmModal from "../common/confirmModal";
@@ -22,9 +23,13 @@ const Index: React.FC = () => {
       <Layout>
         <Sider />
         <Content className="layout-content">
-          <Suspense fallback={<SuspendFallbackLoading message="正在加载中" />}>
-            <Outlet />
-          </Suspense>
+          <Scrollbars autoHide={true}>
+            <Suspense
+              fallback={<SuspendFallbackLoading message="正在加载中" />}
+            >
+              <Outlet />
+            </Suspense>
+          </Scrollbars>
         </Content>
         {/* <Footer /> */}
       </Layout>

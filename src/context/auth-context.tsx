@@ -357,9 +357,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user?.sysGroupId === "super") {
         return true;
       }
-      if (user && user.resourceCodes && code) {
-        return user?.resourceCodes?.includes(code);
+      if (
+        user &&
+        user.resourceCodes &&
+        code &&
+        user?.resourceCodes?.includes(code)
+      ) {
+        //拥有权限
+        return true;
+      } else if (
+        //资源权限未纳入权限管理绑定菜单
+        allResources &&
+        allResources?.filter((f) => f.code === code && f.sysMenuId === null)
+          .length > 0
+      ) {
+        return true;
       }
+      //用户没有此资源，此资源没有绑定模块
       return false;
     },
     [user?.resourceCodes]
