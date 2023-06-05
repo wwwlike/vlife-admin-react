@@ -20,6 +20,7 @@ export default () => {
         entityType="sysUser"
         filterType="sysUserPageReq"
         req={{ state: "1" }}
+        showOrder={false}
         onAfterSave={(key: any, d) => {
           //保存之后回调方法
         }}

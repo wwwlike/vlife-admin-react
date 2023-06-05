@@ -98,7 +98,6 @@ export default ({ currModel, onChange }: eventPageProp) => {
               setData(undefined);
               setModelState(true);
             },
-            key: "save",
             title: "新增",
             code: "formEvent:save:formEventDto",
           },
@@ -111,7 +110,6 @@ export default ({ currModel, onChange }: eventPageProp) => {
                 setModelState(true);
               });
             },
-            key: "save",
             title: "编辑",
             code: "formEvent:save:formEventDto",
           },

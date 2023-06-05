@@ -14,7 +14,11 @@ export default () => {
   }, [location]);
   return (
     (entityType && (
-      <Content filterType={`${entityType}PageReq`} entityType={entityType} />
+      <Content
+        key={entityType}
+        filterType={`${entityType}PageReq`}
+        entityType={entityType}
+      />
     )) || <></>
   );
 };

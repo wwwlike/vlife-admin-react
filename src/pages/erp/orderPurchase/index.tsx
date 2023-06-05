@@ -18,14 +18,12 @@ export default () => {
       editType="orderPurchaseDto"
       lineBtn={[
         {
-          key: "orderpurchaseEdit",
           type: BtnType.EDIT,
           // disable_hidden: true,
           tooltip: "已采购，不可编辑",
           enable_match: { state: "2" },
         },
         {
-          key: "orderpurchaseRm",
           type: BtnType.RM,
           // disable_hidden: true,
           tooltip: "已采购，不可删除",
@@ -35,7 +33,6 @@ export default () => {
       tableBtn={[
         {
           title: "采购完成",
-          key: "reset",
           code: "orderPurchase:finish",
           icon: <IconPriceTag />,
           enable_recordNum: RecordNum.MORE,
@@ -47,7 +44,6 @@ export default () => {
           },
         },
         {
-          key: "orderPurchaseRm",
           type: BtnType.RM,
           statusCheckFunc: (...record: OrderPurchase[]) => {
             if (record.filter((r) => r.state === "1").length > 0) {

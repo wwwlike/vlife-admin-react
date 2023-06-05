@@ -9,7 +9,7 @@ import { useAuth } from "@src/context/auth-context";
 
 import { useEffect, useState } from "react";
 import { LiveProvider, LiveEditor } from "react-live";
-
+const APP_TITLE = import.meta.env.VITE_APP_TITLE;
 export default () => {
   const { user } = useAuth();
   const [apps, setApps] = useState<SysMenu[]>([]);
@@ -100,7 +100,7 @@ export default () => {
             className=" text-neutral-950"
           >
             <span className=" text-red-600">{user && user.name}</span>
-            ,你好,欢迎使用微徕低代码研发平台
+            ,你好,欢迎使用{APP_TITLE}
           </div>
         }
         description={

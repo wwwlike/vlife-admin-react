@@ -11,8 +11,8 @@ export default () => {
       listType="sysGroup"
       editType="groupDto"
       filterType="sysGroupPageReq"
-      onAfterSave={(key: string, data: any) => {
-        if (key === "save") {
+      onAfterSave={(btnType, data: any) => {
+        if (btnType === "save") {
           clearModelInfo();
         }
       }}

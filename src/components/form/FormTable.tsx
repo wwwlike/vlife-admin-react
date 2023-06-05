@@ -37,7 +37,6 @@ export default ({
   const lineButton: VfButton<any>[] = [
     {
       title: "修改",
-      key: "sava",
       click: (btn: VfButton<any>, number, data) => {
         setFormData(data);
         setIndex(number);
@@ -45,7 +44,6 @@ export default ({
     },
     {
       title: "删除",
-      key: "remove",
       icon: <IconTextStroked></IconTextStroked>,
       click: (btn, number, data) => {
         setTableData(tableData.filter((f, index) => index !== number));

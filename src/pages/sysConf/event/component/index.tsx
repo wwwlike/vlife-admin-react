@@ -95,7 +95,6 @@ export default ({ currModel, onChange }: eventPageProp) => {
         tableBtn={[
           //这里是自定义eventdto的视图，替换默认的视图
           {
-            key: "eventadd",
             click: (btn, datas) => {
               setData(undefined);
               setModelState(true);
@@ -106,7 +105,6 @@ export default ({ currModel, onChange }: eventPageProp) => {
         ]}
         lineBtn={[
           {
-            key: "eventaddedit",
             click: (btn, index, lineData) => {
               getDetail(lineData.id, "formEventDto").then((data) => {
                 setData(data.data);
