@@ -41,6 +41,13 @@ const ProductPage = lazy(() => import("@src/pages/erp/product"));
 const OrderPurchasePage = lazy(() => import("@src/pages/erp/orderPurchase"));
 const OrderSalePage = lazy(() => import("@src/pages/erp/orderSale"));
 
+//====银行
+//银行流水
+const BankFlowPage = lazy(() => import("@src/pages/bank/flow"));
+//银行图像
+const BankImgDataPage = lazy(() => import("@src/pages/bank/imgData"));
+//图像批次
+const BankBatchPage = lazy(() => import("@src/pages/bank/batch"));
 export const allRoute: any[] = [
   //系统业务
   {
@@ -319,6 +326,44 @@ export const allRoute: any[] = [
           <WrapperRouteComponent
             element={<ExamplePage />}
             titleId="demo"
+            auth
+          />
+        ),
+      },
+    ],
+  },
+  {
+    path: "/bank",
+    element: (
+      <WrapperRouteComponent element={<LayoutPage />} titleId="银行" auth />
+    ),
+    children: [
+      {
+        path: "flow",
+        element: (
+          <WrapperRouteComponent
+            element={<BankFlowPage />}
+            titleId="银行流水"
+            auth
+          />
+        ),
+      },
+      {
+        path: "batch",
+        element: (
+          <WrapperRouteComponent
+            element={<BankBatchPage />}
+            titleId="批次"
+            auth
+          />
+        ),
+      },
+      {
+        path: "imgData",
+        element: (
+          <WrapperRouteComponent
+            element={<BankImgDataPage />}
+            titleId="流水图像"
             auth
           />
         ),
