@@ -522,141 +522,139 @@ export default () => {
               )}
             </Sider>
             <Content className="grid h-full p-2">
-              <Scrollbars autoHide={true}>
-                {currModel && currModel.id && params.mode !== Mode.list ? (
-                  <>
-                    <FormPage
-                      type="form"
-                      formEvents={{
-                        prefixNo: (field, form, model) => {
-                          if (!currModel.parentsName.includes("INo")) {
-                            field.display = "hide";
-                          }
-                        },
-                      }}
-                      formData={currModel}
-                      onDataChange={(model) => {
-                        setCurrModel({ ...model });
-                      }}
-                      className={` center rounded-md h-20 w-8/12 bg-white p-4 pt-6 m-2`}
-                    />
+              {currModel && currModel.id && params.mode !== Mode.list ? (
+                <>
+                  <FormPage
+                    type="form"
+                    formEvents={{
+                      prefixNo: (field, form, model) => {
+                        if (!currModel.parentsName.includes("INo")) {
+                          field.display = "hide";
+                        }
+                      },
+                    }}
+                    formData={currModel}
+                    onDataChange={(model) => {
+                      setCurrModel({ ...model });
+                    }}
+                    className={` center rounded-md h-20 w-8/12 bg-white p-4 pt-6 m-2`}
+                  />
 
-                    <FormPage
-                      design={true}
-                      key={currModel.id + currModel.type + currModel.modelSize}
-                      className={` center rounded-md bg-white  p-4 m-2 ${
-                        currModel.modelSize === undefined ||
-                        currModel.modelSize === 4
-                          ? "w-full"
-                          : currModel.modelSize === 3
-                          ? "w-10/12"
-                          : currModel.modelSize === 2
-                          ? "w-8/12"
-                          : "w-1/2"
-                      } min-w-1/2`}
-                      readPretty={
-                        currModel.itemType == "vo" ? true : params.formRead
+                  <FormPage
+                    design={true}
+                    key={currModel.id + currModel.type + currModel.modelSize}
+                    className={` center rounded-md bg-white  p-4 m-2 ${
+                      currModel.modelSize === undefined ||
+                      currModel.modelSize === 4
+                        ? "w-full"
+                        : currModel.modelSize === 3
+                        ? "w-10/12"
+                        : currModel.modelSize === 2
+                        ? "w-8/12"
+                        : "w-1/2"
+                    } min-w-1/2`}
+                    readPretty={
+                      currModel.itemType == "vo" ? true : params.formRead
+                    }
+                    // type={currModel.itemType === "req" ? "req" : "save"}
+                    highlight={currField?.fieldName}
+                    // entityType={currModel.entityType}
+                    type={currModel.type}
+                    // itemType={currModel.itemType}
+                    modelInfo={{ ...currModel }}
+                    formData={params.formRead ? writeData : formData}
+                    onDataChange={(d) => {
+                      setWriteData(d);
+                    }}
+                    //组件div点击回调
+                    onClickFieldComponent={(
+                      fieldName: string,
+                      opt: "click" | "must" | "delete"
+                    ) => {
+                      let fff: any = currModel.fields.filter(
+                        (f) => f.fieldName === fieldName
+                      )[0];
+                      if (opt === "click") {
+                        updateFieldSyncModel({ ...fff });
                       }
-                      // type={currModel.itemType === "req" ? "req" : "save"}
-                      highlight={currField?.fieldName}
-                      // entityType={currModel.entityType}
-                      type={currModel.type}
-                      // itemType={currModel.itemType}
-                      modelInfo={{ ...currModel }}
-                      formData={params.formRead ? writeData : formData}
-                      onDataChange={(d) => {
-                        setWriteData(d);
-                      }}
-                      //组件div点击回调
-                      onClickFieldComponent={(
-                        fieldName: string,
-                        opt: "click" | "must" | "delete"
-                      ) => {
-                        let fff: any = currModel.fields.filter(
-                          (f) => f.fieldName === fieldName
-                        )[0];
-                        if (opt === "click") {
-                          updateFieldSyncModel({ ...fff });
-                        }
-                        if (opt === "delete") {
-                          updateModelsyncField({
-                            ...currModel,
-                            fields: currModel.fields.map((ff): any => {
-                              // 初始化组件类型
-                              return ff.fieldName === fieldName
-                                ? { ...ff, x_hidden: true }
-                                : ff;
-                            }),
-                          });
-                          // updateFieldSyncModel(undefined);
-                        } else if (opt === "must") {
-                          fff = { ...fff, required: !fff.required };
-                          updateModelsyncField({
-                            ...currModel,
-                            fields: currModel.fields.map((ff): any => {
-                              // 初始化组件类型
-                              return ff.fieldName === fieldName ? fff : ff;
-                            }),
-                          });
-                          // setCurrField(fff);
-                        }
-                      }}
-                    />
-                  </>
-                ) : (
-                  // // <Tabs>
-                  //   {/* <TabPane tab={`实时预览`} itemKey={"FormView"}> */}
+                      if (opt === "delete") {
+                        updateModelsyncField({
+                          ...currModel,
+                          fields: currModel.fields.map((ff): any => {
+                            // 初始化组件类型
+                            return ff.fieldName === fieldName
+                              ? { ...ff, x_hidden: true }
+                              : ff;
+                          }),
+                        });
+                        // updateFieldSyncModel(undefined);
+                      } else if (opt === "must") {
+                        fff = { ...fff, required: !fff.required };
+                        updateModelsyncField({
+                          ...currModel,
+                          fields: currModel.fields.map((ff): any => {
+                            // 初始化组件类型
+                            return ff.fieldName === fieldName ? fff : ff;
+                          }),
+                        });
+                        // setCurrField(fff);
+                      }
+                    }}
+                  />
+                </>
+              ) : (
+                // // <Tabs>
+                //   {/* <TabPane tab={`实时预览`} itemKey={"FormView"}> */}
 
-                  //   {/* </TabPane> */}
+                //   {/* </TabPane> */}
 
-                  //   {/* <TabPane tab={`模型设置`} itemKey={"formModelSetting"}>
-                  //     <FormPage type="form" formData={} />
-                  //   </TabPane> */}
-                  //   {/* {params.mode === Mode.form && (
-                  //   <TabPane tab="事件响应" itemKey="eventTab">
-                  //     <EventTabPage
-                  //       onChange={(model) => {
-                  //         updateModelsyncField({ ...model });
-                  //       }}
-                  //       currModel={currModel}
-                  //     ></EventTabPage>
-                  //   </TabPane>
-                  // )} */}
-                  // // </Tabs>
-                  <div className="center rounded-md bg-white h-full p-4">
-                    <div className=" flex m-2">
-                      <div className="text-md items-start">列表设计</div>
-                      <div className=" absolute right-2">
-                        <Button onClick={showFormApiModal}>接口设置</Button>
-                      </div>
-                      {/* {params.httpError?.code === 4404 ? (
+                //   {/* <TabPane tab={`模型设置`} itemKey={"formModelSetting"}>
+                //     <FormPage type="form" formData={} />
+                //   </TabPane> */}
+                //   {/* {params.mode === Mode.form && (
+                //   <TabPane tab="事件响应" itemKey="eventTab">
+                //     <EventTabPage
+                //       onChange={(model) => {
+                //         updateModelsyncField({ ...model });
+                //       }}
+                //       currModel={currModel}
+                //     ></EventTabPage>
+                //   </TabPane>
+                // )} */}
+                // // </Tabs>
+                <div className="center rounded-md bg-white h-full p-4">
+                  <div className=" flex m-2">
+                    <div className="text-md items-start">列表设计</div>
+                    <div className=" absolute right-2">
+                      <Button onClick={showFormApiModal}>接口设置</Button>
+                    </div>
+                    {/* {params.httpError?.code === 4404 ? (
                     <Button onClick={showFormApiModal}>接口设置</Button>
                   ) : (
                     <Button onClick={showFormApiModal}>接口设置</Button>
                   )} */}
-                    </div>
-
-                    {currModel && (
-                      <TablePage
-                        key={`table${JSON.stringify(currModel)}`}
-                        design={true}
-                        pageSize={currModel?.pageSize}
-                        req={{}}
-                        entityType={currModel?.entityType || ""}
-                        listType={currModel?.type}
-                        editType={currModel?.type}
-                        // select_more={true}
-                        formVo={currModel}
-                        btnHide={true}
-                        onHttpError={(error: httpError) => {
-                          setParams({ ...params, httpError: error });
-                        }}
-                        // customBtns={customBtns}
-                      />
-                    )}
                   </div>
-                )}
-              </Scrollbars>
+
+                  {currModel && (
+                    <TablePage
+                      key={`table${JSON.stringify(currModel)}`}
+                      design={true}
+                      pageSize={currModel?.pageSize}
+                      req={{}}
+                      entityType={currModel?.entityType || ""}
+                      listType={currModel?.type}
+                      editType={currModel?.type}
+                      // select_more={true}
+                      formVo={currModel}
+                      btnHide={true}
+                      onHttpError={(error: httpError) => {
+                        setParams({ ...params, httpError: error });
+                      }}
+                      // customBtns={customBtns}
+                    />
+                  )}
+                </div>
+              )}
             </Content>
             <Sider
               className="shadow-lg"
