@@ -9,7 +9,13 @@ import { IdBean } from "@src/api/base";
 import FormPage from "@src/pages/common/formPage";
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IconSetting, IconTreeTriangleDown } from "@douyinfe/semi-icons";
+import {
+  IconArrowLeft,
+  IconDoubleChevronLeft,
+  IconDoubleChevronRight,
+  IconSetting,
+  IconTreeTriangleDown,
+} from "@douyinfe/semi-icons";
 import { DropDownMenuItem } from "@douyinfe/semi-ui/lib/es/dropdown";
 import TablePage, { TablePageProps } from "@src/pages/common/tablePage";
 import { useNiceModal } from "@src/store";
@@ -56,6 +62,7 @@ const Content = <T extends IdBean>({
   const tableReq = useMemo(() => {
     return { ...req, ...formData };
   }, [req, formData]);
+  const [filterOpen, setFilterOpen] = useState(true);
   const menu = useMemo((): DropDownMenuItem[] => {
     let arrays: DropDownMenuItem[] = [
       {
@@ -138,9 +145,9 @@ const Content = <T extends IdBean>({
   }, [lineBtn, tableBtn]);
 
   return (
-    <div className="h-full">
-      {filterType && (
-        <div className="h-full w-72 float-left ">
+    <div className="h-full flex">
+      {filterType && filterOpen && (
+        <div className="h-full w-72 ">
           <Card
             title={`${title ? title : model ? model.name : ""}管理`}
             bordered={true}
@@ -181,7 +188,26 @@ const Content = <T extends IdBean>({
           </Card>
         </div>
       )}
-      <div className="h-full md:min-w-3/4">
+      <div className="h-full w-full cursor-pointer relative ">
+        {filterOpen && (
+          <IconDoubleChevronLeft
+            size="large"
+            className=" absolute -left-3 top-1/2"
+            onClick={() => {
+              setFilterOpen(false);
+            }}
+          />
+        )}
+        {!filterOpen && (
+          <IconDoubleChevronRight
+            size="large"
+            className="cursor-pointer absolute left-0 top-1/2"
+            onClick={() => {
+              setFilterOpen(true);
+            }}
+          />
+        )}
+
         <Card
           title={`${title ? title : model ? model.name : ""}列表`}
           headerExtraContent={
