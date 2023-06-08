@@ -171,73 +171,97 @@ const TableIndex = <T extends IdBean>({
       }
 
       //字典 ，Boolean,外键，Pcode翻译处理
-      columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
-        if (
-          m.pageComponentPropDtos &&
-          m.pageComponentPropDtos.filter(
-            (f) => f.sourceType === sourceType.dict
-          ).length > 0 &&
-          dicts
-        ) {
-          const dictCode = m.pageComponentPropDtos.filter(
-            (f) => f.sourceType === sourceType.dict
-          )[0].propVal;
+      columnshow?.forEach(
+        (m: Partial<ColumnProps & FormFieldVo>, index: number) => {
+          if (columnshow.length > 10 && index < 4) {
+            m.fixed = true;
+          }
+          m.ellipsis = true; //单元格缩略
+          m.width = 100;
 
-          m["render"] = (text, record, index) => {
-            if (text === "" || text === null || text === undefined) {
-              return "-";
-            }
-            return dicts[dictCode || "vlife"] &&
-              dicts[dictCode || "vlife"].data ? (
-              dicts[dictCode || "vlife"].data?.filter(
-                (d) => d.value + "" === text + ""
-              ).length > 0 ? (
+          if (
+            m.pageComponentPropDtos &&
+            m.pageComponentPropDtos.filter(
+              (f) => f.sourceType === sourceType.dict
+            ).length > 0 &&
+            dicts
+          ) {
+            const dictCode = m.pageComponentPropDtos.filter(
+              (f) => f.sourceType === sourceType.dict
+            )[0].propVal;
+
+            m["render"] = (text, record, index) => {
+              if (text === "" || text === null || text === undefined) {
+                return "-";
+              }
+              return dicts[dictCode || "vlife"] &&
+                dicts[dictCode || "vlife"].data ? (
                 dicts[dictCode || "vlife"].data?.filter(
                   (d) => d.value + "" === text + ""
-                )[0].color ? (
-                  <Tag
-                    color={
-                      dicts[dictCode || "vlife"].data?.filter(
-                        (d) => d.value + "" === text + ""
-                      )[0].color
-                    }
-                  >
-                    {
-                      dicts[dictCode || "vlife"].data?.filter(
-                        (d) => d.value + "" === text + ""
-                      )[0].label
-                    }
-                  </Tag>
-                ) : (
+                ).length > 0 ? (
                   dicts[dictCode || "vlife"].data?.filter(
                     (d) => d.value + "" === text + ""
-                  )[0].label
+                  )[0].color ? (
+                    <Tag
+                      color={
+                        dicts[dictCode || "vlife"].data?.filter(
+                          (d) => d.value + "" === text + ""
+                        )[0].color
+                      }
+                    >
+                      {
+                        dicts[dictCode || "vlife"].data?.filter(
+                          (d) => d.value + "" === text + ""
+                        )[0].label
+                      }
+                    </Tag>
+                  ) : (
+                    dicts[dictCode || "vlife"].data?.filter(
+                      (d) => d.value + "" === text + ""
+                    )[0].label
+                  )
+                ) : (
+                  "-"
                 )
               ) : (
                 "-"
-              )
-            ) : (
-              "-"
-            );
-          };
-        } else if (m.fieldType === "boolean") {
-          m["render"] = (text, record, index) => {
-            return text === null ? "-" : text ? <IconStoryStroked /> : "";
-          };
-        } else if (m.entityFieldName === "id" && fkMap) {
-          m["render"] = (text, record, index) => {
-            return fkMap[text];
-          };
-        } else if (m.fieldName === "pcode" && parentMap) {
-          m["render"] = (text, record, index) => {
-            return parentMap[text];
-          };
-        } else if (m.fieldType === "date") {
-          m["render"] = (text, record, index) => {
-            return formatDate(text, "yyyy-MM-dd");
-          };
+              );
+            };
+          } else if (m.fieldType === "boolean") {
+            m["render"] = (text, record, index) => {
+              return text === null ? "-" : text ? <IconStoryStroked /> : "";
+            };
+          } else if (m.entityFieldName === "id" && fkMap) {
+            m["render"] = (text, record, index) => {
+              return fkMap[text];
+            };
+          } else if (m.fieldName === "pcode" && parentMap) {
+            m["render"] = (text, record, index) => {
+              return parentMap[text];
+            };
+          } else if (m.fieldType === "date") {
+            m["render"] = (text, record, index) => {
+              return formatDate(text, "yyyy-MM-dd");
+            };
+          }
+
+          // else {
+          //   m["render"] = (text, record, index) => {
+          //     return (
+          //       <div
+          //         style={{
+          //           whiteSpace: "nowrap",
+          //           overflow: "hidden",
+          //           textOverflow: "ellipsis",
+          //         }}
+          //       >
+          //         {text}
+          //       </div>
+          //     );
+          //   };
+          // }
         }
-      });
+      );
       // 图标，图像组件转换
       columnshow?.forEach((m: Partial<ColumnProps & FormFieldVo>) => {
         if (m.x_component === "VfImage") {
