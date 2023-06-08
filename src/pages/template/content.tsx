@@ -145,9 +145,9 @@ const Content = <T extends IdBean>({
   }, [lineBtn, tableBtn]);
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex w-screen">
       {filterType && filterOpen && (
-        <div className="h-full w-72 ">
+        <div className="h-full flex-none  w-72">
           <Card
             title={`${title ? title : model ? model.name : ""}管理`}
             bordered={true}
@@ -188,7 +188,7 @@ const Content = <T extends IdBean>({
           </Card>
         </div>
       )}
-      <div className="h-full w-full cursor-pointer relative ">
+      <div className="h-full flex-1 cursor-pointer relative ">
         {filterOpen && (
           <IconDoubleChevronLeft
             size="large"
