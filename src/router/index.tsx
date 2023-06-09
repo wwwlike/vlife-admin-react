@@ -53,11 +53,7 @@ export const allRoute: any[] = [
   {
     path: "/",
     element: (
-      <WrapperRouteComponent
-        element={<LayoutPage />}
-        titleId="vlife-admin首页"
-        auth
-      />
+      <WrapperRouteComponent element={<LayoutPage />} titleId="首页" auth />
     ),
     children: [
       {

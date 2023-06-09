@@ -13,7 +13,7 @@ const PrivateRoute = ({ ...props }) => {
 
   return logged ? (
     pathname === "/" ? (
-      <Navigate to={{ pathname: `/dashboard/workbeach` }} replace />
+      <Navigate to={{ pathname: `/bank/imgData` }} replace />
     ) : (
       props.element
     )

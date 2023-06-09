@@ -154,16 +154,7 @@ const Index: FC = () => {
             <Empty
               className=" relative top-3  mr-4"
               image={
-                <img src={logo} style={{ width: 30, height: 30, top: 10 }} />
-              }
-            ></Empty>
-            <Empty
-              className=" relative top-3 "
-              image={
-                <img
-                  src={"https://wwwlike.gitee.io/vlife-img/weilai.jpg"}
-                  style={{ width: 80, height: 30, top: 10 }}
-                />
+                <img src={logo} style={{ width: 180, height: 30, top: 10 }} />
               }
             ></Empty>
           </div>
@@ -172,106 +163,59 @@ const Index: FC = () => {
         items={menuItems}
         footer={
           <>
-            <SplitButtonGroup>
-              <Button
-                theme="borderless"
-                style={{
-                  color: "var(--semi-color-text-2)",
-                }}
-                icon={<IconSetting />}
-              >
-                常用菜单
-              </Button>
-              <Dropdown
-                menu={[
-                  {
-                    node: "item",
-                    name: "模型管理",
-                    onClick: () => {
-                      window.open(`/sysConf/model`, "_blank");
-                      // navigate(`/sysConf/model`);
-                    },
-                  },
-                  {
-                    node: "item",
-                    name: "菜单管理",
-                    onClick: () => {
-                      window.open(`/sysConf/menu`, "_blank");
-                    },
-                  },
-                  {
-                    node: "item",
-                    name: "资源管理",
-                    onClick: () => {
-                      window.open(`/sysConf/resources`, "_blank");
-                    },
-                  },
-                ]}
-                trigger="click"
-                position="bottomRight"
-              >
-                <Button
-                  style={{
-                    padding: "8px 4px",
-                    color: "var(--semi-color-text-2)",
-                  }}
-                  theme="borderless"
-                  className=" hover:bg-slate-400"
-                  icon={<IconTreeTriangleDown />}
-                ></Button>
-              </Dropdown>
-            </SplitButtonGroup>
-
-            <Button
-              theme="borderless"
-              icon={<IconDesktop size="large" />}
-              style={{
-                color: "var(--semi-color-text-2)",
-                marginRight: "12px",
-              }}
-              onClick={() => {
-                window.open("http://vlife.cc");
-              }}
-            >
-              使用指南
-            </Button>
-
-            <Button
-              theme="borderless"
-              icon={<IconGithubLogo size="large" />}
-              style={{
-                color: "var(--semi-color-text-2)",
-                marginRight: "12px",
-              }}
-              onClick={() => {
-                window.open("https://gitee.com/wwwlike/vlife");
-              }}
-            >
-              GITEE
-            </Button>
-            <Button
-              theme="borderless"
-              icon={<IconGithubLogo size="large" />}
-              style={{
-                color: "var(--semi-color-text-2)",
-                marginRight: "12px",
-              }}
-              onClick={() => {
-                window.open("https://github.com/wwwlike/vlife");
-              }}
-            >
-              GITHUB
-            </Button>
-            {/* <Badge count={5} type="danger">
-							<Button
-								theme="borderless"
-								icon={<IconBell />}
-								style={{
-									color: 'var(--semi-color-text-2)',
-									marginRight: '12px'
-								}}
-							/>
-						</Badge> */}
+            {user && user.username === "manage" && (
+              <>
+                <SplitButtonGroup>
+                  <Button
+                    theme="borderless"
+                    style={{
+                      color: "var(--semi-color-text-2)",
+                    }}
+                    icon={<IconSetting />}
+                  >
+                    常用菜单
+                  </Button>
+                  <Dropdown
+                    menu={[
+                      {
+                        node: "item",
+                        name: "模型管理",
+                        onClick: () => {
+                          window.open(`/sysConf/model`, "_blank");
+                          // navigate(`/sysConf/model`);
+                        },
+                      },
+                      {
+                        node: "item",
+                        name: "菜单管理",
+                        onClick: () => {
+                          window.open(`/sysConf/menu`, "_blank");
+                        },
+                      },
+                      {
+                        node: "item",
+                        name: "资源管理",
+                        onClick: () => {
+                          window.open(`/sysConf/resources`, "_blank");
+                        },
+                      },
+                    ]}
+                    trigger="click"
+                    position="bottomRight"
+                  >
+                    <Button
+                      style={{
+                        padding: "8px 4px",
+                        color: "var(--semi-color-text-2)",
+                      }}
+                      theme="borderless"
+                      className=" hover:bg-slate-400"
+                      icon={<IconTreeTriangleDown />}
+                    ></Button>
+                  </Dropdown>
+                </SplitButtonGroup>
+              </>
+            )}
 
             <Dropdown
               render={

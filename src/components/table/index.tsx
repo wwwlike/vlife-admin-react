@@ -173,11 +173,18 @@ const TableIndex = <T extends IdBean>({
       //字典 ，Boolean,外键，Pcode翻译处理
       columnshow?.forEach(
         (m: Partial<ColumnProps & FormFieldVo>, index: number) => {
-          if (columnshow.length > 10 && index < 4) {
-            m.fixed = true;
+          if (columnshow.length > 10) {
+            if (index < 2) {
+              m.fixed = true;
+            }
+            // m.width = 100;
           }
-          m.ellipsis = true; //单元格缩略
-          m.width = 100;
+          // m.width = 100;
+          // m.ellipsis = { showTitle: false };
+          // m.ellipsis = true; //单元格缩略
+          if (index === columnshow.length - 1) {
+            m.fixed = "right";
+          }
 
           if (
             m.pageComponentPropDtos &&
@@ -409,10 +416,14 @@ const TableIndex = <T extends IdBean>({
     }
   };
 
+  const scroll = { y: 400, x: 900 };
+  const style = { width: "2000px", margin: "0 auto" };
+
   return (
-    <div className={className}>
+    <div className=" w-full ">
       <Table
         showHeader={true}
+        // scroll={scroll}
         // style={{ lineHeight: "24px" }}
         bordered={true}
         rowKey={"id"}

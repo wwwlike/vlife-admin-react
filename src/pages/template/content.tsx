@@ -145,7 +145,7 @@ const Content = <T extends IdBean>({
   }, [lineBtn, tableBtn]);
 
   return (
-    <div className="h-full flex w-screen">
+    <div className="h-full flex">
       {filterType && filterOpen && (
         <div className="h-full flex-none  w-72">
           <Card
@@ -210,29 +210,6 @@ const Content = <T extends IdBean>({
 
         <Card
           title={`${title ? title : model ? model.name : ""}列表`}
-          headerExtraContent={
-            mode === "dev" && (
-              <SplitButtonGroup style={{ marginRight: 10 }}>
-                <Button theme="light" icon={<IconSetting />}>
-                  配置
-                </Button>
-                <Dropdown
-                  // onVisibleChange={(v) => handleVisibleChange(2, v)}
-                  menu={menu}
-                  trigger="click"
-                  position="bottomRight"
-                >
-                  <Button
-                    style={{
-                      padding: "8px 4px",
-                    }}
-                    className=" hover:bg-slate-400"
-                    icon={<IconTreeTriangleDown />}
-                  ></Button>
-                </Dropdown>
-              </SplitButtonGroup>
-            )
-          }
           headerLine={false}
           bordered={false}
           className="h-full group"
