@@ -39,7 +39,7 @@ export interface TablePageProps<T extends IdBean> {
   selected: T[]; //进入之前选中的数据信息
   select_show_field: string; //选中时进行展示的字段，不传则不展示
   ignores?: string[]; //忽略不展示的字段
-  onLineClick: (obj: T) => void; //行点击事件(未启用)
+  onLineClick: (obj: T) => void; //行点击事件
   onSelected: (selecteds: T[]) => void; //选中回调
   onGetData: (datas: T[]) => void; //列表数据加载完成事件,把数据传出去
   onFormModel: (formVo: FormVo) => void; //请求到模型信息，数据传出

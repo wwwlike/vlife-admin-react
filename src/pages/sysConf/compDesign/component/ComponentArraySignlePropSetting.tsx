@@ -22,6 +22,8 @@ interface ArraySignlePropSettingProps {
   pageKey: string;
   /** 其他字段信息 */
   fields?: FormFieldVo[];
+  /** 当前组件所有属性值，包含pageComponentPropDtos里的propValue */
+  componentProp: any;
 }
 
 const ComponentArraySignlePropSetting = ({
@@ -31,6 +33,7 @@ const ComponentArraySignlePropSetting = ({
   onDataChange,
   pageKey,
   fields,
+  componentProp,
 }: ArraySignlePropSettingProps) => {
   //存放listNo的序号数组
   const [num, setNum] = useState<number[]>([]);
@@ -97,6 +100,7 @@ const ComponentArraySignlePropSetting = ({
                 replace(n, d);
               }}
               fields={fields}
+              componentProp={componentProp}
             />
             {/* <span className="block"></span> */}
           </div>
@@ -105,5 +109,4 @@ const ComponentArraySignlePropSetting = ({
     </div>
   );
 };
-
 export default ComponentArraySignlePropSetting;

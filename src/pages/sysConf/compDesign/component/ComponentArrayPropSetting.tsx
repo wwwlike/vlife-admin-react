@@ -20,6 +20,8 @@ interface ArrayPropSettingProps {
   /** 所在页面组件key */
   pageKey: string;
   fields?: FormFieldVo[];
+  /** 当前组件所有属性值，包含pageComponentPropDtos里的propValue */
+  componentProp: any;
 }
 
 const ComponentArrayPropSetting = ({
@@ -29,6 +31,7 @@ const ComponentArrayPropSetting = ({
   pageKey,
   onDataChange,
   fields,
+  componentProp,
 }: ArrayPropSettingProps) => {
   /**
    * 数据数据
@@ -100,10 +103,11 @@ const ComponentArrayPropSetting = ({
               listNo={n}
               pageKey={pageKey}
               pageComponentPropDtos={value?.filter((a) => a?.listNo === n)}
-              onDataChange={(d) => {
+              onDataChange={(d: any) => {
                 replace(n, d);
               }}
               fields={fields}
+              componentProp={componentProp}
             />
           </TabPane>
         );

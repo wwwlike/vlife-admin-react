@@ -145,7 +145,7 @@ const Content = <T extends IdBean>({
   }, [lineBtn, tableBtn]);
 
   return (
-    <div className="h-full flex w-screen">
+    <div className="h-full flex">
       {filterType && filterOpen && (
         <div className="h-full flex-none  w-72">
           <Card

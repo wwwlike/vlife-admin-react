@@ -1,7 +1,7 @@
 import React from "react";
 import { SysMenu } from "@src/api/SysMenu";
 import Content from "../../template/content";
-import { Field, Form, GeneralField } from "@formily/core";
+import { Field, Form } from "@formily/core";
 import { FormVo } from "@src/api/Form";
 
 export default () => {
@@ -16,7 +16,7 @@ export default () => {
           field.display = url && url.endsWith("*") ? "visible" : "hide";
           field.required = url && url.endsWith("*") ? true : false;
         },
-        app: (field: GeneralField, form: Form, formVo: FormVo) => {
+        app: (field: Field, form: Form, formVo: FormVo) => {
           const display = form.getValuesIn("app") ? "hide" : "visible";
           const display2 = form.getValuesIn("app") ? "visible" : "bide";
           field.query("url").take()?.setDisplay(display);

@@ -103,6 +103,7 @@ const Index: FC = () => {
                 text: m.name,
                 icon: m.icon ? renderIcon(m.icon) : null,
                 onClick: () => {
+                  if (m.url) navigate(m.url);
                   setApp(m);
                 },
               };

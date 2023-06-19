@@ -1,6 +1,3 @@
-/**
- * 组件属性设置
- */
 import { IconSetting } from "@douyinfe/semi-icons";
 import { Badge, Input, Select, SideSheet, Typography } from "@douyinfe/semi-ui";
 import { FormFieldVo } from "@src/api/FormField";
@@ -10,13 +7,13 @@ import SelectIcon from "@src/components/SelectIcon";
 import VfImage from "@src/components/VfImage";
 import { useAuth } from "@src/context/auth-context";
 import { ApiInfo } from "@src/dsl/datas/apis";
+import { filter, filterFuns } from "@src/dsl/datas/filters";
 import { ApiProp, ParamInfo } from "@src/dsl/schema/api";
 import { DataType, sourceType } from "@src/dsl/schema/base";
 import { PropInfo } from "@src/dsl/schema/component";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ApiSetting from "./ApiSetting";
 
-const { Text } = Typography;
 interface PropSettingProps {
   /** 属性 */
   propName: string;
@@ -30,22 +27,27 @@ interface PropSettingProps {
   propObj?: Partial<PageComponentPropDto>;
   onDataChange: (propObj: Partial<PageComponentPropDto>) => void;
   pageKey: String;
+  /** formily会传入 */
   fields?: FormFieldVo[];
-  //所在页面组件key
+  //组件所有入参信息
+  componentProp: any;
 }
-
+/**
+ * 组件单个属性设置
+ */
 const ComponentPropSetting = ({
   propName,
   subName,
   listNo,
   propInfo,
   propObj,
-  pageKey,
   onDataChange,
+  componentProp,
   fields,
 }: PropSettingProps) => {
   const { dicts, getFormInfo } = useAuth();
 
+  /** 单个属性模型信息 */
   const propData = useMemo((): Partial<PageComponentPropDto> => {
     if (propObj) {
       return { ...propObj };
@@ -54,15 +56,16 @@ const ComponentPropSetting = ({
         propName,
         subName,
         listNo,
-        sourceType: propInfo.sourceType //sourceType 需要调整为 单个对象，不能是数组
-          ? typeof propInfo.sourceType === "string"
-            ? propInfo.sourceType
-            : propInfo.sourceType[0]
-          : sourceType.fixed,
+        sourceType: propInfo.sourceType || sourceType.fixed, //默认固定值来源
       };
     }
   }, [propName, subName, listNo, propInfo, propObj]);
 
+  /**
+   *
+   * @param api api
+   * @returns
+   */
   const paramRequiredSetting = (api: ApiProp): boolean => {
     if (api.params) {
       const params: { [key: string]: ParamInfo } = api.params;
@@ -79,14 +82,21 @@ const ComponentPropSetting = ({
     (val: any) => {
       onDataChange({ ...propData, propVal: val === "" ? undefined : val });
     },
-    [{ ...propData }] //对象要处理呀
+    [{ ...propData }]
   );
 
   const onRelateValChange = useCallback(
     (val: any) => {
       onDataChange({ ...propData, relateVal: val === "" ? undefined : val });
     },
-    [{ ...propData }] //对象要处理呀
+    [{ ...propData }]
+  );
+
+  const onFilterFuncChange = useCallback(
+    (val: any) => {
+      onDataChange({ ...propData, filterFunc: val === "" ? undefined : val });
+    },
+    [{ ...propData }]
   );
 
   /**
@@ -101,18 +111,12 @@ const ComponentPropSetting = ({
       if (fixed.dicts) {
         setFixedSelectDatas(fixed.dicts);
       } else if (fixed.promise) {
-        fixed.promise().then((d) => {
+        fixed.promise(componentProp).then((d) => {
           setFixedSelectDatas(d);
         });
       }
     }
-  }, [{ ...propInfo }]);
-
-  // /**
-  //  * 接口取数据则填充
-  //  */
-  // const [apiOptionList, setApiOpenList] =
-  //   useState<{ label: string; value: any }[]>();
+  }, [componentProp]); //  }, [{ ...propInfo }]);
 
   /**
    * 异步的api数据
@@ -139,28 +143,18 @@ const ComponentPropSetting = ({
         value: k,
       }));
       //数据类型一致的接口过滤结果
-
-      const typeEqOption = allApiOptions.filter(
-        (f) => {
-          const filters = ApiInfo[f.value].match?.filter(
-            (m) =>
-              m.dataModel === propInfo.dataModel &&
-              m.dataType === propInfo.dataType
-          );
-
-          return (
-            (ApiInfo[f.value].dataType === propInfo.dataType &&
-              ApiInfo[f.value].dataModel === propInfo.dataModel) ||
-            (filters && filters.length > 0)
-          );
-        }
-        // 1.1接口的类型和属性类型大类型一致
-      );
-
-      // (ApiInfo[f.value].match && ApiInfo[f.value].match?.filter(m=>m.dataModel===))
-      // (propInfo.otherData && //2 数据关系不一致，但在可以转换的范围内，属性支持的tran转换类型，就是接口的类型
-      //   Object.keys(propInfo.otherData).includes(ApiInfo[f.value].dataType))
-
+      const typeEqOption = allApiOptions.filter((f) => {
+        const filters = ApiInfo[f.value].match?.filter(
+          (m) =>
+            m.dataModel === propInfo.dataModel &&
+            m.dataType === propInfo.dataType
+        );
+        return (
+          (ApiInfo[f.value].dataType === propInfo.dataType &&
+            ApiInfo[f.value].dataModel === propInfo.dataModel) ||
+          (filters && filters.length > 0)
+        );
+      });
       return typeEqOption;
     }
     return [];
@@ -240,6 +234,7 @@ const ComponentPropSetting = ({
 
   return (
     <div key={"div_" + listNo + propName}>
+      {/* {JSON.stringify(componentProp)} */}
       <div className="flex space-x-2 mb-2 p-2 w-full mt-2">
         <div className="semi-form-field-label-text semi-form-field-label">
           <label>{propInfo.label}</label>
@@ -259,12 +254,15 @@ const ComponentPropSetting = ({
             <VfImage value={propData?.propVal} onDataChange={onPropValChange} />
           ) : fixedSelectDatas ? (
             <Select
+              className="w-full"
               optionList={fixedSelectDatas}
               value={propData?.propVal}
               onChange={onPropValChange}
             />
           ) : (
-            <Input value={propData?.propVal} onChange={onPropValChange} />
+            <>
+              <Input value={propData?.propVal} onChange={onPropValChange} />
+            </>
           )
         ) : (
           <></>
@@ -330,10 +328,44 @@ const ComponentPropSetting = ({
           )}
       </div>
 
+      {/* 是接口由匹配取值，且有对应的过滤函数则显示 */}
+      {propData.propVal &&
+        propData.sourceType === sourceType.api &&
+        propInfo.dataType === DataType.array &&
+        Object.keys(filterFuns).filter((k) => {
+          return (
+            filterFuns[k].dataModel ===
+            ApiInfo[propData.propVal || ""].dataModel
+          );
+        }).length > 0 && (
+          <div className="flex space-x-2 mb-2 p-2 w-full mt-2">
+            <div className="semi-form-field-label-text semi-form-field-label">
+              <label>数据过滤</label>
+            </div>
+            <Select
+              showClear
+              style={{ width: "90%" }}
+              value={propData.filterFunc}
+              optionList={Object.keys(filterFuns)
+                .filter((k) => {
+                  return (
+                    filterFuns[k].dataModel ===
+                    ApiInfo[propData.propVal || ""].dataModel
+                  );
+                })
+                .map((d: string) => {
+                  return { label: filterFuns[d].title, value: d };
+                })}
+              onChange={onFilterFuncChange}
+            />
+          </div>
+        )}
+
+      {/* 数据转换 */}
       {propData.propVal && relationObj[propData.propVal] && (
         <div className="flex space-x-2 mb-2 p-2 w-full mt-2">
           <div className="semi-form-field-label-text semi-form-field-label">
-            <label>数据匹配转换</label>
+            <label>数据转换</label>
           </div>
           <Select
             showClear
@@ -346,7 +378,7 @@ const ComponentPropSetting = ({
       )}
 
       <SideSheet title="API参数设置" visible={visible} onCancel={change}>
-        {propInfo.sourceType === "api" && propData.propVal && propInfo ? (
+        {propInfo.sourceType === "api" && propData.propVal && propInfo && (
           <>
             {propInfo.dataType !== ApiInfo[propData.propVal].dataType ? (
               <div>
@@ -365,8 +397,6 @@ const ComponentPropSetting = ({
               fields={fields}
             />
           </>
-        ) : (
-          ""
         )}
       </SideSheet>
       {/* api参数设置，需要调整层弹出方式，可优化整个布局 */}
