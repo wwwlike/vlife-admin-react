@@ -173,12 +173,13 @@ const TableIndex = <T extends IdBean>({
       //字典 ，Boolean,外键，Pcode翻译处理
       columnshow?.forEach(
         (m: Partial<ColumnProps & FormFieldVo>, index: number) => {
-          if (columnshow.length > 10 && index < 4) {
-            m.fixed = true;
+          if (columnshow.length > 10) {
+            if (index < 4) {
+              m.fixed = true;
+            }
+            m.width = 100;
           }
           m.ellipsis = true; //单元格缩略
-          m.width = 100;
-
           if (
             m.pageComponentPropDtos &&
             m.pageComponentPropDtos.filter(

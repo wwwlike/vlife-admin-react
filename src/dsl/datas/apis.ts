@@ -56,21 +56,9 @@ export const ApiInfo: ApiDef = {
   //   dataType: dataType.entityType_name_list,
   //   api: entityModels,
   // },
-  // formFieldListAll: {
-  //   label: "字段列表(id)",
-  //   dataType: dataType.id_name_list,
-  //   api: formFieldListAll,
-  //   params: {
-  //     formId: { 
-  //       must: true, 
-  //       label: "模型id", 
-  //       sourceType:"field" 
-  //     },
-  //   },
-  // },
 
   formFieldListAll_fieldName: {
-    label: "字段列表(fieldName)",
+    label: "字段列表",
     dataType:DataType.array,// dataType.fieldName_title_list,
     dataModel:"FormField",
     api: formFieldListAll,
@@ -79,29 +67,40 @@ export const ApiInfo: ApiDef = {
     },
     match:[
       {
-      dataType:DataType.array,
-      dataModel:"ISelect",
-      func:(datas:FormField[])=>{
-        return datas.map((data:FormField)=>{return {value:data.fieldName,label:data.title}});
+        dataType:DataType.array,
+        dataModel:"ISelect",
+        func:[{
+          key:"id",
+          label:"选项值是id",
+          func:(datas:{id:string,title:string}[]):ISelect[]=>{
+            return datas.map((data:{id:string,title:string})=>{return {value:data.id,label:data.title}});
+         }},{
+          key:"type",
+          label:"选项值是fieldName",
+          func:(datas:{fieldName:string,title:string}[]):ISelect[]=>{
+            return datas.map((data:{fieldName:string,title:string})=>{return {value:data.fieldName,label:data.title}});
+         }}
+        ]
       }
-    }
     ]
   },
   // formConditionListAll: {
   //   label: "查询条件",
-  //   dataType: dataType.id_name_list,
-  //   api: conditionList,
+  //   api: formConditionListAll,
+  //   dataType:DataType.array,// dataType.fieldName_title_list,
+  //   dataModel:"FormCondition",
   //   params: {
   //     formId: { must: true, label: "模型id", sourceType:"field"},
   //   },
-  // },
-  // reportItemListAll: {
-  //   label: "统计项",
-  //   dataType: dataType.id_name_list,
-  //   api: reportItemListAll,
-  //   params: {
-  //     formId: { must: false, label: "模型id", sourceType:"field"},
-  //   },
+  //   match:[
+  //     {
+  //     dataType:DataType.array,
+  //     dataModel:"ISelect",
+  //     func:(datas:FormCondition[])=>{
+  //       return datas.map((data:FormCondition)=>{return {value:data.id,label:data.name}});
+  //     }
+  //   }
+  //   ]
   // },
   // getDictByCode: {
   //   label: "字典信息",

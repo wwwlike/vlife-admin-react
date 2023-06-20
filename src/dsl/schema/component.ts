@@ -1,4 +1,5 @@
 import { FormFieldVo } from '@src/api/FormField';
+import { ReactNode } from 'react';
 import { DataType, Mode, sourceType, TsType } from './base';
 
 export interface ISelect{
@@ -28,7 +29,8 @@ export interface  ComponentInfo  {
   match?:match|match[]; //onDataChange输出数据匹配支持的类型(应该不能支持[])
   target?:{type:string,fieldName?:string}[] //绑定的字段,只能给指定模型的字段使用；就算字段满足，也只给指定的对象的字段
   remark?: string;  //组件使用说明 ，弹出propver提醒
-  propInfo?: PropDef; //组件属性对象定义信息 （目标type fieldType 去掉 dataType和 dataModel）
+  propInfo?: PropDef; // 根据配置传组件属性 ；组件属性对象定义信息 （目标type fieldType 去掉 dataType和 dataModel）
+  propForm?:any;// 根据表单传组件配置(图标使用) 直接使用formily
 };
 
 /**
@@ -38,6 +40,23 @@ export interface ComponentDef {
   //组件编码code
   [key: string]:ComponentInfo
 }
+/**
+ * 选项对象结构
+ */
+export interface SelectInferface{
+  value:any, //选项值
+  label:string,//选项目
+  desc?:string //选项描述，需要做到下拉时就能展示
+  default?:boolean,//是否默认值
+}
+
+interface DataObject {
+  [key: string]: any;
+}
+
+type Expression = {
+  [key: string]: string|boolean|number | RegExp | Expression;
+};
 
 /**
  * 组件属性的定义信息
@@ -45,12 +64,15 @@ export interface ComponentDef {
  */
 export interface  PropInfo{
     label?: string; //属性名称，没有则默认等于key
+    //需要做到自动映射，则填写 dataType,dataModel
     dataType?:DataType, //属性字段类型，这里决定组件可以用什么类型的接口，因为组件属性支持多种类型
     dataModel?:TsType|string //数据模型名称
+    //可以考虑去除sourceType,自己匹配
     sourceType?:sourceType //[]|sourceType, //属性数据来源执行，执行了则不用在页面选择,需要调整成指定一个来源 不填写默认就是fixed
+    // fixed，dict,sys,func->手工在配置时传入数据
     fixed?:{// sourceType===fixed, 以下固定取值的2种情况
-      dicts?:{value:any,label:string}[]//自定义字典
-      promise?:()=>Promise<{value:any,label:string}[]> //api返回的数据
+      dicts?:SelectInferface[]//自定义字典
+      promise?:(allProp?:any)=>Promise<SelectInferface[]> //api返回的数据
     },
     dict?:{// sourceType===dict,
       dictCode:string// default vlife 字典大类
@@ -77,13 +99,15 @@ export interface  PropInfo{
         //回调得到的值给到哪个属性上
       propName?:string; //api数据付给到哪个属性上
     } 
+    show?:Expression;
+    // togetherProp:PropDef;//可放在一起的属性，共享一个名称;需要解决递归和值传出的问题
 }
 /**
  * 属性封装对象
  */
 export interface PropDef {
   //属性编码,datas树型
-  [key: string]: PropInfo| string|boolean|number|Date; //字符串就是写死的属性值
+  [key: string]: PropInfo| string|boolean|number|Date; //PropInfo之外的就是固定给属性传定值
 }
 
 /**

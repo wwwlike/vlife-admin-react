@@ -12,23 +12,19 @@ export type deps = {
 
 export interface designProp {
   name: string; //title
-  icon?:any;//图标
-  //form 类型 用来传递
+  icon?:any;
   type: "select" | "input" | "switch"| "buttonGroup" | "form"; //设置组件的类型
-  fieldAttr?:string|string[];//设置field里的属性名称,一般情况是空的，对应多个字段一次设置则需要写他，如设置字符串大小范围，一次设置2个字段
   tag?: "basic"  | "layout"; //所在分组标签
   mode?:Mode[]|Mode; //使用场景
   deps?: deps | deps[]; //字段显示依赖,如果是数组都需要满足
-  group?: { label: string; value: string }[]; //二级分类 如果有该二级分类，则先经过二级分类在选择items
   tooltip?:string;//提示语 label
   items?: { //多选时的内容
-    icon?:any;//图标
+    icon?:any;
     tooltip?:string;//提示语 label
     label: string;
     default?:boolean;//是否默认值
     value?: any; //嵌套一个，尤它进行值得选择
     mode?: Mode;
-    groupKey?: string; //所在分组
     deps?: deps | deps[]; // 满足得一项，或者多项都满足
   }[]; //子项显示依赖
 }
@@ -125,7 +121,6 @@ export const types: { title: string; value: string,icon?:any }[] = [
   maxLength: {
     name: "最大长度",
     type: "input",
-    // fieldAttr:["minLength","maxLength"], //统一类型的多个字段
     tag: "basic",
     mode:Mode.form,
     deps: { field: "x_component", value: ["Input"] },
