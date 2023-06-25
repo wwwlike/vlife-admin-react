@@ -73,6 +73,8 @@ export interface BankImgData extends DbEntity{
   cdFlag: string;  // 借贷标志
   formFailCause: string;  // 版面识别失败原因
 }
+
+
 // 图像查询
 export interface BankImgDataPageReq extends PageQuery{
   bankBatchId: string;  // 批次
@@ -100,6 +102,15 @@ export const save=(dto: BankImgData): Promise<Result<BankImgData>>=>{
    */
 export const detail=(id: string): Promise<Result<BankImgData>>=>{
   return apiClient.get(`/bankImgData/detail/${id}`  );
+};
+
+
+ /**
+  * 
+  * 通过主件请求所有附件信息
+  */
+ export const imgs=(id: string): Promise<Result<any[][]>>=>{
+  return apiClient.get(`/bankImgData/imgs/${id}`  );
 };
 /** 
    * 逻辑删除;

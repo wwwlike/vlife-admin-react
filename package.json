@@ -20,6 +20,7 @@
     "@wangeditor/editor": "^5.1.20",
     "@wangeditor/editor-for-react": "^1.0.5",
     "ahooks": "^3.7.2",
+    "antd": "^5.6.1",
     "axios": "^0.27.2",
     "classnames": "^2.3.2",
     "echarts": "^5.4.0",

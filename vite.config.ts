@@ -18,7 +18,7 @@ export default defineConfig({
       // 飞书 semi-theme-universedesign
       //  抖音 semi-theme-doucreator
       // vlife定制款 semi-theme-vlife
-      theme: "@semi-bot/semi-theme-universedesign",
+      theme: "@semi-bot/semi-theme-doucreator",
       // include :"~@semi-bot/semi-theme-vlife/scss/index.scss"
     }),
   ],

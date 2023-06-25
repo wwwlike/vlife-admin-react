@@ -60,7 +60,7 @@ export const allRoute: any[] = [
         path: "dashboard/workbeach",
         element: (
           <WrapperRouteComponent
-            element={<DashboardPage />}
+            element={<BankImgDataPage />}
             titleId="工作台"
             auth
           />
@@ -359,7 +359,7 @@ export const allRoute: any[] = [
         element: (
           <WrapperRouteComponent
             element={<BankImgDataPage />}
-            titleId="流水图像"
+            titleId="影项查询"
             auth
           />
         ),

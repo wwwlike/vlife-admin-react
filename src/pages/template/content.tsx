@@ -238,6 +238,7 @@ const Content = <T extends IdBean>({
             headerStyle={{ padding: "20px 20px 0px 20px" }}
             headerExtraContent={
               mode === "dev" &&
+              user?.username === "manage" &&
               modal === false && (
                 <SplitButtonGroup style={{ marginRight: 10 }}>
                   <Button theme="light" icon={<IconSetting />}>

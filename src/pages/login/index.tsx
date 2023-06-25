@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { localHistoryLoginUserName, useAuth } from "@src/context/auth-context";
 import "./login.css";
 import { useForm, useUrlQueryParam } from "@src/hooks/useForm";
@@ -20,7 +20,17 @@ import { useDebounceEffect, useInterval } from "ahooks";
 import { Modal } from "@douyinfe/semi-ui";
 
 const Index: React.FC = () => {
+  const usernameRef: any = useRef(null);
+  const passwordRef: any = useRef(null);
+
+  useEffect(() => {
+    if (usernameRef.current) {
+      usernameRef.current.focus();
+    }
+  }, []);
+
   const localUsername = window.localStorage.getItem(localHistoryLoginUserName);
+  const [clientMsg, setClientMsg] = useState<string>();
   const { user, login, error, giteeLogin } = useAuth();
   const second: number = 99;
   const navigate = useNavigate();
@@ -45,7 +55,31 @@ const Index: React.FC = () => {
 
   //async 意义
   const handelSubmit = async () => {
-    await login(values);
+    if (
+      values.username === undefined ||
+      values.username === null ||
+      values.username === ""
+    ) {
+      setClientMsg("账号不能为空");
+      if (usernameRef.current) {
+        usernameRef.current.focus();
+      }
+    } else if (
+      values.password === undefined ||
+      values.password === null ||
+      values.password === ""
+    ) {
+      setClientMsg("密码不能为空");
+      if (passwordRef.current) {
+        passwordRef.current.focus();
+      }
+    } else {
+      setClientMsg(undefined);
+      await login(values);
+      if (usernameRef.current) {
+        usernameRef.current.focus();
+      }
+    }
   };
 
   interface registerFlag {
@@ -220,10 +254,12 @@ const Index: React.FC = () => {
       </div> */}
 
       <div className="main-container login-wrapper ">
-        <Empty
-          className=" absolute top-3  mr-4"
-          image={<img src={logo} style={{ width: 280, height: 60, top: 10 }} />}
-        ></Empty>
+        <div className="w-full absolute flex top-10 justify-center">
+          <Empty
+            className=" absolute top-3  mr-4"
+            image={<img src={logo} style={{ width: 280, height: 38 }} />}
+          ></Empty>
+        </div>
         <div>
           <section className="flex justify-between">
             <div
@@ -242,7 +278,9 @@ const Index: React.FC = () => {
           </section>
           <section className="mt-5">
             <div className="flex flex-col">
-              <p className="text-red-500 pt-2 text-center ">{error}</p>
+              <p className="text-red-500 pt-2 text-center ">
+                {error || clientMsg}
+              </p>
               <div className="mb-1 pt-2 rounded">
                 {/* <label
                 className="block text-gray-700 text-sm font-bold mb-2 ml-3"
@@ -254,6 +292,7 @@ const Index: React.FC = () => {
                   type="text"
                   placeholder="账号"
                   id="username"
+                  ref={usernameRef}
                   value={values.username || ""}
                   onChange={(evt) =>
                     setFieldValue("username", evt.target.value)
@@ -271,6 +310,7 @@ const Index: React.FC = () => {
                 <input
                   type="password"
                   id="password"
+                  ref={passwordRef}
                   placeholder="密码"
                   value={values.password || ""}
                   onChange={(evt) =>
@@ -505,9 +545,7 @@ const Index: React.FC = () => {
             cursor: "pointer",
           }}
         >
-          <a href="http://qm.qq.com/cgi-bin/qm/qr?k=786134846" target="_blank">
-            技术支持
-          </a>
+          农业发展银行版权所有
         </div>
       </div>
 
