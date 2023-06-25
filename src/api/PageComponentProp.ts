@@ -10,10 +10,11 @@ export interface PageComponentProp extends DbEntity{
   sourceType: string;  // 属性值来源
   propVal: string;  // 属性值
   propName: string;  // 属性名称
-  relateVal:string;// 关联值（存数据转换key）
+  relateVal:string;// 数据转换key
   listNo:number; //排序号
   subName:string;//子属性
-  apiMethod:string;//数据转换方法
+  filterFunc:string;//数据过滤函数key
+  // apiMethod:string;//数据转换方法
 }
 
 
@@ -25,10 +26,10 @@ export interface PageComponentPropDto extends SaveBean{
   propName: string;  // 属性名称
   listNo:number; //排序号
   subName:string;//子属性
-  apiMethod:string;//数据转换方法
+  // apiMethod:string;//数据转换方法
   params?:Partial<PageApiParam>[]; //属性外键表参数设置
-  relateVal:string;// 关联值（存数据转换key）
-  
+  relateVal:string;// 数据转换key
+  filterFunc:string;//数据过滤函数key
 }
 
 

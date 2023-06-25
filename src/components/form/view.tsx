@@ -8,9 +8,10 @@ import { ApiInfo } from "@src/dsl/datas/apis";
 import { DataType, sourceType } from "@src/dsl/schema/base";
 import { ComponentInfo, PropInfo } from "@src/dsl/schema/component";
 import SelectIcon from "@src/components/SelectIcon";
-import { Field } from "@formily/core";
+import { Field, Form } from "@formily/core";
 import { ParamInfo } from "@src/dsl/schema/api";
 import { listAll } from "@src/api/base/baseService";
+import { filterFuns } from "@src/dsl/datas/filters";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 // /**
@@ -42,7 +43,7 @@ export const getDataType = (
  * @param value 属性值，[p]存的非fixed的需要进行转换后的值
  * @returns
  */
-export const valueAdd = (
+const valueAdd = (
   p: Partial<PageComponentProp>,
   propObj: any,
   value: any
@@ -117,10 +118,10 @@ export const fetchEventPropObj = (
   return propObj;
 };
 
-// /**
-//  * 静态数据请求
-//  * 1固定2字典3field类数据提取
-//  */
+/**
+ * 静态数据请求
+ * 1固定2字典3field类数据提取
+ */
 export const fetchStaticPropObj = (
   props: Partial<PageComponentPropDto>[],
   componentInfo: ComponentInfo,
@@ -233,12 +234,12 @@ export const fetchStaticPropObj = (
  * 异步方式请求组件属性信息
  */
 export const fetchPropObj = (
+  form: Form,
   props: Partial<PageComponentPropDto>[], //属性配置DB信息
   componentInfo: ComponentInfo, //组件信息
-  // commonParams: any, //通用入参
-  field?: Field //formily的字段信息
-): Promise<any> => {
-  let propsObj: any = {};
+  field: Field //formily的字段信息
+): Promise<Field> => {
+  let propsObj: any = {}; //组件属性obj
   return Promise.all(
     props
       ?.filter(
@@ -254,8 +255,8 @@ export const fetchPropObj = (
           if (prop.sourceType === sourceType.api) {
             //属性来源于接口
             const apiInfo = ApiInfo[prop.propVal];
-            // 接口参数没有先不去请求数据
-            const allParam = apiInfo?.params; //找到该接口
+            // 接口参数取得，并拼装到一个object里
+            const allParam = apiInfo?.params;
             const paramNames: string[] =
               allParam !== undefined ? Object.keys(allParam) : []; //得到该接口的所有参数
             let loadFlag: boolean = true;
@@ -290,18 +291,30 @@ export const fetchPropObj = (
                       paramInfo.fieldInfo?.attr || ""
                     ];
                 }
-                // loadFlag = false;
               }
             });
-
             const propinfo: PropInfo | undefined =
               componentInfo.propInfo && prop.propName
                 ? (componentInfo.propInfo[prop.propName] as PropInfo)
                 : undefined;
-            // alert(JSON.stringify({ ...paramObj }));
             //执行接口，组装组件prop属性对象(直接赋值/转换赋值)
             if (loadFlag && propinfo && apiInfo.api) {
               propsObj = await apiInfo.api({ ...paramObj }).then((d) => {
+                //异步请求到的数据
+                let datas = d.data;
+
+                //异步请求数据的数据存储起来(fetchData,提供给有需要的组件使用)
+                // field.setComponentProps({
+                //   ...field.componentProps,
+                //   fetchData: datas,
+                // });
+                propsObj = valueAdd({ propName: "fetchData" }, propsObj, datas);
+
+                //过滤判断，过滤执行
+                if (prop.filterFunc && filterFuns[prop.filterFunc]) {
+                  datas = filterFuns[prop.filterFunc].func(datas); //数据过滤
+                }
+
                 // 先判断是否需要转换  转换匹配
                 if (apiInfo.match) {
                   const match = apiInfo.match.filter(
@@ -314,7 +327,7 @@ export const fetchPropObj = (
                       propsObj = valueAdd(
                         prop,
                         propsObj,
-                        match[0].func(d.data) //转换的方法, 转换方法里报错，需要监控
+                        match[0].func(datas) //转换的方法, 转换方法里报错，需要监控
                       );
                     } else if (prop.relateVal) {
                       const func = match[0].func.filter(
@@ -324,16 +337,15 @@ export const fetchPropObj = (
                         propsObj = valueAdd(
                           prop,
                           propsObj,
-                          func[0].func(d.data)
+                          func[0].func(datas)
                         );
                       }
                     }
                   }
                 }
                 if (prop.propName && prop.propName in propsObj === false) {
-                  propsObj = valueAdd(prop, propsObj, d.data);
+                  propsObj = valueAdd(prop, propsObj, datas);
                 }
-
                 return propsObj;
               });
             } else if (loadFlag && propinfo && apiInfo.func) {
@@ -345,76 +357,26 @@ export const fetchPropObj = (
                 );
               }
             }
-            // return propsObj;
-          }
-          // else if (
-          //   prop.propName &&
-          //   componentInfo.propInfo &&
-          //   typeof (componentInfo.propInfo[prop.propName] !== "string") &&
-          //   (componentInfo.propInfo[prop.propName] as PropInfo).table !==
-          //     undefined
-          // ) {
-          //   // table 方式
-          //   const table = (componentInfo.propInfo[prop.propName] as PropInfo)
-          //     .table;
-          //   const entityName = prop.propVal;
-          //   const labelField = table?.labelField || "name";
-          //   const valField = table?.valField || "id";
-
-          //   // table方式
-          //   propsObj = await listAll({ entityName: entityName || "form" }).then(
-          //     (d) => {
-          //       propsObj = valueAdd(
-          //         prop,
-          //         propsObj,
-          //         d.data?.map((d) => {
-          //           return { label: d[labelField], value: d[valField] };
-          //         })
-          //       );
-          //       return propsObj;
-          //     }
-          //   );
-          // }
-          else if (prop.sourceType === "field" && field) {
+          } else if (prop.sourceType === "field" && field) {
             valueAdd(prop, propsObj, field.query(prop.propVal).get("value"));
           }
           return propsObj;
         }
       })
-  ).then((d) => {
-    if (d.length > 0) {
-      return { ...d[d.length - 1] };
-      // setComponentPropFunc({ ...d[d.length - 1] }); //执行回调函数
-    }
+  ).then((componenetPropObj: any[]) => {
+    field.setComponentProps({
+      ...field.componentProps,
+      ...componenetPropObj[0],
+    });
+
+    // if (componenetPropObj[0].fetchData) {
+    //   alert("111111111111");
+    // }
+    return field;
+    //map方法返回的是数组数据，故取第0个
+    // console.log({ ...componenetPropObj[0], haha: 123 });
+    // return { ...componenetPropObj[0] };
   });
-  // const promiseTest = new Promise((resolve, reject) => {
-  //   if (4 > 2) {
-  //     resolve("a");
-  //   } else {
-  //     reject("error");
-  //   }
-  // });
-
-  // return promiseTest.then(
-  //   (data) => {
-  //     console.log(data);
-  //     return {
-  //       optionList: [
-  //         { label: "2123", value: "123" },
-  //         { label: "234", value: "123" },
-  //       ],
-  //     };
-  //   },
-  //   (error) => {
-  //     console.log(error);
-  //     return "thenError";
-  //   }
-  // );
-
-  // .then(data=>{
-  //   console.log(data)
-  //     return "then2";
-  // }
 };
 
 /**

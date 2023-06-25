@@ -15,6 +15,7 @@ export interface PageComponent extends DbEntity{
   pageLayoutId?: string;  // 组件单元所在页面
   moduleId?:string;//模块id
   layoutTop?:boolean;//组件置顶(y=0 且是所在pagelayout是页面)
+  componentPropJson?:string;//组件属性固定值
 }
 
 export interface PageComponentDto extends DbEntity{
@@ -31,6 +32,7 @@ export interface PageComponentDto extends DbEntity{
   moduleId?:string;//模块id
   props?: Partial<PageComponentPropDto>[];// 组件属性信息集合
   layoutTop?:boolean;//组件置顶(y=0 且是所在pagelayout是页面)
+  componentPropJson?:string;//组件属性固定值
 }
 
 /** 

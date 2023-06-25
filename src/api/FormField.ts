@@ -152,6 +152,6 @@ export const remove = (id: string): Promise<Result<number>> => {
  */
 export const listAll = (params: {
   formId: string;
-}): Promise<Result<FormField>> => {
+}): Promise<Result<FormField[]>> => {
   return apiClient.get(`/formField/list/all?formId=${params.formId}`);
 };

@@ -9,6 +9,7 @@ import { ITree } from "@src/api/base";
 import { VfBaseProps } from "@src/dsl/schema/component";
 import { checkSubData } from "@src/util/func";
 import React, { useCallback, useMemo } from "react";
+import Scrollbars from "react-custom-scrollbars";
 
 interface TreeQueryProps extends VfBaseProps<string, ITree[]> {
   /**
@@ -118,43 +119,47 @@ const VfTreeSelect = ({
     [datas]
   );
   return (
-    <div>
-      {value ? (
-        <div className="flex ">
-          <div>
-            <Label>{datas?.filter((d: any) => d.code === value)[0].name}</Label>
+    <div className=" h-96">
+      <Scrollbars autoHide={true}>
+        {value ? (
+          <div className="flex ">
+            <div>
+              <Label>
+                {datas?.filter((d: any) => d.code === value)[0].name}
+              </Label>
+            </div>
+            <div className=" absolute right-0 ">
+              <Tag
+                className=" cursor-pointer"
+                onClick={() => {
+                  onDataChange(undefined);
+                }}
+                size="small"
+              >
+                取消
+              </Tag>
+            </div>
           </div>
-          <div className=" absolute right-0 ">
-            <Tag
-              className=" cursor-pointer"
-              onClick={() => {
-                onDataChange(undefined);
-              }}
-              size="small"
-            >
-              取消
-            </Tag>
-          </div>
-        </div>
-      ) : (
-        <div></div>
-      )}
-      <Tree
-        //  expandAll={true}
-        // className=" border-12 border-blue-600"
-        treeData={treeData(root, false)}
-        expandAll={expandAll}
-        onSelect={(
-          selectedKeys: string,
-          selected: boolean,
-          selectedNode: TreeNodeData
-        ) => {
-          if (selected) {
-            onDataChange(selectedKeys);
-          }
-        }}
-        style={style}
-      />
+        ) : (
+          <div></div>
+        )}
+        <Tree
+          //  expandAll={true}
+          // className=" border-12 border-blue-600"
+          treeData={treeData(root, false)}
+          expandAll={expandAll}
+          onSelect={(
+            selectedKeys: string,
+            selected: boolean,
+            selectedNode: TreeNodeData
+          ) => {
+            if (selected) {
+              onDataChange(selectedKeys);
+            }
+          }}
+          style={style}
+        />
+      </Scrollbars>
     </div>
   );
 };

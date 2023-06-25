@@ -174,18 +174,12 @@ const TableIndex = <T extends IdBean>({
       columnshow?.forEach(
         (m: Partial<ColumnProps & FormFieldVo>, index: number) => {
           if (columnshow.length > 10) {
-            if (index < 2) {
+            if (index < 4) {
               m.fixed = true;
             }
-            // m.width = 100;
+            m.width = 100;
           }
-          // m.width = 100;
-          // m.ellipsis = { showTitle: false };
-          // m.ellipsis = true; //单元格缩略
-          if (index === columnshow.length - 1) {
-            m.fixed = "right";
-          }
-
+          m.ellipsis = true; //单元格缩略
           if (
             m.pageComponentPropDtos &&
             m.pageComponentPropDtos.filter(

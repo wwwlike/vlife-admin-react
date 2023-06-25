@@ -7,20 +7,12 @@
   Input as SemiInput,
   TextArea as SemiTextArea,
   Select as SemiSelect,
-  Checkbox,
-  Switch,
 } from "@douyinfe/semi-ui";
 import { connect, mapReadPretty } from '@formily/react';
 import {
   PreviewText,
   InputNumber,
 } from '@formily/semi'
-
-// import Input  from '@formily/semi/esm/input';
-// import QueryBuilder from '@src/components/queryBuilder';
-
-
-// import ResourcesSelect from '@src/components/ResourcesSelect';
 import RelationTagInput from '@src/components/RelationTagInput';
 import PageSelect from '@src/components/PageSelect';
 import GroupSelect from '@src/components/GroupSelect';
@@ -90,20 +82,13 @@ export const ComponentInfos: ComponentDef = {
     component:Select,
     icon:"IconDescend2",
     label: "下拉选择(字典)",
-    match:[{ dataType:DataType.basic,
-      dataModel:TsType.string},{ dataType:DataType.basic,
-        dataModel:TsType.boolean}],
-    // dataChangeValueType: [dataType.string, dataType.number,dataType.boolean,dataType.list,dataType.integer],
+    match:[{ dataType:DataType.basic,dataModel:TsType.string},{ dataType:DataType.basic, dataModel:TsType.boolean}],
     propInfo: {
       optionList:{
         label:"字典分类",
-        sourceType:sourceType.dict,//
-        //  dataType:dataType.dictList,//view时候会使用
-        // dataType: dataType.list, //需要的数据类型
+        sourceType:sourceType.dict,
       },
       showClear:true, 
-      // valField:"val",// selectd固定值
-      // labelField:"title",
     },
   },
   VfSelect: {
@@ -115,6 +100,7 @@ export const ComponentInfos: ComponentDef = {
     // dataChangeValueType: [dataType.string, dataType.number,dataType.list,dataType.integer],
     propInfo: {
       showClear:true,
+      emptyContent:"请选择",
       optionList:{
         label:"来源接口",
         sourceType:sourceType.api,
@@ -407,7 +393,4 @@ VfImage: {
       },
     },
   },
-
-
- 
 };
