@@ -187,7 +187,7 @@ export const ComponentInfos: ComponentDef = {
     component:VfTreeInput,
     icon:"IconTreeTriangleDown",
     label: "树型下拉",
-    mode:[Mode.form],
+    // mode:[Mode.form],
     match:{dataType:DataType.basic,dataModel:TsType.string},
     propInfo: {
       datas: {
