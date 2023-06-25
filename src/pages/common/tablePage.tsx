@@ -302,7 +302,7 @@ const TablePage = <T extends IdBean>({
         formModal
           .show({
             ...btn.model, //配置
-            formData: record ? record[0] : undefined, //undefined 新增
+            formData: record && record.length > 0 ? record[0] : undefined, //undefined 新增
             validate: props.validate, //自定义校验
             filterProps: props.filterProps, //数据过滤加工
             formEvents: props.formEvents, //手工加入级联处理
@@ -405,7 +405,9 @@ const TablePage = <T extends IdBean>({
         type: editType,
         formApi: save(entityType, editType),
       }, //操作的模型
-      click: (btn) => modalShow(btn, -1), //点击触发的事件
+      click: (btn) => {
+        modalShow(btn, -1);
+      }, //点击触发的事件
     };
     const batchRmBtn: VfButton<T> = {
       title: "删除",
@@ -656,8 +658,6 @@ const TablePage = <T extends IdBean>({
     }
   }, [tableData, tableModel, dataSource]);
 
-  // console.log("555555");
-
   const table = useMemo(() => {
     if (tableModel) {
       return (
@@ -697,7 +697,6 @@ const TablePage = <T extends IdBean>({
     relationMap,
     selected,
   ]);
-  // console.log("1");
   return (
     <>
       {mode === "pro" ? (

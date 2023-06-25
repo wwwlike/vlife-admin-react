@@ -32,7 +32,6 @@ const RelationTagInput = ({
   const [tagData, setTagData] = useState<IFkItem[]>(datas ? [...datas] : []);
 
   useEffect(() => {
-    // alert(tagData);
     if (value && (tagData === undefined || tagData.length === 0)) {
       queryData(
         typeof value === "string" ? [value] : value,

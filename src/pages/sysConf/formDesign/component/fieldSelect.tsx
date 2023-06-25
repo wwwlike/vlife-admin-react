@@ -104,7 +104,7 @@ const FieldSelect = ({
       <div className="  text-xs font-bold font-serif mx-4 bottom-1 border-black flex items-center">
         {mode === Mode.form ? (
           <>
-            <div>
+            <div className="mt-3">
               可见字段(
               {
                 fields.filter(

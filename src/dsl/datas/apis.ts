@@ -27,38 +27,35 @@ import { filterType } from '@src/api/SysUser';
  */
 export const ApiInfo: ApiDef = {
   formListALl: {
-    label: "实体模型",
+    label: "数据集",
     dataType:DataType.array,
     dataModel:"FormVo",
     //  dataType.id_name_list,
     api: entityModels,
+
+
+
     match:[
       {
       dataType:DataType.array,
       dataModel:"ISelect",
       func:[{
         key:"id",
-        label:"根据实体ID选择",
+        label:"选项值是数据集ID",
         func:(datas:{id:string,title:string}[]):ISelect[]=>{
           return datas.map((data:{id:string,title:string})=>{return {value:data.id,label:data.title}});
        }},{
         key:"type",
-        label:"根据实体类型选择",
+        label:"选项值是数据集类型",
         func:(datas:{type:string,title:string}[]):ISelect[]=>{
           return datas.map((data:{type:string,title:string})=>{return {value:data.type,label:data.title}});
        }}
       ]
     }
     ]
-  },//formListAll_entityType 与 formListALl 可以进行合并，dataType返回数组
-  // formListAll_entityType: {
-  //   label: "模型列表(entityType)",
-  //   dataType: dataType.entityType_name_list,
-  //   api: entityModels,
-  // },
-
+  },
   formFieldListAll_fieldName: {
-    label: "字段列表",
+    label: "字段",
     dataType:DataType.array,// dataType.fieldName_title_list,
     dataModel:"FormField",
     api: formFieldListAll,
@@ -71,12 +68,12 @@ export const ApiInfo: ApiDef = {
         dataModel:"ISelect",
         func:[{
           key:"id",
-          label:"选项值是id",
+          label:"选项值是字段ID",
           func:(datas:{id:string,title:string}[]):ISelect[]=>{
             return datas.map((data:{id:string,title:string})=>{return {value:data.id,label:data.title}});
          }},{
           key:"type",
-          label:"选项值是fieldName",
+          label:"选项值是字段名称",
           func:(datas:{fieldName:string,title:string}[]):ISelect[]=>{
             return datas.map((data:{fieldName:string,title:string})=>{return {value:data.fieldName,label:data.title}});
          }}

@@ -14,8 +14,6 @@ import {
   onFormValuesChange,
   Field,
   onFieldValueChange,
-  onFieldReact,
-  onFieldMount,
   GeneralField,
 } from "@formily/core";
 import { FormProvider, createSchemaField } from "@formily/react";
@@ -46,11 +44,12 @@ import { DataType } from "@src/dsl/schema/base";
 import { exist } from "@src/api/base/baseService";
 import { ComponentInfos } from "@src/dsl/datas/components";
 import SelectIcon from "../SelectIcon";
+import { Spin } from "@douyinfe/semi-ui";
 
-interface fieldSettingProps<T> {
-  validate?: (formData: T, formVo: FormVo) => string | Promise<any> | void;
-  hidden?: (formData: T, formVo: FormVo) => boolean;
-}
+// interface fieldSettingProps<T> {
+//   validate?: (formData: T, formVo: FormVo) => string | Promise<any> | void;
+//   hidden?: (formData: T, formVo: FormVo) => boolean;
+// }
 
 //表信息
 export interface FormProps<T> {
@@ -67,9 +66,9 @@ export interface FormProps<T> {
   //单字段模式，只显示fieldMode里的一个字段
   fieldMode?: string;
   //页面字段手工设置,页面初始化，和页面任何数据有变化都会触发这里
-  fieldSetting?: {
-    [field: string]: fieldSettingProps<T>;
-  };
+  // fieldSetting?: {
+  //   [field: string]: fieldSettingProps<T>;
+  // };
   //指定字段校验
   validate?: {
     //指定[key]字段的校验函数;校验函数： (val字段值：formData:整个表单数据)=>
@@ -114,7 +113,6 @@ export default <T extends IdBean>({
   formData,
   onDataChange,
   onForm,
-  onField,
   readPretty,
   fkMap,
   modelInfo,
@@ -126,7 +124,7 @@ export default <T extends IdBean>({
   dataComputer,
   validate,
   formEvents,
-  fieldSetting,
+  // fieldSetting,
   design = false,
 }: FormProps<T>) => {
   const [fetchData, setFecthData] = useState<any>({});
@@ -180,55 +178,17 @@ export default <T extends IdBean>({
         },
         //表单的生命周期
         effects() {
-          //待废弃，有性能，但是每个字段各自设置比较麻烦
-          if (formEvents) {
-            //form里任意字段值有变化触发调用
-            Object.keys(formEvents).forEach((fieldName) => {
-              onFieldReact(`${fieldName}`, (field, form) =>
-                // 字段，表单，模型，fetchData->异步请求到的没有加工的原始数据
-                formEvents[fieldName](field as Field, form, modelInfo)
-              );
-            });
-          }
-          if (fieldSetting) {
-            Object.keys(fieldSetting).forEach((fieldName) => {
-              onFieldValueChange(fieldName, (field) => {
-                const fSet: fieldSettingProps<T> = fieldSetting[fieldName];
-                if (fSet.validate) {
-                }
-                if (fSet.hidden) {
-                  fSet.hidden(field.form.values, modelInfo);
-                }
-              });
-            });
-          }
-          // onFormMount((form: Form) => {
-          //   if (onForm != undefined) {
-          //     if (
-          //       form.query("groupColumn") &&
-          //       form.query("groupColumn").take()
-          //     ) {
-          //       console.log("aaa", fetchData);
-          //       onForm(form, modelInfo);
-          //     }
-          //   }
-          //   alert("formmount");
-          // }),
           onFormValuesChange((form) => {
             if (form.errors.length > 0 && onError !== undefined) {
               setTimeout(() => onError(form.errors), 200);
             }
             //表单数据传输出去
-            if (onDataChange !== undefined) {
-              onDataChange(form.values, form, modelInfo, "");
-            }
-            if (dataComputer && dataComputer.watchFields === undefined) {
-              form.setValues(dataComputer.funs(form.values));
-            }
-            //表达formily信息传输出去
-            if (onForm != undefined) {
-              // onForm(form, modelInfo);
-            }
+            // if (onDataChange !== undefined) {
+            //   onDataChange(form.values, form, modelInfo, "formValuesChange");
+            // }
+            // if (dataComputer && dataComputer.watchFields === undefined) {
+            //   form.setValues(dataComputer.funs(form.values));
+            // }
           });
           // validate 外部数据校验函数，
           if (validate) {
@@ -264,12 +224,28 @@ export default <T extends IdBean>({
           }
           // 根据字段设置，在form内部组装 相关校验
           modelInfo.fields.forEach((field) => {
-            onFieldMount(field.fieldName, (field: GeneralField, form: Form) => {
-              if (onField) {
-                onField(field as Field, form, modelInfo);
-              }
-            });
-
+            //挂载(屏蔽)
+            // onFieldMount(field.fieldName, (field: GeneralField, form: Form) => {
+            //   if (onField) {
+            //     onField(field as Field, form, modelInfo);
+            //   }
+            // });
+            //为每个字段加入监听
+            if (onDataChange) {
+              onFieldValueChange(
+                field.fieldName,
+                (field: GeneralField, form: Form) => {
+                  console.log(field.path.toString());
+                  onDataChange(
+                    form.values,
+                    form,
+                    modelInfo,
+                    field.path.toString()
+                  );
+                }
+              );
+            }
+            //字段值唯一性校验
             field.validate_unique &&
               onFieldValueChange(field.fieldName, (formilyField) => {
                 formilyField.value &&
@@ -518,11 +494,6 @@ export default <T extends IdBean>({
                 {
                   dependencies: ["formId", "func"],
                   fulfill: (field: any) => {
-                    // 直接使用 field.value 获取当前字段的值并设置可选项列表
-                    const hobbies =
-                      field.value === "male"
-                        ? ["健身", "足球"]
-                        : ["瑜伽", "美食"]; // 根据不同性别设置不同的爱好选项
                     field.componentProps = {
                       ...field.componentProps,
                       optionList: [],
@@ -756,13 +727,19 @@ export default <T extends IdBean>({
     return {};
   }, [modelInfo, fkMap, readPretty, formData, highlight]); //, filterProps
 
+  const [initFinish, setInitFinish] = useState<boolean>(false);
   /**
-   * 延迟让form里可以接口取到的原始数据
+   * 延迟让form里可以取到组件异步接口得到原始数据
    */
   useEffect(() => {
-    if (schema && form && onForm) {
+    if (schema && form) {
       setTimeout(() => {
-        onForm(form, modelInfo);
+        if (onForm) {
+          onForm(form, modelInfo);
+        }
+        if (onDataChange) {
+          onDataChange(form.values, form, modelInfo, "init");
+        }
       }, 100);
     }
   }, [schema, form]);
@@ -787,6 +764,18 @@ export default <T extends IdBean>({
       </PreviewText.Placeholder>
     </div>
   ) : (
-    <></>
+    <div className=" h-full w-full flex items-center justify-center ">
+      {/* {JSON.stringify(initFinish)} */}
+      <Spin size="large">
+        <div
+          style={{
+            borderRadius: "4px",
+            paddingTop: "48px",
+          }}
+        >
+          <p>正在构建.</p>
+        </div>
+      </Spin>
+    </div>
   );
 };

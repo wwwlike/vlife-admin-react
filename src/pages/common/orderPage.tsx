@@ -9,13 +9,19 @@ import { useUpdateEffect } from "ahooks";
  * 1. 挑选3条
  */
 export interface OrderPageProps {
+  title?: string;
   fields: FormFieldVo[]; //实体
   filterType: string; //搜索的条件
   onDataChange: (orders: string) => void;
 }
 type orderObj = { fieldName: string; sort: string | undefined };
 
-const OrderPage = ({ fields, filterType, onDataChange }: OrderPageProps) => {
+const OrderPage = ({
+  title,
+  fields,
+  filterType,
+  onDataChange,
+}: OrderPageProps) => {
   const [orderList, setOrderList] = useState<orderObj[]>();
   useUpdateEffect(() => {
     if (orderList) {
@@ -75,7 +81,7 @@ const OrderPage = ({ fields, filterType, onDataChange }: OrderPageProps) => {
     <div className=" relative  ">
       <div className="flex mb-4">
         <div className=" ">
-          <Label>排序</Label>
+          <Label>{title}</Label>
           {orderList && orderList?.length >= 3 && <>(支持最多三项排序规则)</>}
         </div>
 

@@ -36,7 +36,8 @@ const SearchInput = ({
   useDebounceEffect(
     () => {
       if ((searchValue || searchValue === "") && design !== true) {
-        setUrlParam({ [fieldInfo?.fieldName || ""]: searchValue });
+        //注释掉，在url里出影响modal弹出
+        // setUrlParam({ [fieldInfo?.fieldName || ""]: searchValue });
       }
 
       if (onDataChange && searchValue !== undefined) {

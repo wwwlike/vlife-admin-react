@@ -118,6 +118,13 @@ const VfTreeSelect = ({
     },
     [datas]
   );
+
+  // //没有父节点的
+  // const rootKey = useMemo((): string[] => {
+
+  //   treeData
+
+  // }, [treeData]);
   return (
     <div className=" h-96">
       <Scrollbars autoHide={true}>
@@ -143,11 +150,14 @@ const VfTreeSelect = ({
         ) : (
           <div></div>
         )}
+
         <Tree
+          key={JSON.stringify(findRoot)}
           //  expandAll={true}
           // className=" border-12 border-blue-600"
+          defaultExpandedKeys={[findRoot[0]]}
           treeData={treeData(root, false)}
-          expandAll={expandAll}
+          // expandAll={expandAll}
           onSelect={(
             selectedKeys: string,
             selected: boolean,

@@ -5,6 +5,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { find } from "@src/api/base/baseService";
 import CheckModel from "@src/pages/sysConf/model/checkModel";
 import { IdBean } from "@src/api/base";
+import {
+  ModelOperations,
+  ModelOperationsImpl,
+} from "@src/components/form/func";
+import { Field, Form } from "@formily/core";
 const mode = import.meta.env.VITE_APP_MODE;
 /**
  * 入参：formData=> 表单初始化数据
@@ -23,6 +28,15 @@ export interface FormPageProps<T extends IdBean>
   modelInfo?: FormVo; //模型信息可选，设计表单时实时传
   //将模型传输出去
   onVfForm?: (formVo: FormVo) => void;
+
+  /**
+   * 适配封装对外的方法
+   */
+  onChange?: (
+    data: any,
+    model: ModelOperations, //模型封装
+    event: "init" | "submit" | string //当前事件 string=>改变的字段
+  ) => void;
 }
 const FormPage = <T extends IdBean>({
   type,
@@ -153,9 +167,27 @@ const FormPage = <T extends IdBean>({
           {...props}
           key={formData.id + props.key}
           modelInfo={model}
-          onDataChange={(data, field) => {
+          design={design}
+          dicts={getDict({
+            emptyLabel: type === "req" ? "全部" : "请选择",
+            codes: [...modelDicts],
+          })}
+          fkMap={fkMap}
+          onField={(field: Field, form: Form, formVo: FormVo) => {
+            if (props.onChange) {
+              props.onChange(
+                form.values(),
+                new ModelOperationsImpl(form),
+                field.path.toString()
+              );
+            }
+          }}
+          onDataChange={(data, form, formVo, field) => {
+            if (props.onChange) {
+              props.onChange(data, new ModelOperationsImpl(form), field);
+            }
             if (onDataChange) {
-              onDataChange(data, field);
+              onDataChange(data, form, formVo, field);
             }
           }}
           formData={formData}

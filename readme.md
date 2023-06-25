@@ -10,11 +10,13 @@ vlife 的愿景是实现前后端同样极简开发的目标，倡导让前端�
 
 ### 项目初始化
 
+> 推荐使用 cnpm 进行 npm 包下载；
+
 ```shell
   git clone https://gitee.com/wwwlike/vlife-admin-react
   cd  vlife-admin-react
-  yarn
-  npm run dev
+  cnpm install
+  cnpm run dev
 ```
 
 > 访问 Http://localhost:3000 进入项目
