@@ -98,152 +98,158 @@ const ComponentSetting = ({
     [pageComponentPropDtos]
   );
 
+  function convertArrayToObject(arr: Partial<PageComponentPropDto>[]): {
+    [name: string]: any;
+  } {
+    const newObj: { [name: string]: any } = {};
+    arr.forEach((obj: Partial<PageComponentPropDto>) => {
+      if (obj.propName) newObj[obj.propName] = obj.propVal;
+    });
+    return newObj;
+  }
   return (
     <div>
-      <Collapse>
-        {/* 一、 组件全局设置 (page方式会使用) */}
-        {children}
-
-        {/* 二、 简单属性，一行一个 */}
-        {Object.keys(propInfos).filter(
-          (key) =>
-            (propInfos[key].dataType !== DataType.object &&
-              propInfos[key].dataType !== DataType.array) ||
-            propInfos[key].sourceType === "api"
-        ).length > 0 && (
-          <>
-            {Object.keys(propInfos)
-              .filter(
-                (key) =>
-                  (propInfos[key].dataType !== DataType.object &&
-                    propInfos[key].dataType !== DataType.array) ||
-                  propInfos[key].sourceType === "api"
-              )
-              .map((key) => (
-                <div key={"div_" + key}>
-                  <ComponentPropSetting
-                    key={"componentProp_" + key}
-                    pageKey={pageKey}
-                    propName={key}
-                    propInfo={propInfos[key]}
-                    propObj={
-                      findProp(key) && findProp(key).length > 0
-                        ? findProp(key)[0]
-                        : undefined
-                    }
-                    onDataChange={(d: Partial<PageComponentPropDto>) => {
-                      replace(key, [d]);
-                    }}
-                    fields={fields}
-                  />
-                </div>
-              ))}
-          </>
-        )}
-
-        {Object.keys(propInfos)
-          .filter(
-            (key) =>
-              (propInfos[key].dataType === DataType.object ||
-                propInfos[key].dataType == DataType.array) &&
-              propInfos[key].sourceType !== "api"
-          )
-          .map((key) => (
-            <Collapse.Panel
+      {/* 一、 组件全局设置 (page方式会使用) */}
+      {children}
+      {/* 顺序遍历所有组件属性 */}
+      {Object.keys(propInfos).map((key) => {
+        if (
+          (propInfos[key].dataType !== DataType.object &&
+            propInfos[key].dataType !== DataType.array) ||
+          propInfos[key].sourceType === "api"
+        ) {
+          /* 二、 简单属性或复杂属性且有api对应的 */
+          return (
+            <div key={"div_" + key}>
+              <ComponentPropSetting
+                key={"componentProp_" + key}
+                pageKey={pageKey}
+                propName={key}
+                propInfo={propInfos[key]}
+                propObj={
+                  findProp(key) && findProp(key).length > 0
+                    ? findProp(key)[0]
+                    : undefined
+                }
+                onDataChange={(d: Partial<PageComponentPropDto>) => {
+                  replace(key, [d]);
+                }}
+                fields={fields}
+                componentProp={convertArrayToObject(
+                  pageComponentPropDtos || []
+                )}
+              />
+            </div>
+          );
+        } else if (
+          (propInfos[key].dataType === DataType.object ||
+            propInfos[key].dataType == DataType.array) &&
+          propInfos[key].sourceType !== "api"
+        ) {
+          return (
+            <div
               key={`panel` + key}
-              header={propInfos[key].label}
-              itemKey={"collapse" + key}
+              // itemKey={"collapse" + key}
             >
               {/* 对象属性*/}
               {propInfos[key].dataType === DataType.object &&
-              propInfos[key].dataSub ? (
-                <div>
+                propInfos[key].dataSub && (
                   <ComponentObjectPropSetting
                     pageKey={pageKey}
                     propName={key}
                     propInfo={propInfos[key]}
                     pageComponentPropDtos={findProp(key)}
+                    onDataChange={(d: any) => {
+                      replace(key, d);
+                    }}
+                    fields={fields}
+                    componentProp={convertArrayToObject(
+                      pageComponentPropDtos || []
+                    )}
+                  />
+                )}
+              {/* 数组对象 */}
+              {propInfos[key].dataType === DataType.array &&
+                propInfos[key].dataSub && (
+                  <ComponentArrayPropSetting
+                    pageKey={pageKey}
+                    propName={key}
+                    value={findProp(key)}
+                    data={propInfos[key]}
                     onDataChange={(d) => {
                       replace(key, d);
                     }}
                     fields={fields}
+                    componentProp={convertArrayToObject(
+                      pageComponentPropDtos || []
+                    )}
                   />
-                </div>
-              ) : propInfos[key].dataType === DataType.array &&
-                propInfos[key].dataSub ? ( //数组对象
-                <ComponentArrayPropSetting
-                  pageKey={pageKey}
-                  propName={key}
-                  value={findProp(key)}
-                  data={propInfos[key]}
-                  onDataChange={(d) => {
-                    replace(key, d);
-                  }}
-                  fields={fields}
-                />
-              ) : propInfos[key].dataType === DataType.array &&
-                propInfos[key].dataSub === undefined ? ( // 数组简单对象
-                <ComponentArraySignlePropSetting
-                  pageKey={pageKey}
-                  propName={key}
-                  pageComponentPropDtos={findProp(key)}
-                  data={propInfos[key]}
-                  onDataChange={(d) => {
-                    replace(key, d);
-                  }}
-                  fields={fields}
-                />
-              ) : (
-                <Text className="text-red-400" strong>
-                  组件配置信息有误，请检查
-                </Text>
-              )}
-              {/* 2. 对象属性 3. 数组对象属性  */}
-            </Collapse.Panel>
+                )}
+
+              {/*数组简单对象 */}
+              {propInfos[key].dataType === DataType.array &&
+                propInfos[key].dataSub === undefined && (
+                  <ComponentArraySignlePropSetting
+                    pageKey={pageKey}
+                    propName={key}
+                    pageComponentPropDtos={findProp(key)}
+                    data={propInfos[key]}
+                    onDataChange={(d: any) => {
+                      replace(key, d);
+                    }}
+                    fields={fields}
+                    componentProp={convertArrayToObject(
+                      pageComponentPropDtos || []
+                    )}
+                  />
+                )}
+            </div>
+          );
+        }
+      })}
+
+      {/* 事件设置 */}
+      {eventPropInfos && Object.keys(eventPropInfos).length > 0 && (
+        <div
+          key={`panel_event`}
+
+          // itemKey={"collapse_event"}
+        >
+          <label>事件设置</label>
+
+          {Object.keys(eventPropInfos).map((key) => (
+            <div className="flex space-x-2 mb-2 p-2">
+              <div className=" w-24">{`${eventPropInfos[key].label}(${key})`}</div>
+              <ComponenetEventSetting
+                key={"event_" + key}
+                propInfo={eventPropInfos[key]}
+                pageKey={pageKey}
+                eventName={key}
+                targetPropInfo={
+                  eventPropInfos[key] &&
+                  eventPropInfos[key].event &&
+                  eventPropInfos[key].event?.propName &&
+                  componentInfo &&
+                  componentInfo.propInfo &&
+                  typeof componentInfo.propInfo !== "string"
+                    ? (componentInfo.propInfo[
+                        eventPropInfos[key].event?.propName || ""
+                      ] as PropInfo)
+                    : undefined
+                }
+                propObj={
+                  findProp(key) && findProp(key).length > 0
+                    ? findProp(key)[0]
+                    : undefined
+                }
+                onDataChange={(d: Partial<PageComponentPropDto>) => {
+                  replace(key, [d]);
+                }}
+              />
+            </div>
           ))}
-        {/* 事件设置 */}
-        {eventPropInfos && Object.keys(eventPropInfos).length > 0 ? (
-          <Collapse.Panel
-            key={`panel_event`}
-            header={"事件设置"}
-            itemKey={"collapse_event"}
-          >
-            {Object.keys(eventPropInfos).map((key) => (
-              <div className="flex space-x-2 mb-2 p-2">
-                <div className=" w-24">{`${eventPropInfos[key].label}(${key})`}</div>
-                <ComponenetEventSetting
-                  key={"event_" + key}
-                  propInfo={eventPropInfos[key]}
-                  pageKey={pageKey}
-                  eventName={key}
-                  targetPropInfo={
-                    eventPropInfos[key] &&
-                    eventPropInfos[key].event &&
-                    eventPropInfos[key].event?.propName &&
-                    componentInfo &&
-                    componentInfo.propInfo &&
-                    typeof componentInfo.propInfo !== "string"
-                      ? (componentInfo.propInfo[
-                          eventPropInfos[key].event?.propName || ""
-                        ] as PropInfo)
-                      : undefined
-                  }
-                  propObj={
-                    findProp(key) && findProp(key).length > 0
-                      ? findProp(key)[0]
-                      : undefined
-                  }
-                  onDataChange={(d: Partial<PageComponentPropDto>) => {
-                    replace(key, [d]);
-                  }}
-                />
-              </div>
-            ))}
-          </Collapse.Panel>
-        ) : (
-          ""
-        )}
-      </Collapse>
+        </div>
+      )}
     </div>
   );
 };

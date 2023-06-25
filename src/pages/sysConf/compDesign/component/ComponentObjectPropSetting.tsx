@@ -1,6 +1,7 @@
 /**
  * 对象类型属性设置
  */
+import { Divider } from "@douyinfe/semi-ui";
 import { FormFieldVo } from "@src/api/FormField";
 import { PageComponentPropDto } from "@src/api/PageComponentProp";
 import { PropInfo } from "@src/dsl/schema/component";
@@ -19,6 +20,8 @@ interface ObjectPropSettingProps {
   onDataChange: (propObj: Partial<PageComponentPropDto>[]) => void;
   /** 所在页面组件key */
   pageKey: string;
+  /** 当前组件所有属性值，包含pageComponentPropDtos里的propValue */
+  componentProp: any;
   fields?: FormFieldVo[];
 }
 
@@ -30,6 +33,7 @@ const ComponentObjectPropSetting = ({
   pageKey,
   onDataChange,
   fields,
+  componentProp,
 }: ObjectPropSettingProps) => {
   //对象的所有属性数据信息
 
@@ -75,7 +79,10 @@ const ComponentObjectPropSetting = ({
 
   return (
     <>
-      {/* {JSON.stringify(pageComponentPropDtos?.map((m) => m.subName))} */}
+      <Divider />
+      <div className=" pt-1 semi-form-field-label-text semi-form-field-label">
+        <label>{propInfo.label}</label>
+      </div>
       {Object.keys(propInfos).map((key) => (
         <ComponentPropSetting
           key={propName + key}
@@ -90,8 +97,10 @@ const ComponentObjectPropSetting = ({
             replace(propName, key, d);
           }}
           fields={fields}
+          componentProp={componentProp}
         />
       ))}
+      <Divider />
     </>
   );
 };
