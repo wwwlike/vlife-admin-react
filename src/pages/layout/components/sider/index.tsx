@@ -93,7 +93,7 @@ const Index: FC = () => {
     }
   }, [pathname, currAppMenuList]);
 
-  return (
+  return currAppMenuList && currAppMenuList.length > 0 ? (
     <Sider
       className="shadow-lg "
       style={{ backgroundColor: "var(--semi-color-bg-1)" }}
@@ -109,6 +109,8 @@ const Index: FC = () => {
         <Nav.Footer collapseButton={true} />
       </Nav>
     </Sider>
+  ) : (
+    <></>
   );
 };
 

@@ -103,6 +103,9 @@ const Index: FC = () => {
                 text: m.name,
                 icon: m.icon ? renderIcon(m.icon) : null,
                 onClick: () => {
+                  if (m.url) {
+                    navigate(m.url);
+                  }
                   setApp(m);
                 },
               };
@@ -154,7 +157,7 @@ const Index: FC = () => {
             <Empty
               className=" relative top-3  mr-4"
               image={
-                <img src={logo} style={{ width: 180, height: 30, top: 10 }} />
+                <img src={logo} style={{ width: 290, height: 36, top: 10 }} />
               }
             ></Empty>
           </div>
