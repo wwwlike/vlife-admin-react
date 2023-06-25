@@ -1,6 +1,7 @@
 import { FormField, listAll as formFieldListAll } from "@src/api/FormField";
 import { roleAllResources } from "@src/api/SysResources";
 import { listAll as orgList } from "@src/api/SysOrg";
+import { listAll as deptUserList } from "@src/api/SysUser";
 import { allRouter, listAll as menuList, MenuVo, roleResources } from "@src/api/SysMenu";
 import { listAll as deptList } from "@src/api/SysDept";
 import { listAll as areaList } from "@src/api/SysArea";
@@ -19,7 +20,6 @@ import { ApiDef } from '@src/dsl/schema/api';
 import { DataType, sourceType, TsType } from '@src/dsl/schema/base';
 import { ISelect } from '../schema/component';
 import { PageSelectData } from '@src/components/PageSelect';
-import { filterType } from '@src/api/SysUser';
 
 /**
  * 组件使用API的配置信息
@@ -32,9 +32,6 @@ export const ApiInfo: ApiDef = {
     dataModel:"FormVo",
     //  dataType.id_name_list,
     api: entityModels,
-
-
-
     match:[
       {
       dataType:DataType.array,
@@ -99,6 +96,24 @@ export const ApiInfo: ApiDef = {
   //   }
   //   ]
   // },
+  deptUser: {
+    label: "部门用户",
+    dataType:DataType.array,// dataType.fieldName_title_list,
+    dataModel:"SysUser",
+    api: deptUserList,
+    params: {
+      sysDeptId: { must: true, label: "部门id",sourceType:sourceType.field },
+    },
+    match:[
+      {
+        dataType:DataType.array,
+        dataModel:"ISelect",
+        func:(datas:ReportItem[])=>{
+          return datas.map((data:ReportItem)=>{return {value:data.id,label:data.name}});
+        }
+      }
+    ]
+  },
   // getDictByCode: {
   //   label: "字典信息",
   //   dataType: dataType.val_title_list,
@@ -203,7 +218,7 @@ export const ApiInfo: ApiDef = {
     label:"过滤维度",
     dataType: DataType.array,
     dataModel:'ISelect',
-    func:filterType,//同步方法返回数据
+    // func:filterType,//同步方法返回数据
   },
   dictType:{
     label:'字典类别',

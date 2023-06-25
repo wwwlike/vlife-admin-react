@@ -26,6 +26,8 @@
     "echarts": "^5.4.0",
     "echarts-for-react": "^3.0.2",
     "file-saver": "^2.0.5",
+    "handsontable": "^12.4.0",
+    "handsontable-pro": "^6.2.3",
     "lodash": "^4.17.21",
     "prettier": "^2.8.8",
     "qs": "^6.9.4",
