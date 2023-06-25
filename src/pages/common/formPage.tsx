@@ -151,18 +151,8 @@ const FormPage = <T extends IdBean>({
       return (
         <VlifeForm
           {...props}
-          key={formData.id + "_" + props.key}
-          onClickFieldComponent={onClickFieldComponent}
-          className={className}
-          // reload={reload}
-          // fieldMode="name"
+          key={formData.id + props.key}
           modelInfo={model}
-          design={design}
-          dicts={getDict({
-            emptyLabel: type === "req" ? "全部" : "请选择",
-            codes: [...modelDicts],
-          })}
-          fkMap={fkMap}
           onDataChange={(data, field) => {
             if (onDataChange) {
               onDataChange(data, field);

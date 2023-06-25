@@ -3,11 +3,12 @@ import {
   Card,
   Divider,
   Dropdown,
+  ImagePreview,
   SplitButtonGroup,
 } from "@douyinfe/semi-ui";
 import { IdBean } from "@src/api/base";
 import FormPage from "@src/pages/common/formPage";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   IconArrowLeft,
@@ -21,6 +22,8 @@ import TablePage, { TablePageProps } from "@src/pages/common/tablePage";
 import { useNiceModal } from "@src/store";
 import { FormVo } from "@src/api/Form";
 import OrderPage from "../common/orderPage";
+import { Watermark } from "antd";
+import { useAuth } from "@src/context/auth-context";
 const mode = import.meta.env.VITE_APP_MODE;
 
 /**
@@ -63,6 +66,13 @@ const Content = <T extends IdBean>({
     return { ...req, ...formData };
   }, [req, formData]);
   const [filterOpen, setFilterOpen] = useState(true);
+
+  const { user } = useAuth();
+  const [visible2, setVisible2] = useState(false);
+  const visibleChange2 = useCallback((v: boolean) => {
+    setVisible2(v);
+  }, []);
+
   const menu = useMemo((): DropDownMenuItem[] => {
     let arrays: DropDownMenuItem[] = [
       {
@@ -151,9 +161,10 @@ const Content = <T extends IdBean>({
           <Card
             title={`${title ? title : model ? model.name : ""}管理`}
             bordered={true}
-            className="h-full"
+            className="h-full "
             headerLine={false}
             headerStyle={{ fontSize: "small" }}
+            style={{ backgroundColor: "#f9fafc" }}
             headerExtraContent={
               <></>
               // <Tooltip content="模型设置">
@@ -189,75 +200,84 @@ const Content = <T extends IdBean>({
         </div>
       )}
       <div className="h-full flex-1 cursor-pointer relative ">
-        {filterOpen && (
-          <IconDoubleChevronLeft
-            size="large"
-            className=" absolute -left-3 top-1/2"
-            onClick={() => {
-              setFilterOpen(false);
-            }}
-          />
-        )}
-        {!filterOpen && (
-          <IconDoubleChevronRight
-            size="large"
-            className="cursor-pointer absolute left-0 top-1/2"
-            onClick={() => {
-              setFilterOpen(true);
-            }}
-          />
-        )}
-
-        <Card
-          title={`${title ? title : model ? model.name : ""}列表`}
-          headerLine={false}
-          bordered={false}
-          className="h-full group"
+        <Watermark
+          zIndex={1}
+          // font={{ color: "#ead1dc" }}
+          content={[`${user?.name}`, `${user?.sysDept.name}`]}
+          className=" h-full"
+          gap={[180, 180]}
+          offset={[180, 180]}
         >
-          {props.children}
-          {
-            <TablePage<T>
-              key={entityType + listType}
-              listType={listType}
-              editType={editType}
-              entityType={entityType}
-              lineBtn={lineBtn}
-              tableBtn={tableBtn}
-              req={tableReq}
-              formVo={model}
-              //列表数据回传
-              //模型信息回传
-              onFormModel={(formVo: FormVo) => {
-                // alert(formVo.title);
-                setModel(formVo);
+          {filterOpen && (
+            <IconDoubleChevronLeft
+              size="large"
+              className=" absolute -left-3 top-1/2"
+              onClick={() => {
+                setFilterOpen(false);
               }}
-              //错误信息回传
-              onHttpError={(e) => {
-                if (e.code === 4404) {
-                  confirmModal.show({
-                    title: `接口错误`,
-                    children: (
-                      <>{`${e.code}无法访问，请配置或者在模块页面手工传入loadData的prop`}</>
-                    ),
-                    okFun: () => {
-                      navigate(`/conf/design/${listType}/list`);
-                    },
-                  });
-                }
+            />
+          )}
+          {!filterOpen && (
+            <IconDoubleChevronRight
+              size="large"
+              className="cursor-pointer absolute left-0 top-1/2"
+              onClick={() => {
+                setFilterOpen(true);
               }}
-              {...props}
-            >
-              {/* 重构 */}
-              {/* {filterType && (
+            />
+          )}
+
+          <Card
+            title={`${title ? title : model ? model.name : ""}列表`}
+            headerLine={false}
+            bordered={false}
+            className="h-full group"
+          >
+            {props.children}
+            {
+              <TablePage<T>
+                key={entityType + listType}
+                listType={listType}
+                editType={editType}
+                entityType={entityType}
+                lineBtn={lineBtn}
+                tableBtn={tableBtn}
+                req={tableReq}
+                formVo={model}
+                //列表数据回传
+                //模型信息回传
+                onFormModel={(formVo: FormVo) => {
+                  // alert(formVo.title);
+                  setModel(formVo);
+                }}
+                //错误信息回传
+                onHttpError={(e) => {
+                  if (e.code === 4404) {
+                    confirmModal.show({
+                      title: `接口错误`,
+                      children: (
+                        <>{`${e.code}无法访问，请配置或者在模块页面手工传入loadData的prop`}</>
+                      ),
+                      okFun: () => {
+                        navigate(`/conf/design/${listType}/list`);
+                      },
+                    });
+                  }
+                }}
+                {...props}
+              >
+                {/* 重构 */}
+                {/* {filterType && (
                 <FormPage
                   key={`filter${filterType}`}
                   onDataChange={(data) => setFormData({ ...data })}
                   type={filterType}
                 />
               )} */}
-            </TablePage>
-          }
-        </Card>
+              </TablePage>
+            }
+          </Card>
+        </Watermark>
       </div>
     </div>
   );
