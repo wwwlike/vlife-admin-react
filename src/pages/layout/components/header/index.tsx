@@ -27,6 +27,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { MenuItem } from "@src/menu/config";
 import { listAll, SysMenu } from "@src/api/SysMenu";
 import SelectIcon from "@src/components/SelectIcon";
+import FormModal from "@src/pages/common/modal/formModal";
+import VlifeModal from "@src/pages/common/modal/vlifeModal";
+import ConfirmModal from "@src/pages/common/modal/confirmModal";
 const mode = import.meta.env.VITE_APP_MODE;
 const { Header } = Layout;
 /**
@@ -320,6 +323,9 @@ const Index: FC = () => {
           </>
         }
       ></Nav>
+      <FormModal />
+      <VlifeModal />
+      <ConfirmModal />
       {/* <Tags /> */}
     </Header>
   );

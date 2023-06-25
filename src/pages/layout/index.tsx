@@ -34,9 +34,9 @@ const Index: React.FC = () => {
         {/* <Footer /> */}
       </Layout>
       {/* 基于formily的动态表单 */}
-      <FormModal />
+      {/* <FormModal />
       <VlifeModal />
-      <ConfirmModal />
+      <ConfirmModal /> */}
       {/* 
       <TableModal />
 

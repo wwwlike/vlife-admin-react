@@ -1,6 +1,7 @@
 import apiClient from "@src/api/base/apiClient";
 import { PageVo, DbEntity, PageQuery, VoBean, Result, SaveBean, IModel } from "@src/api/base";
 import { SysMenu } from './SysMenu';
+import { SysDept } from './SysDept';
 // 用户表
 export interface SysUser extends DbEntity {
   idno: string; // 证件号
@@ -44,6 +45,7 @@ export interface UserDetailVo extends VoBean {
   resourceCodes: string[]; // 用户有的权限资源代码 权限组->角色权限->角色->资源——资源编码
   avatar:string;//头像
   username: string; // 账号
+  sysDept:SysDept;
   // codeArea: string;
   // codeDept: string;
   // codeOrg: string;
