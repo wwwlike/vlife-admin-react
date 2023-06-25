@@ -32,6 +32,7 @@ import VfCheckbox from '@src/components/VfCheckbox';
 import VfNumbersInput from '@src/components/VfNumbersInput';
 import QueryBuilder from '@src/pages/sysConf/queryBuilder';
 import ManySelect from '@src/components/ManySelect';
+import FilterTableInput from '@src/components/FilterTableInput';
 // import SearchInput from '@src/life-ui/components/SearchInput';
 const Input = connect(SemiInput, mapReadPretty(PreviewText.Input))
 const Select = connect(SemiSelect, mapReadPretty(VfText))
@@ -142,6 +143,22 @@ export const ComponentInfos: ComponentDef = {
     match:[{ dataType:DataType.array,
       dataModel:TsType.string},{ dataType:DataType.basic,
         dataModel:TsType.string}],
+  },
+  FilterTableInput: {
+    component:FilterTableInput,
+    icon:"IconDescend2",
+    label: "列表过滤选择",
+    match:{ dataType:DataType.basic,
+      dataModel:TsType.string},
+    propInfo:{
+      filterType:{
+        label:"过滤器模型",//缺省状态，可以这样来定义
+        sourceType:sourceType.fixed,
+        dataType: DataType.basic,
+        dataModel:TsType.string,
+        must: true,
+      }
+    }
   },
   ModalTagInput:{
     component:ModalTagInput,

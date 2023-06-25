@@ -161,6 +161,7 @@ const ComponentPropSetting = ({
   }, [propInfo]);
 
   useEffect(() => {
+    const tranObj: any = {};
     typeEqOption.forEach((api) => {
       ApiInfo[api.value].match?.forEach((m) => {
         if (
@@ -168,15 +169,14 @@ const ComponentPropSetting = ({
           m.dataType === propInfo.dataType &&
           typeof m.func !== "function"
         ) {
-          setRelationObj({
-            ...relationObj,
-            [api.value]: m.func.map((mm) => {
-              return { label: mm.label, value: mm.key };
-            }),
+          tranObj[api.value] = m.func.map((mm) => {
+            return { label: mm.label, value: mm.key };
           });
         }
       });
     });
+
+    setRelationObj(tranObj);
   }, [typeEqOption]);
 
   //满足条件的异步接口分析

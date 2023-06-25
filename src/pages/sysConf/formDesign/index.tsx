@@ -335,7 +335,7 @@ export default () => {
         },
       ]}
     >
-      <div>
+      <div className=" h-full">
         <Layout className="layout-page">
           <Layout.Header
             className="layout-header shadow"
@@ -493,7 +493,7 @@ export default () => {
               }
             />
           </Layout.Header>
-          <Layout>
+          <Layout className="border">
             <Sider
               style={{
                 backgroundColor: "var(--semi-color-bg-1)",
@@ -521,25 +521,19 @@ export default () => {
                 />
               )}
             </Sider>
-            <Content className="grid h-full p-2">
+            <Content className="grid h-full mr-2">
               {currModel && currModel.id && params.mode !== Mode.list ? (
-                <>
-                  <FormPage
-                    type="form"
-                    formEvents={{
-                      prefixNo: (field, form, model) => {
-                        if (!currModel.parentsName.includes("INo")) {
-                          field.display = "hide";
-                        }
-                      },
-                    }}
-                    formData={currModel}
-                    onDataChange={(model) => {
-                      setCurrModel({ ...model });
-                    }}
-                    className={` center rounded-md h-20 w-8/12 bg-white p-4 pt-6 m-2`}
-                  />
-
+                <div className=" top-2">
+                  {currModel.parentsName.includes("INo") && (
+                    <FormPage
+                      type="form"
+                      formData={currModel}
+                      onDataChange={(model) => {
+                        setCurrModel({ ...model });
+                      }}
+                      className={` center rounded-md h-20 w-1/2 bg-white p-4 pt-6 m-2`}
+                    />
+                  )}
                   <FormPage
                     design={true}
                     key={currModel.id + currModel.type + currModel.modelSize}
@@ -601,7 +595,7 @@ export default () => {
                       }
                     }}
                   />
-                </>
+                </div>
               ) : (
                 // // <Tabs>
                 //   {/* <TabPane tab={`实时预览`} itemKey={"FormView"}> */}

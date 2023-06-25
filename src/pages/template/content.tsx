@@ -33,6 +33,7 @@ export interface ContentProps<T extends IdBean> extends TablePageProps<T> {
   title?: string;
   filterType?: string; //过滤条件模型名称
   showOrder?: boolean; //是否显示order
+  modal?: boolean; //是否以弹出层方式显示（精简模式）
   // filterData?: any; //初始的过滤条件
 }
 
@@ -50,6 +51,7 @@ const Content = <T extends IdBean>({
   lineBtn,
   tableBtn,
   formVo,
+  modal = false,
   req,
   showOrder = true,
   // filterData,
@@ -149,11 +151,13 @@ const Content = <T extends IdBean>({
       {filterType && filterOpen && (
         <div className="h-full flex-none  w-72">
           <Card
-            title={`${title ? title : model ? model.name : ""}管理`}
+            title={
+              modal ? "" : `${title ? title : model ? model.name : ""}管理`
+            }
             bordered={true}
             className="h-full"
             headerLine={false}
-            headerStyle={{ fontSize: "small" }}
+            headerStyle={{ fontSize: "small", padding: "20px 20px 0px 20px" }}
             headerExtraContent={
               <></>
               // <Tooltip content="模型设置">
@@ -166,14 +170,8 @@ const Content = <T extends IdBean>({
               // </Tooltip>
             }
           >
-            <FormPage
-              key={`filter${filterType}`}
-              formData={req}
-              onDataChange={(data) => setFormData({ ...data })}
-              type={filterType}
-            />
             {/* 排序 */}
-            {model?.fields && showOrder && (
+            {modal === false && model?.fields && showOrder && filterType && (
               <>
                 <Divider className=" m-2">请选择排序条件</Divider>
                 <OrderPage
@@ -185,11 +183,17 @@ const Content = <T extends IdBean>({
                 />
               </>
             )}
+            <FormPage
+              key={`filter${filterType}`}
+              formData={req}
+              onDataChange={(data) => setFormData({ ...data })}
+              type={filterType}
+            />
           </Card>
         </div>
       )}
       <div className="h-full flex-1 cursor-pointer relative ">
-        {filterOpen && (
+        {filterOpen && filterType && modal === false && (
           <IconDoubleChevronLeft
             size="large"
             className=" absolute -left-3 top-1/2"
@@ -198,7 +202,7 @@ const Content = <T extends IdBean>({
             }}
           />
         )}
-        {!filterOpen && (
+        {!filterOpen && filterType && modal === false && (
           <IconDoubleChevronRight
             size="large"
             className="cursor-pointer absolute left-0 top-1/2"
@@ -209,9 +213,11 @@ const Content = <T extends IdBean>({
         )}
 
         <Card
-          title={`${title ? title : model ? model.name : ""}列表`}
+          title={modal ? "" : `${title ? title : model ? model.name : ""}列表`}
+          headerStyle={{ padding: "20px 20px 0px 20px" }}
           headerExtraContent={
-            mode === "dev" && (
+            mode === "dev" &&
+            modal === false && (
               <SplitButtonGroup style={{ marginRight: 10 }}>
                 <Button theme="light" icon={<IconSetting />}>
                   配置

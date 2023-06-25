@@ -130,7 +130,7 @@ const TableIndex = <T extends IdBean>({
         model.fields
           .filter((f) => column.includes(f.fieldName))
           .forEach((d) => {
-            temp.push({ ...d, dataIndex: d.fieldName });
+            temp.push({ ...d, dataIndex: d.fieldName, align: "center" });
           });
         columnshow.push(
           ...temp.sort(function (a: ColumnProps, b: ColumnProps) {
@@ -166,6 +166,7 @@ const TableIndex = <T extends IdBean>({
               //   </div>
               // ),
               dataIndex: f.fieldName,
+              align: "center",
             });
           });
       }
@@ -287,6 +288,7 @@ const TableIndex = <T extends IdBean>({
       if (read !== true && lineBtn && lineBtn.length > 0) {
         columnshow?.push({
           title: "操作",
+          align: "center",
           fieldName: "operate",
           render: (text, record, index) => {
             return (
