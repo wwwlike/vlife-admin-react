@@ -158,11 +158,14 @@ const Index: FC = () => {
             }}
           >
             <Empty
-              className=" relative top-3  mr-4"
+              className=" relative top-3  mr-4 flex flex-shrink-0 w-auto h-auto"
               image={
                 <img src={logo} style={{ width: 290, height: 36, top: 10 }} />
               }
             ></Empty>
+            <div className=" bg-white absolute left-32 text-2xl font-black w-52 m-1">
+              事后监督系统
+            </div>
           </div>
         }
         defaultSelectedKeys={[(app && app.id) || ""]}

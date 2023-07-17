@@ -2,12 +2,13 @@
  * 树型数据选择组件
  * 只在查询req模型里使用
  */
-import { TreeSelect } from "@douyinfe/semi-ui";
+// import { TreeSelect } from "@douyinfe/semi-ui";
 import { ITree } from "@src/api/base";
 import { VfBaseProps } from "@src/dsl/schema/component";
 import { checkSubData } from "@src/util/func";
 
 import { useUpdateEffect } from "ahooks";
+import TreeSelect from "antd/es/tree-select";
 import React, { useCallback, useMemo, useState } from "react";
 
 interface TreeQueryProps extends VfBaseProps<string, ITree[]> {
@@ -141,7 +142,7 @@ const VfTreeInput = ({
       ) : (
         <>
           <TreeSelect
-            showClear
+            // showClear
             onChange={(d) => {
               setVal(d as string);
             }}

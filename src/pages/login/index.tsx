@@ -1,4 +1,3 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
 import { localHistoryLoginUserName, useAuth } from "@src/context/auth-context";
 import "./login.css";
 import { useForm, useUrlQueryParam } from "@src/hooks/useForm";
@@ -6,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { Empty, Notification, Spin } from "@douyinfe/semi-ui";
 import logo from "@src/logo.png";
 import RegExp from "@src/util/expression";
+import CryptoUtil from "crypto-js";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   checkEmail,
   RegisterDto,
@@ -18,6 +19,22 @@ import {
 import { Result } from "@src/api/base";
 import { useDebounceEffect, useInterval } from "ahooks";
 import { Modal } from "@douyinfe/semi-ui";
+
+// 约定密钥(与后端密钥保持一致)
+
+// 十六位十六进制数作为密钥
+const SECRET_KEY = CryptoUtil.enc.Utf8.parse("abcdefgh12345678");
+// 十六位十六进制数作为密钥偏移量
+const SECRET_IV = CryptoUtil.enc.Utf8.parse("12345678abcdefgh");
+function encrypt(word: string) {
+  let srcs = CryptoUtil.enc.Utf8.parse(word);
+  var encrypted = CryptoUtil.AES.encrypt(srcs, SECRET_KEY, {
+    iv: SECRET_IV,
+    mode: CryptoUtil.mode.CBC,
+    padding: CryptoUtil.pad.ZeroPadding,
+  });
+  return CryptoUtil.enc.Base64.stringify(encrypted.ciphertext);
+}
 
 const Index: React.FC = () => {
   const usernameRef: any = useRef(null);
@@ -75,7 +92,12 @@ const Index: React.FC = () => {
       }
     } else {
       setClientMsg(undefined);
-      await login(values);
+      encrypt(values.username);
+      await login({
+        username: encrypt(values.username),
+        password: encrypt(values.password),
+        loginName: values.username,
+      });
       if (usernameRef.current) {
         usernameRef.current.focus();
       }
