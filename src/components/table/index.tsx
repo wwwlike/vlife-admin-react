@@ -17,8 +17,13 @@ import VlifeButton, { VFButtonPorps } from "@src/components/vlifeButton";
 import { checkLineNumber, VfButton } from "@src/dsl/schema/button";
 import { IconStoryStroked } from "@douyinfe/semi-icons";
 
+const formatter = new Intl.NumberFormat("zh-CN", {
+  style: "currency",
+  currency: "CNY",
+});
 export interface ListProps<T extends IdBean> extends TableProps {
   className?: string;
+  width?: number; //列表宽度（通过外围屏幕宽度减去 搜索宽度）
   model: FormVo; //模型信息
   lineBtn?: VfButton<T>[]; //行按钮
   column?: string[]; // 手工传入要显示的列,配置设置的无效
@@ -35,6 +40,7 @@ export interface ListProps<T extends IdBean> extends TableProps {
 const TableIndex = <T extends IdBean>({
   onLineClick,
   className,
+  width,
   model,
   lineBtn,
   dataSource,
@@ -153,18 +159,7 @@ const TableIndex = <T extends IdBean>({
           .forEach((f) => {
             columnshow.push({
               ...f,
-              // title: (
-              //   <div className="flex items-end">
-              //     <div>
-              //       <SelectIcon
-              //         read={true}
-              //         size="small"
-              //         value={ComponentInfos[f.x_component].icon}
-              //       />
-              //     </div>
-              //     <div className=" pl-2"> {f.title}</div>
-              //   </div>
-              // ),
+              width: f.listWidth,
               dataIndex: f.fieldName,
               align: "center",
             });
@@ -178,7 +173,6 @@ const TableIndex = <T extends IdBean>({
             if (index < 4) {
               m.fixed = true;
             }
-            m.width = 100;
           }
           m.ellipsis = true; //单元格缩略
           if (
@@ -244,6 +238,20 @@ const TableIndex = <T extends IdBean>({
           } else if (m.fieldType === "date") {
             m["render"] = (text, record, index) => {
               return formatDate(text, "yyyy-MM-dd");
+            };
+          } else if (m.fieldType === "number") {
+            //数值型处理
+            m["render"] = (text, record, index) => {
+              return (
+                <div style={{ textAlign: "right" }}>
+                  {m.money ? formatter.format(text) : text}
+                </div>
+              );
+            };
+          } else if (m.fieldType === "string") {
+            //数值型处理
+            m["render"] = (text, record, index) => {
+              return <div style={{ textAlign: "left" }}>{text}</div>;
             };
           }
 
@@ -413,10 +421,12 @@ const TableIndex = <T extends IdBean>({
   };
 
   return (
-    <div className={className}>
+    //
+    <div className={`flex flex-shrink-0 w-auto h-auto ${className}`}>
       <Table
         showHeader={true}
         // style={{ lineHeight: "24px" }}
+        style={{ width: `${width}px` }} // 设置表格容器的宽度为100%
         bordered={true}
         rowKey={"id"}
         dataSource={dataSource}

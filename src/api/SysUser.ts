@@ -235,8 +235,7 @@ export const login=(params: {password:string,username:string}): Promise<Result<s
   return apiClient.post(`/login`, params);
 }
 
-export const filterType=()=>{
-
-
+export const listAll=(params:{sysDeptId:string}): Promise<Result<SysUser>>=>{
+  return apiClient.get(`/sysUser/list/all`, { params });
 }
 

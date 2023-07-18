@@ -51,12 +51,16 @@ export interface dictObj {
  * 上次登录的用户名,清除token不会清除它
  */
 export const localHistoryLoginUserName = "__local_history_login_username__";
+type MenuState = "show" | "mini" | "hide";
 //全局状态和函数
 const AuthContext = React.createContext<
   | {
       /**1 attr */
       //当前用户
       user: UserDetailVo | undefined;
+      //菜单状态
+      menuState: MenuState;
+      setMenuState: (state: MenuState) => void;
       //所有模型
       models: any;
       //当前屏幕大小
@@ -77,7 +81,11 @@ const AuthContext = React.createContext<
       app: SysMenu | undefined; //当前应用
       setApp: (app: SysMenu | undefined) => void; //当前应用
       //登录(可以移除到一般service里)
-      login: (form: { password: string; username: string }) => void;
+      login: (form: {
+        password: string;
+        username: string;
+        loginName: string;
+      }) => void;
       giteeLogin: (code: string) => Promise<ThirdAccountDto | undefined>;
       loginOut: () => void;
       //指定key字典信息
@@ -100,6 +108,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [app, setApp] = useState<SysMenu | undefined>();
   /** 当前用户信息 */
   const [user, setUser] = useState<UserDetailVo>();
+
+  /** 当前菜单状态 */
+  const [menuState, setMenuState] = useState<MenuState>("show");
+
   /**
    * 权限权限资源信息
    */
@@ -329,23 +341,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     []
   );
 
-  const login = useCallback((from: { username: string; password: string }) => {
-    userLogin(from).then((result) => {
-      if (result.code == "200" && result.data) {
-        window.localStorage.setItem(localStorageKey, result.data);
-        window.localStorage.setItem(
-          localHistoryLoginUserName,
-          from.username || ""
-        );
-        currUser().then((res) => {
-          setUser(res.data);
-          datasInit();
-        });
-      } else {
-        setError(result.msg);
-      }
-    });
-  }, []);
+  const login = useCallback(
+    (from: { username: string; password: string; loginName: string }) => {
+      userLogin({ username: from.username, password: from.password }).then(
+        (result) => {
+          if (result.code == "200" && result.data) {
+            window.localStorage.setItem(localStorageKey, result.data);
+            window.localStorage.setItem(
+              localHistoryLoginUserName,
+              from.loginName || ""
+            );
+            currUser().then((res) => {
+              setUser(res.data);
+              datasInit();
+            });
+          } else {
+            setError(result.msg);
+          }
+        }
+      );
+    },
+    []
+  );
 
   /**
    * @param btnObj 检查权限编码是否在用户能访问的范围里
@@ -416,6 +433,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         children={children}
         value={{
           user,
+          menuState,
+          setMenuState,
           app,
           setApp,
           models,
@@ -423,6 +442,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           dicts,
           error,
           groups,
+
           // getModelInfo,
           getFormInfo,
           clearModelInfo,

@@ -43,6 +43,8 @@ const Index: FC = () => {
   const formModal = useNiceModal("formModal");
   const [menuItems, setMenuItems] = useState<Partial<MenuItem>[]>([]);
 
+  // const [allMenus, setAllMenus] = useState<SysMenu[]>([]);
+
   function renderIcon(icon: any) {
     if (!icon) {
       return null;
@@ -55,6 +57,7 @@ const Index: FC = () => {
   useEffect(() => {
     if (pathname) {
       listAll().then((d) => {
+        // setAllMenus(d.data || []);
         const menus: SysMenu[] = d.data || [];
         //找path的菜单的根节点 初始化appId
         //判断是否一级页面的菜单
