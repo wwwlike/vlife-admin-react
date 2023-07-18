@@ -2,7 +2,6 @@ import { FormField, listAll as formFieldListAll } from "@src/api/FormField";
 import { roleAllResources } from "@src/api/SysResources";
 import { listAll as orgList } from "@src/api/SysOrg";
 import { listAll as deptUserList, SysUser } from "@src/api/SysUser";
-
 import { allRouter, listAll as menuList, MenuVo, roleResources } from "@src/api/SysMenu";
 import { listAll as deptList } from "@src/api/SysDept";
 import { listAll as areaList } from "@src/api/SysArea";
@@ -22,7 +21,6 @@ import { DataType, sourceType, TsType } from '@src/dsl/schema/base';
 import { ISelect } from '../schema/component';
 import { PageSelectData } from '@src/components/PageSelect';
 
-
 /**
  * 组件使用API的配置信息
  * 期待后面能自动生成读取，不用人工定义这个过程
@@ -34,9 +32,6 @@ export const ApiInfo: ApiDef = {
     dataModel:"FormVo",
     //  dataType.id_name_list,
     api: entityModels,
-
-
-
     match:[
       {
       dataType:DataType.array,
@@ -101,7 +96,6 @@ export const ApiInfo: ApiDef = {
   //   }
   //   ]
   // },
-
   deptUser: {
     label: "部门用户",
     dataType:DataType.array,// dataType.fieldName_title_list,
