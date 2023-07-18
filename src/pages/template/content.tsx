@@ -8,7 +8,13 @@ import {
 } from "@douyinfe/semi-ui";
 import { IdBean } from "@src/api/base";
 import FormPage from "@src/pages/common/formPage";
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import {
   IconArrowLeft,
@@ -69,12 +75,22 @@ const Content = <T extends IdBean>({
   }, [req, formData]);
   const [filterOpen, setFilterOpen] = useState(true);
 
-  const { user } = useAuth();
-  const [visible2, setVisible2] = useState(false);
-  const visibleChange2 = useCallback((v: boolean) => {
-    setVisible2(v);
-  }, []);
+  const { user, menuState } = useAuth();
 
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [filterWidth, setFilterWidth] = useState<number>(350);
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // 在组件卸载时移除事件监听器
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   const menu = useMemo((): DropDownMenuItem[] => {
     let arrays: DropDownMenuItem[] = [
       {
@@ -155,14 +171,15 @@ const Content = <T extends IdBean>({
 
     return arrays;
   }, [lineBtn, tableBtn]);
-
+  const divRef = useRef<any>(null);
+  // const left=divRef = useRef(null);
   return (
     <div className="h-full flex">
       {filterType && filterOpen && (
         <div className="h-full flex-none  w-72">
           <Card
             title={
-              modal ? "" : `${title ? title : model ? model.name : ""}管理`
+              modal ? "" : `${title ? title : model ? model.name : ""}查询`
             }
             bordered={true}
             className="h-full "
@@ -203,7 +220,7 @@ const Content = <T extends IdBean>({
           </Card>
         </div>
       )}
-      <div className="h-full flex-1 cursor-pointer relative ">
+      <div ref={divRef} className="h-full flex-1 cursor-pointer relative ">
         <Watermark
           zIndex={1}
           // font={{ color: "#ead1dc" }}
@@ -271,6 +288,7 @@ const Content = <T extends IdBean>({
                 className=" absolute -left-3 top-1/2"
                 onClick={() => {
                   setFilterOpen(false);
+                  setFilterWidth(60);
                 }}
               />
             )}
@@ -280,51 +298,69 @@ const Content = <T extends IdBean>({
                 className="cursor-pointer absolute left-0 top-1/2"
                 onClick={() => {
                   setFilterOpen(true);
+                  setFilterWidth(350);
                 }}
               />
             )}
             {props.children}
             {
-              <TablePage<T>
-                key={entityType + listType}
-                listType={listType}
-                editType={editType}
-                entityType={entityType}
-                lineBtn={lineBtn}
-                tableBtn={tableBtn}
-                req={tableReq}
-                formVo={model}
-                //列表数据回传
-                //模型信息回传
-                onFormModel={(formVo: FormVo) => {
-                  // alert(formVo.title);
-                  setModel(formVo);
-                }}
-                //错误信息回传
-                onHttpError={(e) => {
-                  if (e.code === 4404) {
-                    confirmModal.show({
-                      title: `接口错误`,
-                      children: (
-                        <>{`${e.code}无法访问，请配置或者在模块页面手工传入loadData的prop`}</>
-                      ),
-                      okFun: () => {
-                        navigate(`/conf/design/${listType}/list`);
-                      },
-                    });
+              <>
+                {/* {menuState} */}
+                <TablePage<T>
+                  width={
+                    screenWidth -
+                    filterWidth -
+                    (menuState === "hide"
+                      ? 0
+                      : menuState === "mini"
+                      ? 100
+                      : 260)
                   }
-                }}
-                {...props}
-              >
-                {/* 重构 */}
-                {/* {filterType && (
+                  key={
+                    entityType +
+                    listType +
+                    (screenWidth - filterWidth) +
+                    menuState
+                  }
+                  listType={listType}
+                  editType={editType}
+                  entityType={entityType}
+                  lineBtn={lineBtn}
+                  tableBtn={tableBtn}
+                  req={tableReq}
+                  formVo={model}
+                  //列表数据回传
+                  //模型信息回传
+                  onFormModel={(formVo: FormVo) => {
+                    // alert(formVo.title);
+                    setModel(formVo);
+                  }}
+                  //错误信息回传
+                  onHttpError={(e) => {
+                    if (e.code === 4404) {
+                      confirmModal.show({
+                        title: `接口错误`,
+                        children: (
+                          <>{`${e.code}无法访问，请配置或者在模块页面手工传入loadData的prop`}</>
+                        ),
+                        okFun: () => {
+                          navigate(`/conf/design/${listType}/list`);
+                        },
+                      });
+                    }
+                  }}
+                  {...props}
+                >
+                  {/* 重构 */}
+                  {/* {filterType && (
                 <FormPage
                   key={`filter${filterType}`}
                   onDataChange={(data) => setFormData({ ...data })}
                   type={filterType}
                 />
               )} */}
-              </TablePage>
+                </TablePage>
+              </>
             }
           </Card>
         </Watermark>
