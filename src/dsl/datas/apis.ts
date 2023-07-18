@@ -1,7 +1,7 @@
 import { FormField, listAll as formFieldListAll } from "@src/api/FormField";
 import { roleAllResources } from "@src/api/SysResources";
 import { listAll as orgList } from "@src/api/SysOrg";
-import { listAll as deptUserList } from "@src/api/SysUser";
+import { listAll as deptUserList, SysUser } from "@src/api/SysUser";
 import { allRouter, listAll as menuList, MenuVo, roleResources } from "@src/api/SysMenu";
 import { listAll as deptList } from "@src/api/SysDept";
 import { listAll as areaList } from "@src/api/SysArea";
@@ -108,8 +108,8 @@ export const ApiInfo: ApiDef = {
       {
         dataType:DataType.array,
         dataModel:"ISelect",
-        func:(datas:ReportItem[])=>{
-          return datas.map((data:ReportItem)=>{return {value:data.id,label:data.name}});
+        func:(datas:SysUser[])=>{
+          return datas.map((data:SysUser)=>{return {value:data.id,label:data.name}});
         }
       }
     ]
@@ -213,12 +213,6 @@ export const ApiInfo: ApiDef = {
     dataType: DataType.array,
     dataModel:'ISelect',
     func:allRouter,//同步方法返回数据
-  },
-  filterType:{
-    label:"过滤维度",
-    dataType: DataType.array,
-    dataModel:'ISelect',
-    // func:filterType,//同步方法返回数据
   },
   dictType:{
     label:'字典类别',

@@ -37,7 +37,7 @@ const Index: FC = () => {
   const { pathname } = useLocation();
   const [openKeys, setOpenKeys] = useState<string[]>([]); //打开节点
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]); //选中节点
-  const { user, app } = useAuth();
+  const { user, app, setMenuState } = useAuth();
   /**
    * 当前应用当前用户拥有权限下的所有菜单
    */
@@ -68,6 +68,12 @@ const Index: FC = () => {
     }
   }, [user?.menus, app]);
 
+  useEffect(() => {
+    if (app && app.url) {
+      navigate(app.url);
+    }
+  }, [app]);
+
   const onSelect = (data: any) => {
     window.localStorage.setItem("currMenuId", data.itemKey);
     setSelectedKeys([...data.selectedKeys]);
@@ -91,24 +97,47 @@ const Index: FC = () => {
       setSelectedKeys([keys.pop() as string]);
       setOpenKeys(Array.from(new Set([...openKeys, ...keys])));
     }
+
+    if (currAppMenuList && currAppMenuList.length === 0) {
+      setMenuState("hide");
+    } else {
+      setMenuState("show");
+    }
   }, [pathname, currAppMenuList]);
 
   return currAppMenuList && currAppMenuList.length > 0 ? (
-    <Sider
-      className="shadow-lg "
-      style={{ backgroundColor: "var(--semi-color-bg-1)" }}
-    >
-      <Nav
-        items={currAppMenuList}
-        openKeys={openKeys} //打开父节点
-        selectedKeys={selectedKeys} //选中的子节点
-        onSelect={onSelect}
-        onOpenChange={onOpenChange}
-        style={{ maxWidth: 220, height: "100%" }}
+    <>
+      <Sider
+        className="shadow-lg "
+        style={{ backgroundColor: "var(--semi-color-bg-1)" }}
       >
-        <Nav.Footer collapseButton={true} />
-      </Nav>
-    </Sider>
+        <Nav
+          items={currAppMenuList}
+          openKeys={
+            openKeys && openKeys.length > 0 ? openKeys : [currAppMenuList[0].id]
+          } //打开父节点
+          selectedKeys={
+            selectedKeys
+            // && selectedKeys.length > 0
+            //   ? selectedKeys
+            //   : currAppMenuList &&
+            //     currAppMenuList.length > 0 &&
+            //     currAppMenuList[0].items &&
+            //     currAppMenuList[0].items.length > 0
+            //   ? [currAppMenuList[0].items[0].id]
+            //   : []
+          } //选中的子节点
+          onSelect={onSelect}
+          onOpenChange={onOpenChange}
+          style={{ maxWidth: 220, height: "100%" }}
+          onCollapseChange={(open: boolean) => {
+            setMenuState(open ? "mini" : "show");
+          }}
+        >
+          <Nav.Footer collapseButton={true} />
+        </Nav>
+      </Sider>
+    </>
   ) : (
     <></>
   );

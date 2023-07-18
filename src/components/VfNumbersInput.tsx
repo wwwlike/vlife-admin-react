@@ -23,6 +23,8 @@ export default ({ value, onDataChange }: VfNumbersInputProps) => {
         onClear={() => {
           setBegin(undefined);
         }}
+        formatter={(value) => ` ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+        parser={(value) => value.replace(/\￥\s?|(,*)/g, "")}
         value={begin}
         onNumberChange={(v) => {
           setBegin(v);
@@ -35,8 +37,9 @@ export default ({ value, onDataChange }: VfNumbersInputProps) => {
           setEnd(undefined);
         }}
         value={end}
+        formatter={(value) => ` ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+        parser={(value) => value.replace(/\￥\s?|(,*)/g, "")}
         onNumberChange={(v) => {
-          console.log(v);
           setEnd(v);
         }}
       />

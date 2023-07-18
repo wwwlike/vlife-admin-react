@@ -43,6 +43,7 @@ export interface TablePageProps<T extends IdBean> {
   onSelected: (selecteds: T[]) => void; //选中回调
   onGetData: (datas: T[]) => void; //列表数据加载完成事件,把数据传出去
   onFormModel: (formVo: FormVo) => void; //请求到模型信息，数据传出
+  width?: number; //列表宽度
   onHttpError: (error: {
     code: number;
     msg: string;

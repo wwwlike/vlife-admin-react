@@ -44,13 +44,16 @@ export interface FormField extends DbEntity {
   vlife_pattern: string; //正则校验
   vlife_message: string; //校验不通过提醒
   listShow: boolean; //列表展示
-  componentSettingJson: string;
+  componentSettingJson: string; //组件设置的JSON信息
   hideLabel:boolean;//隐藏标签
   validate_unique:boolean;//表内唯一
   create_hide:boolean;//新增时隐藏
   modify_read:boolean;//修改时只读
   divider:boolean;//该列之前加入分割线
   dividerLabel:string;//分割线标题
+  listWidth:number;//列宽
+  listFixed:boolean;//是否固定
+  money:boolean;//是否金额
 }
 
 // 字段dto
@@ -80,6 +83,9 @@ export interface FormFieldDto extends FormField {
   reactions: FormReactionVo[]; //字段的查询条件
   loadDatas: loadData; // 异步加载数据的相关属性注入(待干掉)
   pageComponentPropDtos?: Partial<PageComponentPropDto>[];
+  listWidth:number;//列宽
+  listFixed:boolean;//是否固定
+  money:boolean;//是否金额
 }
 
 /**
